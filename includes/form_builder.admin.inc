@@ -1,0 +1,550 @@
+<?php
+// $Id$
+
+/**
+ * @file form_builder.admin.inc
+ * Administrative interface for editing forms.
+ */
+
+define('FORM_BUILDER_ROOT', 0);
+
+/**
+ * Main form building interface. Can be used as a menu callback.
+ *
+ * @param $form_type
+ *   The type of form being edited. Usually the name of the providing module.
+ * @param $form_id
+ *   The unique identifier for the form being edited with the type.
+ */
+function form_builder_interface($form_type, $form_id) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+
+  // Set the current form type (used for display of the sidebar block).
+  form_builder_active_form($form_type, $form_id);
+
+  // Load the current state of the form, or create a new cache if needed.
+  $form = form_builder_cache_load($form_type, $form_id);
+  if (!$form) {
+    $form = form_builder_load($form_type, $form_id);
+    form_builder_cache_save($form_type, $form_id, $form);
+  }
+
+  $output = '';
+  $output .= drupal_get_form('form_builder_preview', $form, $form_type, $form_id);
+  $output .= drupal_get_form('form_builder_positions', $form, $form_type, $form_id);
+
+  return $output;
+}
+
+/**
+ * Menu callback for adding a field.
+ */
+function form_builder_add_page($form_type, $form_id, $field_type) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+
+  $fields = form_builder_get_form_type($form_type);
+  if (isset($fields[$field_type])) {
+    $cache = form_builder_cache_load($form_type, $form_id);
+    $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
+    $element = $fields[$field_type]['default'];
+    $element['#builder_element_id'] = $element_id;
+    $element['#builder_parent_id'] = FORM_BUILDER_ROOT;
+    $element['#key'] = $element_id;
+    $element['#weight'] = count(element_children($cache));
+    $element['#builder_new_element'] = TRUE;
+    form_builder_cache_field_save($form_type, $form_id, $element);
+
+    if (isset($_REQUEST['js'])) {
+      $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+      $preview_form = form_builder_cache_load($form_type, $form_id);
+
+      $data = array(
+        'formType' => $form_type,
+        'formId' => $form_id,
+        'elementId' => $element_id,
+        'html' => form_builder_field_render($form_type, $form_id, $element_id),
+        'positionForm' => drupal_get_form('form_builder_positions', $preview_form, $form_type, $form_id),
+        //'messages' => theme('status_messages'),
+      );
+
+      drupal_json($data);
+      exit();
+    }
+  }
+
+  // Otherwise return to the previous page.
+  drupal_goto();
+}
+
+/**
+ * Menu callback for configuring a field.
+ */
+function form_builder_configure_page($form_type, $form_id, $element_id) {
+  $output = drupal_get_form('form_builder_field_configure', $form_type, $form_id, $element_id);
+
+  if (isset($_REQUEST['js']) && !isset($_REQUEST['return'])) {
+    // This after build function immediately returns the form as JSON.
+    $data = array(
+      'formType' => $form_type,
+      'formId' => $form_id,
+      'elementId' => $element_id,
+      'html' => $output,
+      //'messages' => theme('status_messages'),
+    );
+
+    drupal_json($data);
+    exit();
+  }
+
+  return $output;
+}
+
+/**
+ * Menu callback for removing a field.
+ */
+function form_builder_remove_page($form_type, $form_id, $element_id) {
+  $output = drupal_get_form('form_builder_field_remove', $form_type, $form_id, $element_id);
+
+  if (isset($_REQUEST['js']) && !isset($_REQUEST['return'])) {
+    // This after build function immediately returns the form as JSON.
+    $data = array(
+      'formType' => $form_type,
+      'formId' => $form_id,
+      'elementId' => $element_id,
+      'html' => $output,
+      //'messages' => theme('status_messages'),
+    );
+
+    drupal_json($data);
+    exit();
+  }
+
+  return $output;
+}
+
+/**
+ * Form. Given a form array, present it for editing in a preview.
+ */
+function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
+
+  // Make modifications to all form elements recursively.
+  form_builder_preview_prepare($form, $form_type, $form_id);
+
+  // Add a pre_render to the entire form itself.
+  $form['#pre_render'][] = 'form_builder_pre_render_form';
+
+  return $form;
+}
+
+/**
+ * Form containing all the current weights and parents of elements.
+ */
+function form_builder_positions(&$form_state, $preview_form, $form_type, $form_id) {
+  $form = array(
+    '#tree' => TRUE,
+    '#builder_form_type' => $form_type,
+    '#builder_form_id' => $form_id,
+    '#builder_form' => $preview_form,
+  );
+
+  // Because this form is updated via AJAX on the calling page, we need to
+  // manually set the action to be the same as the original page. We assume
+  // that the destination and the calling page are the same.
+  if (isset($_GET['destination'])) {
+    $form['#action'] = url($_GET['destination']);
+  }
+
+  form_builder_positions_prepare($form, $preview_form);
+
+  // Drupal MUST have a button to register submissions.
+  // Add a button even though the form is only submitted via AJAX.
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+  );
+
+  return $form;
+}
+
+function form_builder_positions_prepare(&$form, &$preview_form, $parent_id = FORM_BUILDER_ROOT) {
+  foreach (element_children($preview_form) as $key) {
+    // Keep record of the current parent ID.
+    $previous_parent_id = $parent_id;
+
+    if (isset($preview_form[$key]['#builder_element_id'])) {
+      // Set the parent ID for this element.
+      $preview_form[$key]['#builder_parent_id'] = $parent_id;
+      $element_id = $preview_form[$key]['#builder_element_id'];
+      $parent_id = $element_id;
+
+      $form[$element_id]['weight'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $preview_form[$key]['#weight'],
+        '#attributes' => array('class' => 'form-builder-weight form-builder-element-' . $element_id),
+      );
+      $form[$element_id]['parent'] = array(
+        '#type' => 'hidden',
+        '#default_value' => $preview_form[$key]['#builder_parent_id'],
+        '#attributes' => array('class' => 'form-builder-parent form-builder-element-' . $element_id),
+      );
+    }
+
+    form_builder_positions_prepare($form, $preview_form[$key], $parent_id);
+    $parent_id = $previous_parent_id;
+  }
+}
+
+/**
+ * Submit handler for the form_builder_positions form.
+ */
+function form_builder_positions_submit(&$form, &$form_state) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+
+  $form_type = $form['#builder_form_type'];
+  $form_id = $form['#builder_form_id'];
+  $preview_form = $form['#builder_form'];
+
+  foreach (element_children($form) as $element_id) {
+    // Skip items without weight value (like the form token, build_id, etc).
+    if (!isset($form[$element_id]['weight'])) {
+      continue;
+    }
+
+    // Check for changed weights or parents.
+    $element = form_builder_get_element($preview_form, $element_id);
+    $element['#weight'] = $form_state['values'][$element_id]['weight'];
+    $element['#builder_parent_id'] = $form_state['values'][$element_id]['parent'];
+    form_builder_set_element($preview_form, $element);
+  }
+
+  // Save all the changes made.
+  form_builder_cache_save($form_type, $form_id, $preview_form);
+}
+
+function theme_form_builder_preview($form) {
+  jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
+  drupal_add_js('misc/jquery.form.js');
+  drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
+  // TODO: This JS file should be loaded dynamically as needed.
+  drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
+  drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
+  drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
+
+  $output = '';
+  $output .= '<div id="form-builder">';
+  $output .= drupal_render($form);
+  $output .= '</div>';
+
+  return $output;
+}
+
+function theme_form_builder_element_prefix($element) {
+  $output = '';
+  $output .= '<div class="form-builder-wrapper">';
+  $output .= '<div class="form-builder-title-bar">';
+  $output .= '<span class="form-builder-links">';
+  $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#builder_type'] . '/' . $element['#builder_form_id'] . '/' . $element['#builder_element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
+  $output .= ' ';
+  $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#builder_type'] . '/' . $element['#builder_form_id'] . '/' . $element['#builder_element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
+  $output .= '</span>';
+  $output .= '</div>';
+  $output .= '<div class="form-builder-element" id="form-builder-element-' . $element['#builder_element_id'] . '">';
+  // TODO: Overlay image: good idea or bad idea? Prevents any interaction with
+  // form elements in the preview.
+  //$output .= theme('image', drupal_get_path('module', 'form_builder') .'/images/blank.gif', '', '', array('width' => '1', 'height' => '1', 'class' => 'form-builder-disable'));
+  return $output;
+}
+
+function theme_form_builder_element_suffix($element) {
+  return '</div></div>';
+}
+
+/**
+ * Placeholder for empty fieldsets during drag and drop.
+ */
+function theme_form_builder_empty_fieldset() {
+  $output = '';
+  $output .= '<div class="form-builder-wrapper form-builder-empty-placeholder">';
+  $output .= t('This fieldset is empty. Drag a form element into it.');
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Block for adding new fields.
+ */
+function theme_form_builder_add_field_block($fields, $form_type, $form_id) {
+  $list = array();
+  foreach ($fields as $field_name => $field) {
+    $list[] = array(
+      'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
+      'class' => 'field-' . $field_name,
+    );
+  }
+  return theme('item_list', $list, NULL, 'ul', array('class' => 'form-builder-fields'));
+}
+
+/**
+ * Take a form structure and add a prebuild function to every element.
+ */
+function form_builder_pre_render($element) {
+  $element['#prefix'] = isset($element['#prefix']) ? theme('form_builder_element_prefix', $element) . $element['#prefix'] : theme('form_builder_element_prefix', $element);
+  $element['#suffix'] = isset($element['#suffix']) ? $element['#suffix'] . theme('form_builder_element_suffix', $element) : theme('form_builder_element_suffix', $element);
+
+  if ($element['#type'] == 'fieldset' && count(element_children($element)) == 0) {
+    $element['#children'] = theme('form_builder_empty_fieldset');
+  }
+
+  return $element;
+}
+
+/**
+ * Change the type of the entire form to "markup" before rendering.
+ */
+function form_builder_pre_render_form($form) {
+  // We can't have forms inside of forms, so change this entire form a markup.
+  $form['#type'] = 'markup';
+
+  // Remove unnecessary FAPI elements.
+  unset($form['form_build_id']);
+  unset($form['form_token']);
+  unset($form['form_builder_preview']);
+
+  return $form;
+}
+
+function form_builder_after_build($element) {
+  $element['#attributes']['readonly'] = 'readonly';
+  foreach (element_children($element) as $key) {
+    $element[$key] = form_builder_after_build($element[$key]);
+  }
+
+  return $element;
+}
+
+/**
+ * Before editing a form, modify it slightly to add functionality used in
+ * the preview and disable use of the actual form fields in any way.
+ */
+function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id = FORM_BUILDER_ROOT) {
+  foreach (element_children($form) as $key) {
+    // Keep record of the current parent ID.
+    $previous_parent_id = $parent_id;
+
+    if (isset($form[$key]['#builder_element_id'])) {
+      $form[$key]['#pre_render'][] = 'form_builder_pre_render';
+      $form[$key]['#builder_type'] = $form_type;
+      $form[$key]['#builder_form_id'] = $form_id;
+      $form[$key]['#builder_parent_id'] = $parent_id;
+      $parent_id = $form[$key]['#builder_element_id'];
+
+      // Allow modules to make modifications to this element.
+      drupal_alter('form_builder_preview', $form[$key], $form_type, $form_id);
+
+    }
+
+    // Search within this element for further form elements.
+    form_builder_preview_prepare($form[$key], $form_type, $form_id, $parent_id);
+    $parent_id = $previous_parent_id;
+  }
+}
+
+/**
+ * Form for editing a field.
+ */
+function form_builder_field_configure($form_state, $form_type, $form_id, $element_id) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+
+  // Assemble a form made up of all the editable properties that this type
+  // of form supports.
+  $form = array();
+  foreach (form_builder_get_element_properties($form_type, $element['#type']) as $property => $property_settings) {
+    if (isset($property_settings['form']) && function_exists($property_settings['form'])) {
+      $function = $property_settings['form'];
+      // Set a default value on the property to avoid notices.
+      $element['#' . $property] = isset($element['#' . $property]) ? $element['#' . $property] : NULL;
+      $form = array_merge($form, $function($form_state, $form_type, $element));
+    }
+  }
+
+  $form['#form_type'] = $form_type;
+  $form['#form_id'] = $form_id;
+  $form['#element_id'] = $element_id;
+  $form['#element'] = $element;
+
+  $form['form_builder_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save configuration'),
+    '#access' => !isset($_REQUEST['js']),
+    '#weight' => 100,
+  );
+
+  return $form;
+}
+
+/**
+ * Theme function for the display of field configuration.
+ */
+function theme_form_builder_field_configure($form) {
+  // Group the properties into separate fieldsets (converted to tabs later).
+
+  $groups = module_invoke_all('form_builder_groups');
+
+  foreach (element_children($form) as $key) {
+    if (!isset($form[$key]['#builder_group']) || !isset($groups[$form[$key]['#builder_group']])) {
+      $form[$key]['#builder_group'] = 'default';
+    }
+
+    $group = $form[$key]['#builder_group'];
+    // We add "_group" to the field key to prevent conflicts of property names
+    // and group names.
+    if (!isset($form[$group . '_group'])) {
+      $form[$group . '_group'] = array(
+        '#type' => 'fieldset',
+        '#title' => $groups[$group]['title'],
+        '#weight' => $groups[$group]['weight'],
+        '#collapsible' => isset($groups[$group]['collapsible']) ? $groups[$group]['collapsible'] : FALSE,
+        '#collapsed' => isset($groups[$group]['collapsed']) ? $groups[$group]['collapsed'] : FALSE,
+        '#attributes' => array('class' => 'form-builder-group'),
+      );
+    }
+
+    $form[$group .'_group'][$key] = $form[$key];
+    unset($form[$key]);
+  }
+
+  return drupal_render($form);
+}
+
+function form_builder_field_configure_submit(&$form, &$form_state) {
+  $form_type = $form['#form_type'];
+  $form_id = $form['#form_id'];
+  $element_id = $form['#element_id'];
+  $element = $form['#element'];
+
+  // Allow each element to do any necessary submission handling.
+  foreach (form_builder_get_element_properties($form_type, $element['#type']) as $property => $property_settings) {
+    if (isset($property_settings['submit'])) {
+      foreach ($property_settings['submit'] as $function) {
+        if (function_exists($function)) {
+          $function($form, $form_state);
+        }
+      }
+    }
+  }
+
+  // Allow the element to be updated in a hard-coded fashion by altering the
+  // $form['#element'] item. Using this approach skips the property check.
+  $element = $form['#element'];
+
+  // Update the field according to the settings in $form_state['values'].
+  $saveable = form_builder_get_saveable_properties($form_type, $element);
+  foreach ($form_state['values'] as $property => $value) {
+    if (in_array($property, $saveable)) {
+      // Remove empty properties entirely.
+      if ($value == '') {
+        unset($element['#'. $property]);
+      }
+      else {
+        $element['#'. $property] = $value;
+      }
+    }
+  }
+
+  // Update the form builder cache.
+  form_builder_cache_field_save($form_type, $form_id, $element);
+
+  if (isset($_GET['js'])) {
+    // The destination variable takes precedence over $form_state['redirect'].
+    $_REQUEST['destination'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+  }
+}
+
+/**
+ * Form for removing a field.
+ */
+function form_builder_field_remove($form_state, $form_type, $form_id, $element_id) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+
+  $form = array();
+  $form['#form_type'] = $form_type;
+  $form['#form_id'] = $form_id;
+  $form['#element_id'] = $element_id;
+
+  $quesion = t('Remove the field %title?', array('%title' => $element['#title']));
+  $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
+  $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => $element['#title']));
+  $yes = t('Remove');
+
+  return confirm_form($form, $quesion, $path, $description, $yes);
+}
+
+function form_builder_field_remove_submit(&$form, &$form_state) {
+  $form_type = $form['#form_type'];
+  $form_id = $form['#form_id'];
+  $element_id = $form['#element_id'];
+
+  // Update the form builder cache.
+  form_builder_cache_field_delete($form_type, $form_id, $element_id);
+
+  if (isset($_GET['js'])) {
+    $form_state['redirect'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+  }
+}
+
+/**
+ * Render a single field independent of other settings.
+ */
+function form_builder_field_render($form_type, $form_id, $element_id, $wrapper = FALSE) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+
+  // Load the current state of the form and prepare it for rendering.
+  $form = form_builder_cache_load($form_type, $form_id);
+  $form_state = array('submitted' => FALSE);
+  $form = drupal_retrieve_form('form_builder_preview', $form_state, $form, $form_type, $form_id);
+  drupal_prepare_form('form_builder_preview', $form, $form_state);
+  $form['#post'] = array();
+  $form = form_builder('form_builder_preview', $form, $form_state);
+
+  // Get only the element want and render it.
+  $element = form_builder_get_element($form, $element_id);
+  $content = drupal_render($element);
+
+  $prefix = isset($element['#prefix']) ? $element['#prefix'] : '';
+  $suffix = isset($element['#suffix']) ? $element['#suffix'] : '';
+
+  if ($wrapper) {
+    $prefix .= theme('form_builder_element_prefix', $element);
+    $suffix .= theme('form_builder_element_suffix', $element);
+  }
+
+  return $suffix . $content . $suffix;
+}
+
+/**
+ * Menu callback to display a field as a JSON string.
+ */
+function form_builder_field_json($form_type, $form_id, $element_id) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+
+  $data = array(
+    'formType' => $form_type,
+    'formId' => $form_id,
+    'elementId' => $element_id,
+    'html' => form_builder_field_render($form_type, $form_id, $element_id),
+    //'messages' => theme('status_messages'),
+  );
+
+  drupal_json($data);
+  exit();
+}

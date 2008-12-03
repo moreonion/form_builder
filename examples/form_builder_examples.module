@@ -1,0 +1,100 @@
+<?php
+// $Id$
+
+/**
+ * @file form_builder_examples.module
+ * Sample implementations of form_builder.
+ */
+
+function form_builder_examples_init() {
+  form_builder_examples_includes();
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function form_builder_examples_menu_alter($items) {
+  foreach (form_builder_examples_includes() as $include) {
+    $menu_function = 'form_builder_'. $include .'_menu';
+    if (function_exists($menu_function)) {
+      $include_items = $menu_function();
+      foreach ($include_items as $path => $item) {
+        $items[$path] = $item;
+      }
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Retrieve the list of available includes.
+ */
+function form_builder_examples_includes() {
+  static $names;
+
+  if (!isset($names)) {
+    $includes = file_scan_directory(drupal_get_path('module', 'form_builder_examples'), '.inc$');
+    $names = array();
+    foreach ($includes as $include) {
+      if (module_exists($include->name)) {
+        include ($include->filename);
+        $names[] = $include->name;
+      }
+    }
+  }
+
+  return $names;
+}
+
+/**
+ * A sample form array for testings.
+ */
+function form_builder_examples_example() {
+  $form = array(
+    'sample_textfield' => array(
+      '#builder_element_id' => 'sample_textfield',
+      '#type' => 'textfield',
+      '#title' => 'Sample textfield',
+      '#default_value' => 'a sample value',
+      '#field_prefix' => 'Prefix: ',
+      '#field_suffix' => ' :Suffix',
+      '#size' => 20,
+      '#weight' => 0,
+    ),
+    'sample_checkboxes' => array(
+      '#builder_element_id' => 'sample_checkboxes',
+      '#type' => 'checkboxes',
+      '#title' => 'Sample checkboxes',
+      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
+      '#default_value' => array('two'),
+      '#weight' => 1,
+      '#multiple' => 1,
+    ),
+    'sample_textarea' => array(
+      '#builder_element_id' => 'sample_textarea',
+      '#type' => 'textarea',
+      '#title' => 'Sample textarea',
+      '#default_value' => 'Text area sample value',
+      '#weight' => 2,
+    ),
+    'sample_radios' => array(
+      '#builder_element_id' => 'sample_radios',
+      '#type' => 'radios',
+      '#title' => 'Sample radios',
+      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
+      '#default_value' => 'two',
+      '#weight' => 3,
+    ),
+    'sample_select' => array(
+      '#builder_element_id' => 'sample_select',
+      '#type' => 'select',
+      '#title' => 'Sample select',
+      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
+      '#default_value' => 'two',
+      '#weight' => 4,
+    ),
+  );
+
+  return $form;
+}
