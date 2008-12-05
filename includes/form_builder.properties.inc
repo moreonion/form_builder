@@ -106,6 +106,11 @@ function form_builder_property_required_form(&$form_state, $form_type, $element)
 function form_builder_property_options_form(&$form_state, $form_type, $element) {
   $form = array();
 
+  // Checkboxes have an implied "multiple" property.
+  if ($element['#type'] == 'checkboxes') {
+    $element['#multiple'] = TRUE;
+  }
+
   $form['options'] = array(
     '#builder_group' => 'options',
     '#title' => t('Options'),
@@ -113,6 +118,8 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
     '#default_value' => $element['#default_value'],
     '#options' => $element['#options'],
     '#required' => TRUE,
+    '#multiple' => isset($element['#multiple']) ? $element['#multiple'] : FALSE,
+    '#optgroups' => $element['#type'] == 'select' ? TRUE : FALSE,
   );
 
   // Remove the default value field, since it's handled by the options field.

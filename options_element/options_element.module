@@ -16,8 +16,6 @@ function options_element_elements() {
     '#input' => TRUE,
     '#process' => array('form_options_expand'),
 
-    // The number of starting fields if empty.
-    '#size' => 5,
     // Maxiumum number of values for this option list.
     '#limit' => 100,
     // Allow optgroups in this element? Set to FALSE for radios and checkboxes.
@@ -58,17 +56,20 @@ function options_element_theme() {
  */
 function form_options_expand($element) {
   $element['#options'] = isset($element['#options']) ? $element['#options'] : array();
+  $element['#multiple'] = isset($element['#multiple']) ? $element['#multiple'] : FALSE;
 
+  drupal_add_js('misc/tabledrag.js');
   drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
+  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
 
   $element['#tree'] = TRUE;
 
   if (!isset($element['options'])) {
     $element['options_field'] = array(
       '#type' => 'textarea',
-      '#resizable' => FALSE,
+      '#resizable' => TRUE,
       '#cols' => 60,
-      '#rows' => 10,
+      '#rows' => 5,
       '#value' => isset($element['#options']) ? form_options_to_text($element['#options'], $element['#key_type']) : '',
       '#required' => isset($element['#required']) ? $element['#required'] : FALSE,
     );
@@ -79,7 +80,7 @@ function form_options_expand($element) {
       '#title' => t('Default value'),
       '#type' => 'textfield',
       '#size' => 60,
-      '#value' => isset($element['#default_value']) ? $element['#default_value'] : '',
+      '#value' => isset($element['#default_value']) ? ($element['#multiple'] ? implode(', ', $element['#default_value']) : $element['#default_value']) : '',
     );
   }
 
@@ -111,7 +112,25 @@ function form_type_options_value($element, $edit = FALSE) {
 }
 
 function theme_options($element) {
+  $classes = array();
+
+  if (isset($element['#attributes']['class'])) {
+    $classes[] = $element['#attributes']['class'];
+  }
+
+  $classes[] = 'form-options';
+  $classes[] = 'options-key-type-'. $element['#key_type'];
+
+  if (isset($element['#optgroups']) && $element['#optgroups']) {
+    $classes[] = 'options-optgroups';
+  }
+
+  if (isset($element['#multiple']) && $element['#multiple']) {
+    $classes[] = 'options-multiple';
+  }
+
   $element['#collapsible'] = FALSE;
+  $element['#attributes']['class'] = implode(' ', $classes);
   unset($element['#value']);
   return theme('fieldset', $element);
 }

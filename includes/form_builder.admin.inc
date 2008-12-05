@@ -230,8 +230,10 @@ function theme_form_builder_preview($form) {
   drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
   // TODO: This JS file should be loaded dynamically as needed.
   drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
+  drupal_add_js('misc/tabledrag.js');
   drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
   drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
+  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
 
   $output = '';
   $output .= '<div id="form-builder">';
@@ -294,7 +296,7 @@ function form_builder_pre_render($element) {
   $element['#prefix'] = isset($element['#prefix']) ? theme('form_builder_element_prefix', $element) . $element['#prefix'] : theme('form_builder_element_prefix', $element);
   $element['#suffix'] = isset($element['#suffix']) ? $element['#suffix'] . theme('form_builder_element_suffix', $element) : theme('form_builder_element_suffix', $element);
 
-  if ($element['#type'] == 'fieldset' && count(element_children($element)) == 0) {
+  if (isset($element['#type']) && $element['#type'] == 'fieldset' && count(element_children($element)) == 0) {
     $element['#children'] = theme('form_builder_empty_fieldset');
   }
 

@@ -89,6 +89,7 @@ Drupal.behaviors.formBuilderTabs = function(context) {
       $fieldsets.eq(index).css('display', 'block');
       $tabs.find('li.active').removeClass('active').unbind('click', Drupal.formBuilder.clickCancel);
       $(this).addClass('active').click(Drupal.formBuilder.clickCancel);
+      Drupal.formBuilder.fixTableDragTabs($fieldsets.eq(index).get(0));
     });
   });
 
@@ -567,3 +568,23 @@ Drupal.formBuilder.closeActive = function(callback) {
 
   return false;
 };
+
+/**
+ * Work around for tabledrags within tabs. On load, if the tab was hidden the
+ * offsets cannot be calculated correctly. Recalculate and update the tableDrag.
+ */
+Drupal.formBuilder.fixTableDragTabs = function(context) {
+  if (Drupal.tableDrag && Drupal.tableDrag.length > 1) {
+    for (var n in Drupal.tableDrag) {
+      if (typeof(Drupal.tableDrag[n]) == 'object') {
+        var table = $('#' + n, context).get(0);
+        if (table) {
+          var indent = Drupal.theme('tableDragIndentation');
+          var testCell = $('tr.draggable:first td:first', table).prepend(indent).prepend(indent);
+          Drupal.tableDrag[n].indentAmount = $('.indentation', testCell).get(1).offsetLeft - $('.indentation', testCell).get(0).offsetLeft;
+          $('.indentation', testCell).slice(0, 2).remove();
+        }
+      }
+    }
+  }
+}
