@@ -1,0 +1,14 @@
+/* $Id$ */
+
+input.form-options-value {
+  width: 80%;
+}
+
+div.form-options-manual {
+  text-align: right; /* LTR */
+}
+
+div.options-widget table,
+div.options-widget tbody {
+  border: none;
+}
