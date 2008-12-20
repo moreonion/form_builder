@@ -33,19 +33,19 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     $types = module_invoke_all('form_builder_types');
 
     // Add default values for undefined properties.
-    foreach ($types as $type_key => $type) {
-      foreach ($type as $field_key => $field) {
+    foreach ($types as $type_key => &$type) {
+      foreach ($type as $field_key => &$field) {
         // All fields must support key and weight.
-        if (!in_array('weight', $types[$type_key][$field_key]['properties'])) {
-          $types[$type_key][$field_key]['properties'][] = 'weight';
+        if (!in_array('weight', $field['properties'])) {
+          $field['properties'][] = 'weight';
         }
         if (!in_array('key', $types[$type_key][$field_key]['properties'])) {
-          $types[$type_key][$field_key]['properties'][] = 'key';
+          $field['properties'][] = 'key';
         }
 
-        $types[$type_key][$field_key]['unique'] = isset($field['unique']) && $field['unique'];
-        $types[$type_key][$field_key]['default']['#form_builder']['configurable'] = !empty($field['default']['#form_builder']['configurable']);
-        $types[$type_key][$field_key]['default']['#form_builder']['removable'] = !empty($field['default']['#form_builder']['removable']);
+        $field['unique'] = isset($field['unique']) && $field['unique'];
+        $field['default']['#form_builder']['configurable'] = isset($field['default']['#form_builder']['configurable']) ? $field['default']['#form_builder']['configurable'] : TRUE;
+        $field['default']['#form_builder']['removable'] = isset($field['default']['#form_builder']['removable']) ? $field['default']['#form_builder']['removable'] : TRUE;
       }
     }
 

@@ -150,10 +150,6 @@ function form_builder_examples_form_builder_types() {
       'collapsed',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New fieldset'),
       '#type' => 'fieldset',
       '#collapsible' => TRUE,
@@ -177,10 +173,6 @@ function form_builder_examples_form_builder_types() {
       'number',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#key' => 'number',
       '#title' => t('New number'),
       '#type' => 'textfield',
@@ -199,10 +191,6 @@ function form_builder_examples_form_builder_types() {
       'multiple',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New select list'),
       '#type' => 'select',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
@@ -221,10 +209,6 @@ function form_builder_examples_form_builder_types() {
       'required',
      ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New checkbox'),
       '#type' => 'checkbox',
     ),
@@ -242,10 +226,6 @@ function form_builder_examples_form_builder_types() {
       'multiple',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New checkboxes'),
       '#type' => 'checkboxes',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
@@ -262,10 +242,6 @@ function form_builder_examples_form_builder_types() {
       'options',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New radios'),
       '#type' => 'radios',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
@@ -284,10 +260,6 @@ function form_builder_examples_form_builder_types() {
       'size',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New textfield'),
       '#type' => 'textfield',
     ),
@@ -305,10 +277,6 @@ function form_builder_examples_form_builder_types() {
       'input_format',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New textarea'),
       '#type' => 'textarea',
     ),
@@ -325,10 +293,6 @@ function form_builder_examples_form_builder_types() {
       'file_size_validate',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New file'),
       '#type' => 'file',
       '#size' => 30,
@@ -348,10 +312,6 @@ function form_builder_examples_form_builder_types() {
       'file_image_size',
     ),
     'default' => array(
-      '#form_builder' => array(
-        'configurable' => TRUE,
-        'removable' => TRUE,
-      ),
       '#title' => t('New image'),
       '#type' => 'file',
       '#size' => 30,

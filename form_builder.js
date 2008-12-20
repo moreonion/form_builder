@@ -54,13 +54,18 @@ Drupal.behaviors.formBuilder = function(context) {
     scroll: true,
     scrollSensitivity: 50,
     distance: 4, // Pixels before dragging starts.
-    //revert: true, // Adds smooth dropping animation.
     appendTo: 'body',
+    helper: createHelper,
+    //accept: Drupal.formBuilder.acceptDrag,
     sort: Drupal.formBuilder.elementIndent, // Called on drag.
     start: Drupal.formBuilder.startDrag,
     stop: Drupal.formBuilder.stopDrag,
     change: Drupal.formBuilder.checkFieldsets
   });
+
+  function createHelper(e, $el) {
+    return $el.clone().get(0);
+  }
 };
 
 Drupal.behaviors.formBuilderTabs = function(context) {
@@ -161,7 +166,7 @@ Drupal.behaviors.formBuilderNewField = function(context) {
     // Allow items to be copied from the list of new fields.
     $list.children('li:not(.ui-draggable)').draggable({
       opacity: 0.8,
-      helper: createHelper,
+      helper: 'clone',
       scroll: true,
       scrollSensitivity: 50,
       containment: 'body',
@@ -169,10 +174,6 @@ Drupal.behaviors.formBuilderNewField = function(context) {
       start: Drupal.formBuilder.startPaletteDrag,
       stop: Drupal.formBuilder.stopPaletteDrag,
     });
-  }
-
-  function createHelper(e) {
-    return $(this).clone().get(0);
   }
 }
 
@@ -416,6 +417,15 @@ Drupal.formBuilder.updateElementPosition = function(element) {
 }
 
 /**
+ * Called when a field is hovering over a potential landing spot.
+ */
+Drupal.formBuilder.acceptDrag = function(e, ui) {
+  console.log(e);
+  console.log(this);
+  return true;
+}
+
+/**
  * Called when a field is about to be moved via Sortables.
  *
  * @param e
@@ -521,6 +531,7 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.elementIndent = function(e, ui) {
+  var placeholder = ui.placeholder.get(0);
   var helper = ui.helper.get(0);
   var item = ui.item.get(0);
 
@@ -529,11 +540,11 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
     return;
   }
 
-  // Turn on the real item (which is in the final location) to take some stats.
-  $(item).css('visibility', 'visible');
-  var difference = $(helper).width() - $(item).width();
-  var offset = $(item).offset().left;
-  $(item).css('visibility', 'hidden');
+  // Turn on the placeholder item (which is in the final location) to take some stats.
+  $(placeholder).css('visibility', 'visible');
+  var difference = $(helper).width() - $(placeholder).width();
+  var offset = $(placeholder).offset().left;
+  $(placeholder).css('visibility', 'hidden');
 
   // Adjust the helper to match the location and width of the real item.
   var newWidth = $(helper).width() - difference;
