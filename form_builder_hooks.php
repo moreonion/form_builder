@@ -14,7 +14,7 @@
 /**
  * Define the fields and properties supported by a form type.
  *
- * All modules that wish to create an editable form need implement this hook. It
+ * All modules that wish to create an configurable form need implement this hook. It
  * defines to Form Builder what types of fields the implementing module knows
  * how to modify. Within each field that is modifiable, the properties that
  * may be changed are also listed.
@@ -25,7 +25,7 @@
  *   properties:
  *   - title: The name of the field type that is displayed in the new fields
  *     block.
- *   - properties: An array of properties that are editable. Configuration
+ *   - properties: An array of properties that are configurable. Configuration
  *     of these properties is defined by hook_form_builder_properties().
  *   - default: A complete sample form element that will be used when a new
  *     element of this type is added to the form. Further modification of this
@@ -71,13 +71,13 @@ function hook_form_builder_types() {
  * Defined globally available Form API properties.
  *
  * The hook_form_builder_properties() hook allows modules to define properties
- * that are editable within form elements. Properties defined by any module may be
+ * that are configurable within form elements. Properties defined by any module may be
  * used inside of any form element, so unique property names are advised.
  *
  * Typically, this hook only needs to implemented if your module also has an
  * implementation of hook_elements(). In which case you would implement
  * hook_form_builder_properties to inform Form Builder of the new properties
- * that are editable.
+ * that are configurable.
  *
  * @return
  *   An array of properties, each containing the name of a function for a form
@@ -152,11 +152,24 @@ function hook_form_builder_property_groups() {
  * dangerous markup from unfiltered properties, such as #description.
  * Properties like #title and #options are filtered by the Form API.
  */
-function hook_form_builder_preview_alter($element, $form_type, $form_id) {
+function hook_form_builder_preview_alter(&$element, $form_type, $form_id) {
   if ($form_type == 'node') {
     if (isset($element['#description'])) {
       $element['#description'] = filter_xss($element['#description']);
     }
+  }
+}
+
+/**
+ * Modify an individual element before it is added to a new form.
+ *
+ * This function may be helpful for setting a new element #key,
+ * #form_builder['element_id'], or adjusting access in the
+ * #form_builder['configurable'] and #form_builder['removable'] properties.
+ */
+function hook_form_builder_add_element_alter(&$element, $form_type, $form_id) {
+  if ($form_type == 'node') {
+    $element['#key'] = 'something';
   }
 }
 
@@ -181,12 +194,11 @@ function hook_form_builder_load($form_type, $form_id) {
     drupal_alter('form', $form, array(), $form_id);
 
     // Loop through the form and add #form_builder properties to each element
-    // that is editable.
+    // that is configurable.
     foreach (element_children($form) as $key) {
       $form[$key]['#form_builder'] = array(
-        'editable' => TRUE,
-        'deletable' => TRUE,
-        'orderable' => TRUE,
+        'configurable' => TRUE,
+        'removable' => TRUE,
         // If unique, when this element is deleted, a new one will appear in the
         // new field pallette.
         //'unique' => TRUE,

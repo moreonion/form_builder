@@ -40,27 +40,12 @@ div.form-builder-element {
   position: relative;
 }
 
-div.form-builder-element,
-div.form-builder-element input,
-div.form-builder-element textarea,
-div.form-builder-element label,
-div.form-builder-element .grippie {
+div.form-builder-clickable,
+div.form-builder-clickable input,
+div.form-builder-clickable textarea,
+div.form-builder-clickable label,
+div.form-builder-clickable .grippie {
   cursor: pointer;
-}
-
-div.form-builder-element form,
-div.form-builder-element form input,
-div.form-builder-element form textarea,
-div.form-builder-element form label {
-  cursor: auto;
-}
-
-div.form-builder-element form .grippie {
-  cursor: s-resize;
-}
-
-div.form-builder-element fieldset {
-  cursor: auto;
 }
 
 div.form-builder-element .form-builder-disable {

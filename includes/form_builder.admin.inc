@@ -49,11 +49,18 @@ function form_builder_add_page($form_type, $form_id, $field_type) {
     $cache = form_builder_cache_load($form_type, $form_id);
     $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
     $element = $fields[$field_type]['default'];
+    if ($element['unique']) {
+      $element_id = $field_type;
+    }
+
     $element['#form_builder']['element_id'] = $element_id;
     $element['#form_builder']['parent_id'] = FORM_BUILDER_ROOT;
     $element['#form_builder']['is_new'] = TRUE;
     $element['#key'] = $element_id;
     $element['#weight'] = count(element_children($cache));
+
+    drupal_alter('form_builder_add_element', $element, $form_type, $form_id);
+
     form_builder_cache_field_save($form_type, $form_id, $element);
 
     if (isset($_REQUEST['js'])) {
@@ -130,10 +137,14 @@ function form_builder_remove_page($form_type, $form_id, $element_id) {
 function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
 
   // Make modifications to all form elements recursively.
-  form_builder_preview_prepare($form, $form_type, $form_id);
+  $element_ids = form_builder_preview_prepare($form, $form_type, $form_id);
+
+  // Record all the element IDs within the entire form.
+  $form['#form_builder']['element_ids'] = $element_ids;
 
   // Add a pre_render to the entire form itself.
   $form['#pre_render'][] = 'form_builder_pre_render_form';
+  $form['#theme'] = 'form_builder_preview';
 
   return $form;
 }
@@ -246,14 +257,25 @@ function theme_form_builder_preview($form) {
 }
 
 function theme_form_builder_element_prefix($element) {
+  $removable = isset($element['#form_builder']['removable']) ? $element['#form_builder']['removable'] : TRUE;
+  $configurable  = isset($element['#form_builder']['configurable']) ? $element['#form_builder']['configurable'] : TRUE;
+
   $output = '';
   $output .= '<div class="form-builder-wrapper">';
   $output .= '<div class="form-builder-title-bar">';
-  $output .= '<span class="form-builder-links">';
-  $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
-  $output .= ' ';
-  $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
-  $output .= '</span>';
+  if ($removable || $configurable) {
+    $output .= '<span class="form-builder-links">';
+    if ($removable) {
+      $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
+    }
+    if ($removable && $configurable) {
+      $output .= ' ';
+    }
+    if ($configurable) {
+      $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
+    }
+    $output .= '</span>';
+  }
   $output .= '</div>';
   $output .= '<div class="form-builder-element" id="form-builder-element-' . $element['#form_builder']['element_id'] . '">';
   // TODO: Overlay image: good idea or bad idea? Prevents any interaction with
@@ -283,11 +305,27 @@ function theme_form_builder_empty_fieldset() {
 function theme_form_builder_add_field_block($fields, $form_type, $form_id) {
   $list = array();
   foreach ($fields as $field_name => $field) {
+    $class = array('field-' . $field_name);
+    $style = '';
+
+    // If a field is unique, add a special class to identify it.
+    if ($field['unique']) {
+      $class[] = 'form-builder-unique';
+      $class[] = 'form-builder-element-' . $field_name;
+
+      // If already in use, do not display it in the list.
+      if (!empty($field['in_use'])) {
+        $style = 'display: none;';
+      }
+    }
+
     $list[] = array(
       'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
-      'class' => 'field-' . $field_name,
+      'class' => implode(' ', $class),
+      'style' => $style,
     );
   }
+
   return theme('item_list', $list, NULL, 'ul', array('class' => 'form-builder-fields'));
 }
 
@@ -332,13 +370,18 @@ function form_builder_after_build($element) {
 /**
  * Before editing a form, modify it slightly to add functionality used in
  * the preview and disable use of the actual form fields in any way.
+ *
+ * @return
+ *   A list of all element_ids currently used within this form.
  */
 function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id = FORM_BUILDER_ROOT) {
+  $element_ids = array();
   foreach (element_children($form) as $key) {
     // Keep record of the current parent ID.
     $previous_parent_id = $parent_id;
 
     if (isset($form[$key]['#form_builder']['element_id'])) {
+      $element_ids[] = $form[$key]['#form_builder']['element_id'];
       $form[$key]['#pre_render'][] = 'form_builder_pre_render';
       $form[$key]['#form_builder']['form_type'] = $form_type;
       $form[$key]['#form_builder']['form_id'] = $form_id;
@@ -351,9 +394,12 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
     }
 
     // Search within this element for further form elements.
-    form_builder_preview_prepare($form[$key], $form_type, $form_id, $parent_id);
+    $additional_ids = form_builder_preview_prepare($form[$key], $form_type, $form_id, $parent_id);
+    $element_ids = array_merge($element_ids, $additional_ids);
     $parent_id = $previous_parent_id;
   }
+
+  return $element_ids;
 }
 
 /**
@@ -364,7 +410,7 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
   $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
 
-  // Assemble a form made up of all the editable properties that this type
+  // Assemble a form made up of all the configurable properties that this type
   // of form supports.
   $form = array();
   foreach (form_builder_get_element_properties($form_type, $element['#type']) as $property => $property_settings) {

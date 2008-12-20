@@ -32,11 +32,20 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     // Get the list of all properties for all elements.
     $types = module_invoke_all('form_builder_types');
 
-    // All fields must support key and weight.
+    // Add default values for undefined properties.
     foreach ($types as $type_key => $type) {
       foreach ($type as $field_key => $field) {
-        $types[$type_key][$field_key]['properties'][] = 'weight';
-        $types[$type_key][$field_key]['properties'][] = 'key';
+        // All fields must support key and weight.
+        if (!in_array('weight', $types[$type_key][$field_key]['properties'])) {
+          $types[$type_key][$field_key]['properties'][] = 'weight';
+        }
+        if (!in_array('key', $types[$type_key][$field_key]['properties'])) {
+          $types[$type_key][$field_key]['properties'][] = 'key';
+        }
+
+        $types[$type_key][$field_key]['unique'] = isset($field['unique']) && $field['unique'];
+        $types[$type_key][$field_key]['default']['#form_builder']['configurable'] = !empty($field['default']['#form_builder']['configurable']);
+        $types[$type_key][$field_key]['default']['#form_builder']['removable'] = !empty($field['default']['#form_builder']['removable']);
       }
     }
 
@@ -118,6 +127,8 @@ function form_builder_get_saveable_properties($form_type, $element) {
  *   "field_my_name". This field name must be added to the form array as a
  *   #form_builder['element_id'] in CCK's implementation of
  *   hook_form_builder_load().
+ * @return
+ *   A single Form API element array.
  */
 function form_builder_get_element(&$form, $element_id) {
   foreach (element_children($form) as $key) {
@@ -192,4 +203,20 @@ function form_builder_unset_element(&$form, $element_id) {
     }
     form_builder_unset_element($form[$key], $element_id);
   }
+}
+
+/**
+ * Recursive function to check if an element exists at all within a form.
+ */
+function form_builder_get_element_ids($form) {
+  $element_ids = array();
+  foreach (element_children($form) as $key) {
+    if (isset($form[$key]['#form_builder']['element_id'])) {
+      $element_ids[] = $form[$key]['#form_builder']['element_id'];
+    }
+    $additional_ids = form_builder_get_element_ids($form[$key]);
+    $element_ids = array_merge($element_ids, $additional_ids);
+  }
+
+  return $element_ids;
 }

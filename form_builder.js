@@ -23,16 +23,19 @@ Drupal.behaviors.formBuilderElement = function(context) {
   // Add AJAX to edit links.
   $wrappers.find('span.form-builder-links a.configure').click(Drupal.formBuilder.editField);
 
-  // Add AJAX to delete links.
+  // Add AJAX to remove links.
   $wrappers.find('span.form-builder-links a.remove').click(Drupal.formBuilder.editField);
 
   // Add AJAX to entire field for easy editing.
   $elements.each(function() {
     if ($(this).children('fieldset').size() == 0) {
-      $(this).click(Drupal.formBuilder.clickField);
+      var link = $(this).parents('div.form-builder-wrapper:first').find('a.configure').get(0);
+      if (link) {
+        $(this).click(Drupal.formBuilder.clickField).addClass('form-builder-clickable');
+        $(this).find('div.form-builder-element label').click(Drupal.formBuilder.clickField);
+      }
     }
   });
-  $elements.find('div.form-builder-element label').click(Drupal.formBuilder.clickField);
 
   // Disable field functionality on click.
   $elements.find('input, textarea').bind('mousedown', Drupal.formBuilder.disableField);
@@ -121,6 +124,11 @@ Drupal.behaviors.formBuilderBlockScroll = function(context) {
     var blockScrollStart = $block.offset().top;
 
     function blockScroll() {
+      // Do not move the palette while draggin a field.
+      if (Drupal.formBuilder.activeDragUi) {
+        return;
+      }
+
       var windowOffset = $(window).scrollTop();
       if (windowOffset - blockScrollStart > 0) {
         $block.animate({ top: (windowOffset - blockScrollStart + 20) + 'px' }, 'fast');
@@ -154,19 +162,17 @@ Drupal.behaviors.formBuilderNewField = function(context) {
     $list.children('li:not(.ui-draggable)').draggable({
       opacity: 0.8,
       helper: createHelper,
-      appendTo: 'body',
       scroll: true,
       scrollSensitivity: 50,
+      containment: 'body',
       connectToSortable: $('#form-builder'),
-      start: Drupal.formBuilder.startDrag,
+      start: Drupal.formBuilder.startPaletteDrag,
       stop: Drupal.formBuilder.stopPaletteDrag,
     });
   }
 
   function createHelper(e) {
-    var link = $(e.target).find('a').get(0) || $(e.target).get(0);
-
-    return $('<div class="form-builder-wrapper form-builder-hover form-builder-new-field">' + link.innerHTML + '</div>').get(0);
+    return $(this).clone().get(0);
   }
 }
 
@@ -268,6 +274,10 @@ Drupal.formBuilder.editField = function() {
  */
 Drupal.formBuilder.deleteField = function() {
   $(this).parents('div.form-builder-wrapper:first').animate({ height: 'hide', opacity: 'hide' }, 'normal', function() {
+    // If this is a unique field, show the field in the palette again.
+    var elementId = $(this).find('div.form-builder-element').attr('id');
+    $('ul.form-builder-fields').find('li.' + elementId).slideDown();
+    // Remove the field from the form.
     $(this).remove();
   });
 }
@@ -431,6 +441,11 @@ Drupal.formBuilder.stopDrag = function(e, ui){
   // If the element is a new field from the palette, update it with a real field.
   if ($(element).is('.ui-draggable')) {
     var name = 'new_' + new Date().getTime();
+    // If this is a "unique" element, its element ID is hard-coded.
+    if ($(element).is('.form-builder-unique')) {
+      name = element.className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
+    }
+
     var $ajaxPlaceholder = $('<div class="form-builder-wrapper form-builder-new-field"><div id="form-builder-element-' + name + '" class="form-builder-element"><span class="progress">' + Drupal.t('Please wait...') + '</span></div></div>');
 
     $.ajax({
@@ -451,6 +466,25 @@ Drupal.formBuilder.stopDrag = function(e, ui){
   }
 
   Drupal.formBuilder.activeDragUi = false;
+
+  // Scroll the palette into view.
+  $(window).scroll();
+}
+
+/**
+ * Called when a field is about to be moved from the new field palette.
+ *
+ * @param e
+ *   The event object containing status information about the event.
+ * @param ui
+ *   The jQuery Sortables object containing information about the sortable.
+ */
+Drupal.formBuilder.startPaletteDrag = function(e, ui) {
+  if ($(this).is('.form-builder-unique')) {
+    $(this).css('visibility', 'hidden');
+  }
+
+  Drupal.formBuilder.activeDragUi = ui;
 }
 
 /**
@@ -462,7 +496,18 @@ Drupal.formBuilder.stopDrag = function(e, ui){
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
-  Drupal.formBuilder.activeDragUi = false;
+  // If the activeDragUi is still set, we did not drop onto the form.
+  if (Drupal.formBuilder.activeDragUi) {
+    Drupal.formBuilder.activeDragUi = false;
+    $(this).css('visibility', '');
+    $(window).scroll();
+  }
+  // If dropped onto the form and a unique field, remove it from the palette.
+  else if ($(this).is('.form-builder-unique')){
+    $(this).animate({ height: '0' }, function() {
+      $(this).css({ visibility: '', height: '', display: 'none' });
+    });
+  }
 }
 
 /**
@@ -478,6 +523,11 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
 Drupal.formBuilder.elementIndent = function(e, ui) {
   var helper = ui.helper.get(0);
   var item = ui.item.get(0);
+
+  // Do not affect the elements being dragged from the pallette.
+  if ($(item).is('li')) {
+    return;
+  }
 
   // Turn on the real item (which is in the final location) to take some stats.
   $(item).css('visibility', 'visible');

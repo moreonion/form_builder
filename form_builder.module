@@ -16,8 +16,8 @@ function form_builder_menu() {
     'title' => 'Add field',
     'description' => 'Add a field to a form.',
     'page callback' => 'form_builder_add_page',
-    // TODO: Use permissions based on type of form with custom callback.
-    'access arguments' => array('access content'),
+    'access callback' => 'form_builder_field_access',
+    'access arguments' => array('add', 4, 5, 6),
     'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
   );
@@ -26,8 +26,8 @@ function form_builder_menu() {
     'title' => 'Configure field',
     'description' => 'Configure a field within a form.',
     'page callback' => 'form_builder_configure_page',
-    // TODO: Use permissions based on type of form with custom callback.
-    'access arguments' => array('access content'),
+    'access callback' => 'form_builder_field_access',
+    'access arguments' => array('configure', 4, 5, 6),
     'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
   );
@@ -36,8 +36,8 @@ function form_builder_menu() {
     'title' => 'Remove field',
     'description' => 'Remove a field from a form.',
     'page callback' => 'form_builder_remove_page',
-    // TODO: Use permissions based on type of form with custom callback.
-    'access arguments' => array('access content'),
+    'access callback' => 'form_builder_field_access',
+    'access arguments' => array('remove', 4, 5, 6),
     'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
   );
@@ -46,8 +46,8 @@ function form_builder_menu() {
     'title' => 'JSON representation',
     'description' => 'Display a form field as a JSON string.',
     'page callback' => 'form_builder_field_json',
-    // TODO: Use permissions based on type of form with custom callback.
-    'access arguments' => array('access content'),
+    'access callback' => 'form_builder_field_access',
+    'access arguments' => array('view', 4, 5, 6),
     'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
   );
@@ -96,7 +96,7 @@ function form_builder_theme() {
  *   The unique identifier for the form being edited with the type.
  */
 function form_builder_load($form_type, $form_id) {
-  $form = module_invoke_all($form_type, 'form_builder_load', $form_id);
+  $form = module_invoke_all('form_builder_load', $form_type, $form_id);
 
   // Convert the form array keys to #key properties for editing.
   return form_builder_add_keys($form);
@@ -133,15 +133,50 @@ function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
     switch($delta) {
       case 'fields':
         if ($active = form_builder_active_form()) {
-          $form_type = form_builder_get_form_type($active['form_type']);
+          $fields = form_builder_get_form_type($active['form_type']);
+          $form = form_builder_cache_load($active['form_type'], $active['form_id']);
+          $active_fields = form_builder_get_element_ids($form);
+          foreach ($fields as $key => $field) {
+            if ($field['unique'] && in_array($key, $active_fields)) {
+              $fields[$key]['in_use'] = TRUE;
+            }
+          }
           return array(
             'subject' => t('Add a new field'),
-            'content' => theme('form_builder_add_field_block', $form_type, $active['form_type'], $active['form_id']),
+            'content' => theme('form_builder_add_field_block', $fields, $active['form_type'], $active['form_id']),
           );
         }
         break;
     }
   }
+}
+
+/**
+ * Access callback for field configuration, viewing, addition, and deletion.
+ */
+function form_builder_field_access($op, $form_type, $form_id, $element_id) {
+  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
+  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
+  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+  $access = FALSE;
+
+  if ($op == 'add' || $op == 'view') {
+    $access = TRUE;
+  }
+  if ($op == 'configure' && !empty($element['#form_builder']['configurable'])) {
+    $access = TRUE;
+  }
+  if ($op == 'remove' && !empty($element['#form_builder']['removable'])) {
+    $access = TRUE;
+  }
+
+  $module_accesses = module_invoke_all('form_builder_field_access', $op, $form_type, $form_id, $element);
+  if (!empty($module_accesses)) {
+    $access = array_pop($module_accesses);
+  }
+
+  return $access;
+
 }
 
 /**
