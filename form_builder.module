@@ -96,7 +96,7 @@ function form_builder_theme() {
  *   The unique identifier for the form being edited with the type.
  */
 function form_builder_load($form_type, $form_id) {
-  $form = module_invoke($form_type, 'form_builder_load', $form_id);
+  $form = module_invoke_all($form_type, 'form_builder_load', $form_id);
 
   // Convert the form array keys to #key properties for editing.
   return form_builder_add_keys($form);
@@ -202,9 +202,9 @@ function form_builder_form_builder_properties() {
 }
 
 /**
- * Implementation of hook_form_builder_groups().
+ * Implementation of hook_form_builder_property_groups().
  */
-function form_builder_form_builder_groups() {
+function form_builder_form_builder_property_groups() {
   return array(
     'default' => array(
       'weight' => 0,
@@ -242,7 +242,7 @@ function form_builder_form_builder_groups() {
 function form_builder_active_form($new_type = NULL, $new_id = NULL) {
   static $active_form = FALSE;
 
-  if (isset($new_type) && isset($new_type)) {
+  if (isset($new_type) && isset($new_id)) {
     if (!$new_type && !$new_id) {
       $active_form = FALSE;
     }

@@ -49,11 +49,11 @@ function form_builder_add_page($form_type, $form_id, $field_type) {
     $cache = form_builder_cache_load($form_type, $form_id);
     $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
     $element = $fields[$field_type]['default'];
-    $element['#builder_element_id'] = $element_id;
-    $element['#builder_parent_id'] = FORM_BUILDER_ROOT;
+    $element['#form_builder']['element_id'] = $element_id;
+    $element['#form_builder']['parent_id'] = FORM_BUILDER_ROOT;
+    $element['#form_builder']['is_new'] = TRUE;
     $element['#key'] = $element_id;
     $element['#weight'] = count(element_children($cache));
-    $element['#builder_new_element'] = TRUE;
     form_builder_cache_field_save($form_type, $form_id, $element);
 
     if (isset($_REQUEST['js'])) {
@@ -144,9 +144,11 @@ function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
 function form_builder_positions(&$form_state, $preview_form, $form_type, $form_id) {
   $form = array(
     '#tree' => TRUE,
-    '#builder_form_type' => $form_type,
-    '#builder_form_id' => $form_id,
-    '#builder_form' => $preview_form,
+    '#form_builder' => array(
+      'form_type' => $form_type,
+      'form_id' => $form_id,
+      'form' => $preview_form,
+    ),
   );
 
   // Because this form is updated via AJAX on the calling page, we need to
@@ -173,10 +175,10 @@ function form_builder_positions_prepare(&$form, &$preview_form, $parent_id = FOR
     // Keep record of the current parent ID.
     $previous_parent_id = $parent_id;
 
-    if (isset($preview_form[$key]['#builder_element_id'])) {
+    if (isset($preview_form[$key]['#form_builder']['element_id'])) {
       // Set the parent ID for this element.
-      $preview_form[$key]['#builder_parent_id'] = $parent_id;
-      $element_id = $preview_form[$key]['#builder_element_id'];
+      $preview_form[$key]['#form_builder']['parent_id'] = $parent_id;
+      $element_id = $preview_form[$key]['#form_builder']['element_id'];
       $parent_id = $element_id;
 
       $form[$element_id]['weight'] = array(
@@ -186,7 +188,7 @@ function form_builder_positions_prepare(&$form, &$preview_form, $parent_id = FOR
       );
       $form[$element_id]['parent'] = array(
         '#type' => 'hidden',
-        '#default_value' => $preview_form[$key]['#builder_parent_id'],
+        '#default_value' => $preview_form[$key]['#form_builder']['parent_id'],
         '#attributes' => array('class' => 'form-builder-parent form-builder-element-' . $element_id),
       );
     }
@@ -203,9 +205,9 @@ function form_builder_positions_submit(&$form, &$form_state) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
-  $form_type = $form['#builder_form_type'];
-  $form_id = $form['#builder_form_id'];
-  $preview_form = $form['#builder_form'];
+  $form_type = $form['#form_builder']['form_type'];
+  $form_id = $form['#form_builder']['form_id'];
+  $preview_form = $form['#form_builder']['form'];
 
   foreach (element_children($form) as $element_id) {
     // Skip items without weight value (like the form token, build_id, etc).
@@ -216,7 +218,7 @@ function form_builder_positions_submit(&$form, &$form_state) {
     // Check for changed weights or parents.
     $element = form_builder_get_element($preview_form, $element_id);
     $element['#weight'] = $form_state['values'][$element_id]['weight'];
-    $element['#builder_parent_id'] = $form_state['values'][$element_id]['parent'];
+    $element['#form_builder']['parent_id'] = $form_state['values'][$element_id]['parent'];
     form_builder_set_element($preview_form, $element);
   }
 
@@ -248,12 +250,12 @@ function theme_form_builder_element_prefix($element) {
   $output .= '<div class="form-builder-wrapper">';
   $output .= '<div class="form-builder-title-bar">';
   $output .= '<span class="form-builder-links">';
-  $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#builder_type'] . '/' . $element['#builder_form_id'] . '/' . $element['#builder_element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
+  $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
   $output .= ' ';
-  $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#builder_type'] . '/' . $element['#builder_form_id'] . '/' . $element['#builder_element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
+  $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
   $output .= '</span>';
   $output .= '</div>';
-  $output .= '<div class="form-builder-element" id="form-builder-element-' . $element['#builder_element_id'] . '">';
+  $output .= '<div class="form-builder-element" id="form-builder-element-' . $element['#form_builder']['element_id'] . '">';
   // TODO: Overlay image: good idea or bad idea? Prevents any interaction with
   // form elements in the preview.
   //$output .= theme('image', drupal_get_path('module', 'form_builder') .'/images/blank.gif', '', '', array('width' => '1', 'height' => '1', 'class' => 'form-builder-disable'));
@@ -336,12 +338,12 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
     // Keep record of the current parent ID.
     $previous_parent_id = $parent_id;
 
-    if (isset($form[$key]['#builder_element_id'])) {
+    if (isset($form[$key]['#form_builder']['element_id'])) {
       $form[$key]['#pre_render'][] = 'form_builder_pre_render';
-      $form[$key]['#builder_type'] = $form_type;
-      $form[$key]['#builder_form_id'] = $form_id;
-      $form[$key]['#builder_parent_id'] = $parent_id;
-      $parent_id = $form[$key]['#builder_element_id'];
+      $form[$key]['#form_builder']['form_type'] = $form_type;
+      $form[$key]['#form_builder']['form_id'] = $form_id;
+      $form[$key]['#form_builder']['parent_id'] = $parent_id;
+      $parent_id = $form[$key]['#form_builder']['element_id'];
 
       // Allow modules to make modifications to this element.
       drupal_alter('form_builder_preview', $form[$key], $form_type, $form_id);
@@ -395,18 +397,18 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
 function theme_form_builder_field_configure($form) {
   // Group the properties into separate fieldsets (converted to tabs later).
 
-  $groups = module_invoke_all('form_builder_groups');
+  $groups = module_invoke_all('form_builder_property_groups');
 
   foreach (element_children($form) as $key) {
-    if (!isset($form[$key]['#builder_group']) || !isset($groups[$form[$key]['#builder_group']])) {
-      $form[$key]['#builder_group'] = 'default';
+    if (!isset($form[$key]['#form_builder']['property_group']) || !isset($groups[$form[$key]['#form_builder']['property_group']])) {
+      $form[$key]['#form_builder']['property_group'] = 'default';
     }
 
-    $group = $form[$key]['#builder_group'];
-    // We add "_group" to the field key to prevent conflicts of property names
-    // and group names.
-    if (!isset($form[$group . '_group'])) {
-      $form[$group . '_group'] = array(
+    $group = $form[$key]['#form_builder']['property_group'];
+    // We add "_property_group" to the field key to prevent conflicts of
+    // property names and group names.
+    if (!isset($form[$group . '_property_group'])) {
+      $form[$group . '_property_group'] = array(
         '#type' => 'fieldset',
         '#title' => $groups[$group]['title'],
         '#weight' => $groups[$group]['weight'],
@@ -416,7 +418,7 @@ function theme_form_builder_field_configure($form) {
       );
     }
 
-    $form[$group .'_group'][$key] = $form[$key];
+    $form[$group .'_property_group'][$key] = $form[$key];
     unset($form[$key]);
   }
 

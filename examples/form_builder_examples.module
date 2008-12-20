@@ -53,7 +53,12 @@ function form_builder_examples_includes() {
 function form_builder_examples_example() {
   $form = array(
     'sample_textfield' => array(
-      '#builder_element_id' => 'sample_textfield',
+      '#form_builder' => array(
+        'element_id' => 'sample_textfield',
+        'editable' => TRUE,
+        'deletable' => TRUE,
+        'orderable' => TRUE,
+      ),
       '#type' => 'textfield',
       '#title' => 'Sample textfield',
       '#default_value' => 'a sample value',
@@ -63,7 +68,12 @@ function form_builder_examples_example() {
       '#weight' => 0,
     ),
     'sample_checkboxes' => array(
-      '#builder_element_id' => 'sample_checkboxes',
+      '#form_builder' => array(
+        'element_id' => 'sample_checkboxes',
+        'editable' => TRUE,
+        'deletable' => TRUE,
+        'orderable' => TRUE,
+      ),
       '#type' => 'checkboxes',
       '#title' => 'Sample checkboxes',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
@@ -72,14 +82,24 @@ function form_builder_examples_example() {
       '#multiple' => 1,
     ),
     'sample_textarea' => array(
-      '#builder_element_id' => 'sample_textarea',
+      '#form_builder' => array(
+        'element_id' => 'sample_textarea',
+        'editable' => TRUE,
+        'deletable' => TRUE,
+        'orderable' => TRUE,
+      ),
       '#type' => 'textarea',
       '#title' => 'Sample textarea',
       '#default_value' => 'Text area sample value',
       '#weight' => 2,
     ),
     'sample_radios' => array(
-      '#builder_element_id' => 'sample_radios',
+      '#form_builder' => array(
+        'element_id' => 'sample_radios',
+        'editable' => TRUE,
+        'deletable' => TRUE,
+        'orderable' => TRUE,
+      ),
       '#type' => 'radios',
       '#title' => 'Sample radios',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
@@ -87,7 +107,12 @@ function form_builder_examples_example() {
       '#weight' => 3,
     ),
     'sample_select' => array(
-      '#builder_element_id' => 'sample_select',
+      '#form_builder' => array(
+        'element_id' => 'sample_select',
+        'editable' => TRUE,
+        'deletable' => TRUE,
+        'orderable' => TRUE,
+      ),
       '#type' => 'select',
       '#title' => 'Sample select',
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),

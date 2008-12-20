@@ -16,7 +16,7 @@ function form_builder_form_builder_examples_menu() {
   $items['form-builder-example'] = array(
     'title' => 'Form builder example',
     'page callback' => 'form_builder_interface',
-    'page arguments' => array('form_builder_examples', 'sample'),
+    'page arguments' => array('example', 'sample'),
     'file' => 'includes/form_builder.admin.inc',
     'file path' => drupal_get_path('module', 'form_builder'),
     'access arguments' => array('access content'),
@@ -26,7 +26,7 @@ function form_builder_form_builder_examples_menu() {
   $items['form-builder-example/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'form_builder_interface',
-    'page arguments' => array('form_builder_examples', 'sample'),
+    'page arguments' => array('example', 'sample'),
     'file' => 'includes/form_builder.admin.inc',
     'file path' => drupal_get_path('module', 'form_builder'),
     'access arguments' => array('access content'),
@@ -36,7 +36,7 @@ function form_builder_form_builder_examples_menu() {
   $items['form-builder-example/import'] = array(
     'title' => 'Import',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('form_builder_examples_import'),
+    'page arguments' => array('form_builder_examples_import_form'),
     'access callback' => FALSE,
     'access arguments' => array('access content'),
     'type' => MENU_LOCAL_TASK,
@@ -45,7 +45,7 @@ function form_builder_form_builder_examples_menu() {
   $items['form-builder-example/export'] = array(
     'title' => 'Export',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('form_builder_examples_export'),
+    'page arguments' => array('form_builder_examples_export_form'),
     'access arguments' => array('access content'),
     'type' => MENU_LOCAL_TASK,
   );
@@ -237,7 +237,7 @@ function form_builder_examples_form_builder_types() {
   );
 
   return array(
-    'form_builder_examples' => $fields,
+    'example' => $fields,
   );
 }
 
@@ -261,28 +261,12 @@ function form_builder_examples_form_builder_preview_alter($element, $form_type, 
  *   The unique identifier for the form being edited. For CCK, this is the
  *   content type name.
  */
-function form_builder_examples_form_builder_load($form_id) {
-  $form = form_builder_examples_example();
+function form_builder_examples_form_builder_load($form_type, $form_id) {
+  if ($form_type == 'example') {
+    $form = form_builder_examples_example();
 
-  // TODO: Convert content type information into a form builder array. Yuk.
-
-  return $form;
-}
-
-/**
- * Make changes to the preview form to match the functionality of the form.
- *
- * This function is called during the "live preview" of the form. Use it to make
- * any adjustments to the FAPI structure that the final form with use.
- */
-function form_builder_examples_form_builder_preview($form, $form_id) {
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#description'])) {
-      $form[$key]['#description'] = filter_xss_admin($form[$key]['#description']);
-    }
+    return $form;
   }
-
-  return $form;
 }
 
 /**
@@ -290,16 +274,16 @@ function form_builder_examples_form_builder_preview($form, $form_id) {
  *
  * Take a form builder array and save it to the content type.
  */
-function form_builder_examples_form_builder_save($form_id, $form) {
-  $type_name = $form_id;
-
-  // TODO: Take form builder array and save it as a content type. Also yuk.
+function form_builder_examples_form_builder_save($form, $form_type, $form_id) {
+  if ($form_type == 'example') {
+    // Save the settings based on the changes to the $form array.
+  }
 }
 
 /**
  * Menu callback for importing an entire FAPI array.
  */
-function form_builder_examples_import(&$form_state) {
+function form_builder_examples_import_form(&$form_state) {
   $form = array();
 
   $form['import'] = array(
@@ -313,21 +297,81 @@ function form_builder_examples_import(&$form_state) {
 /**
  * Menu callback for exporting an entire FAPI array.
  */
-function form_builder_examples_export() {
+function form_builder_examples_export_form() {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
   $form = array();
 
-  $current = form_builder_cache_load('form_builder_examples', 'sample');
+  $current = form_builder_cache_load('example', 'sample');
 
   $form['export'] = array(
     '#type' => 'textarea',
     '#title' => t('Export code'),
-    '#default_value' => form_builder_export($current),
+    '#default_value' => form_builder_examples_export($current),
     '#attributes' => array('readonly' => 'readonly', 'style' => 'font-family: monospace;'),
     '#rows' => 20,
   );
 
   return $form;
+}
+
+
+function form_builder_examples_export($form) {
+  $output = '';
+  $output .= form_builder_examples_export_recurse($form);
+  $output .= 'return $form;';
+  return $output;
+}
+
+/**
+ * Recursive function for pretty-printing of FAPI arrays.
+ */
+function form_builder_examples_export_recurse($form, $parents = array()) {
+  $output = '';
+
+  // Sort this level of the array according to weight.
+  uasort($form, 'element_sort');
+
+  // Print out this parent element and it's properties.
+  $properties = element_properties($form);
+  $omit = array('#form_builder', '#key');
+  if (count($properties)) {
+    $output .= form_builder_examples_export_variable_name($parents) . " = array(\n";
+    foreach (element_properties($form) as $property) {
+      if (!in_array($property, $omit)) {
+        if (is_array($form[$property])) {
+          $output .= "  '". $property . "' => array(\n";
+          foreach ($form[$property] as $key => $value) {
+            $output .= "    '" . $key . "' => '". $value ."',\n";
+          }
+          $output .= "  ),\n";
+        }
+        else {
+          $output .= "  '". $property . "' => '" . $form[$property] ."',\n";
+        }
+      }
+    }
+    $output .= ");\n";
+  }
+  else {
+    $output .= form_builder_examples_export_variable_name($parents) . " = array();\n";
+  }
+
+  foreach (element_children($form) as $key) {
+    $parents[] = $key;
+    $output .= form_builder_examples_export_recurse($form[$key], $parents);
+    array_pop($parents);
+  }
+
+  return $output;
+}
+
+
+function form_builder_examples_export_variable_name($parents) {
+  $output = '$form';
+  foreach ($parents as $parent) {
+    $output .= "['". $parent ."']";
+  }
+  return $output;
 }

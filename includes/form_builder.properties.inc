@@ -56,7 +56,7 @@ function form_builder_property_weight_form(&$form_state, $form_type, $element) {
 
   if (!isset($_REQUEST['js'])) {
     $form['weight'] = array(
-      '#builder_group' => 'hidden',
+      '#form_builder' => array('property_group' => 'hidden'),
       '#type' => 'textfield',
       '#size' => 6,
       '#title' => t('Weight'),
@@ -90,7 +90,7 @@ function form_builder_property_required_form(&$form_state, $form_type, $element)
   $form = array();
 
   $form['required'] = array(
-    '#builder_group' => 'validation',
+    '#form_builder' => array('property_group' => 'validation'),
     '#title' => t('Required'),
     '#type' => 'checkbox',
     '#default_value' => $element['#required'],
@@ -112,7 +112,7 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
   }
 
   $form['options'] = array(
-    '#builder_group' => 'options',
+    '#form_builder' => array('property_group' => 'options'),
     '#title' => t('Options'),
     '#type' => 'options',
     '#default_value' => $element['#default_value'],
@@ -207,7 +207,7 @@ function form_builder_property_size_form(&$form_state, $form_type, $element) {
   $form = array();
 
   $form['size'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'textfield',
     '#size' => 6,
     '#title' => t('Size'),
@@ -225,7 +225,7 @@ function form_builder_property_rows_form(&$form_state, $form_type, $element) {
   $form = array();
 
   $form['rows'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'textfield',
     '#size' => 6,
     '#title' => t('Rows'),
@@ -243,7 +243,7 @@ function form_builder_property_cols_form(&$form_state, $form_type, $element) {
   $form = array();
 
   $form['cols'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'textfield',
     '#size' => 6,
     '#title' => t('Columns'),
@@ -263,7 +263,7 @@ function form_builder_property_field_prefix_form(&$form_state, $form_type, $elem
   $form = array();
 
   $form['field_prefix'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'textfield',
     '#title' => t('Prefix'),
     '#default_value' => $element['#field_prefix'],
@@ -280,7 +280,7 @@ function form_builder_property_field_suffix_form(&$form_state, $form_type, $elem
   $form = array();
 
   $form['field_suffix'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'textfield',
     '#title' => t('Suffix'),
     '#default_value' => $element['#field_suffix'],
@@ -297,7 +297,7 @@ function form_builder_property_collapsible_form(&$form_state, $form_type, $eleme
   $form = array();
 
   $form['collapsible'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'checkbox',
     '#title' => t('Collapsible'),
     '#default_value' => $element['#collapsible'],
@@ -314,7 +314,7 @@ function form_builder_property_collapsed_form(&$form_state, $form_type, $element
   $form = array();
 
   $form['collapsed'] = array(
-    '#builder_group' => 'display',
+    '#form_builder' => array('property_group' => 'display'),
     '#type' => 'checkbox',
     '#title' => t('Collapsed'),
     '#default_value' => $element['#collapsed'],

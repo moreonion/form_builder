@@ -110,17 +110,18 @@ function form_builder_get_saveable_properties($form_type, $element) {
  *   A complete hierarchical FAPI structure.
  * @param $element_id
  *   The unique identifier for an element that is to be retreived. This matches
- *   against the special property "#builder_element_id", which is not available
- *   in normal FAPI structures. It must be added by the respective module
- *   that is providing support for a certain field type.
+ *   against the special property "#form_builder['element_id']", which is not
+ *   available in normal FAPI structures. It must be added by the respective
+ *   module that is providing support for a certain field type.
  *
  *   For example, CCK provides a unique identifier for each field such as
  *   "field_my_name". This field name must be added to the form array as a
- *   #builder_element_id in CCK's implementation of hook_form_builder_load().
+ *   #form_builder['element_id'] in CCK's implementation of
+ *   hook_form_builder_load().
  */
 function form_builder_get_element(&$form, $element_id) {
   foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#builder_element_id']) && $form[$key]['#builder_element_id'] == $element_id) {
+    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element_id) {
       return $form[$key];
     }
     if ($element = form_builder_get_element($form[$key], $element_id)) {
@@ -138,9 +139,9 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
   }
 
   // Add new elements into the current parent.
-  if (isset($element['#builder_new_element']) && strcmp($element['#builder_parent_id'], $parent_id) == 0) {
-    unset($element['#builder_new_element']);
-    unset($element['#builder_parent_id']);
+  if (isset($element['#form_builder']['is_new']) && strcmp($element['#form_builder']['parent_id'], $parent_id) == 0) {
+    unset($element['#form_builder']['is_new']);
+    unset($element['#form_builder']['parent_id']);
     $new_key = $element['#key'];
     $form[$new_key] = $element;
     return;
@@ -148,14 +149,14 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
 
   foreach (element_children($form) as $key) {
     // Update an existing element if it lives in the current parent.
-    if (isset($form[$key]['#builder_element_id']) && $form[$key]['#builder_element_id'] == $element['#builder_element_id']) {
+    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element['#form_builder']['element_id']) {
 
       // If the parent has changed, re-parent the element to a new fieldset.
-      if (isset($element['#builder_parent_id']) && strcmp($element['#builder_parent_id'], $parent_id) != 0) {
+      if (isset($element['#form_builder']['parent_id']) && strcmp($element['#form_builder']['parent_id'], $parent_id) != 0) {
         // Remove the current element from the form.
         unset($form[$key]);
         // Recurse again through the entire form to insert into the new position.
-        $element['#builder_new_element'] = TRUE;
+        $element['#form_builder']['is_new'] = TRUE;
         form_builder_set_element($entire_form, $element);
       }
       // Handle key changes and replace the existing element in place.
@@ -176,7 +177,7 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
     }
 
     // Recurse into this element to look for the target element.
-    form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#builder_element_id']);
+    form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
   }
 }
 
@@ -185,66 +186,10 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
  */
 function form_builder_unset_element(&$form, $element_id) {
   foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#builder_element_id']) && $form[$key]['#builder_element_id'] == $element_id) {
+    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element_id) {
       unset($form[$key]);
       break;
     }
     form_builder_unset_element($form[$key], $element_id);
   }
-}
-
-function form_builder_export($form) {
-  $output = '';
-  $output .= form_builder_export_recurse($form);
-  $output .= 'return $form;';
-  return $output;
-}
-
-/**
- * Recursive function for pretty-printing of FAPI arrays.
- */
-function form_builder_export_recurse($form, $parents = array()) {
-  $output = '';
-
-  // Print out this parent element and it's properties.
-  $properties = element_properties($form);
-  $omit = array('#builder_element_id', '#builder_group_id', '#builder_parent_id', '#new_builder_element_id', '#key');
-  if (count($properties)) {
-    $output .= form_builder_export_variable_name($parents) . " = array(\n";
-    foreach (element_properties($form) as $property) {
-      if (!in_array($property, $omit)) {
-        if (is_array($form[$property])) {
-          $output .= "  '". $property . "' => array(\n";
-          foreach ($form[$property] as $key => $value) {
-            $output .= "    '" . $key . "' => '". $value ."',\n";
-          }
-          $output .= "  ),\n";
-        }
-        else {
-          $output .= "  '". $property . "' => '" . $form[$property] ."',\n";
-        }
-      }
-    }
-    $output .= ");\n";
-  }
-  else {
-    $output .= form_builder_export_variable_name($parents) . " = array();\n";
-  }
-
-  foreach (element_children($form) as $key) {
-    $parents[] = $key;
-    $output .= form_builder_export_recurse($form[$key], $parents);
-    array_pop($parents);
-  }
-
-  return $output;
-}
-
-
-function form_builder_export_variable_name($parents) {
-  $output = '$form';
-  foreach ($parents as $parent) {
-    $output .= "['". $parent ."']";
-  }
-  return $output;
 }
