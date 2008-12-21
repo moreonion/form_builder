@@ -51,18 +51,20 @@ Drupal.behaviors.formBuilder = function(context) {
     axis: 'y',
     opacity: 0.8,
     forcePlaceholderSize: true,
+    dropOnEmpty: false,
     scroll: true,
     scrollSensitivity: 50,
     distance: 4, // Pixels before dragging starts.
     appendTo: 'body',
     helper: createHelper,
-    //accept: Drupal.formBuilder.acceptDrag,
+    accept: Drupal.formBuilder.acceptDrag,
     sort: Drupal.formBuilder.elementIndent, // Called on drag.
     start: Drupal.formBuilder.startDrag,
     stop: Drupal.formBuilder.stopDrag,
     change: Drupal.formBuilder.checkFieldsets
   });
 
+  // This helper function is needed to make the appendTo option take effect.
   function createHelper(e, $el) {
     return $el.clone().get(0);
   }
@@ -366,10 +368,30 @@ Drupal.formBuilder.elementPendingChange = function(e) {
  * After submitting the change to the server, display the updated element.
  */
 Drupal.formBuilder.updateElement = function(response) {
-  var $exisiting = $('#form-builder-element-' + response.elementId);
-  var $new = $(response.html).find('div.form-builder-element:first');
-  $exisiting.replaceWith($new);
-  Drupal.attachBehaviors($new.parent().get(0));
+  var $configureForm = $('#form-builder-field-configure');
+
+  // Set the error class on fields.
+  $configureForm.find('.error').removeClass('error');
+  if (response.errors) {
+    for (var elementName in response.errors) {
+      elementName = elementName.replace(/([a-z0-9_]+)\](.*)/, '$1$2]');
+      $configureForm.find('[name=' + elementName + ']').addClass('error');
+    }
+  }
+
+  // Display messages, if any.
+  $configureForm.find('.messages').remove();
+  if (response.messages) {
+    $configureForm.find('fieldset:visible').prepend(response.messages);
+  }
+
+  // Do not update the element if errors were received.
+  if (!response.errors) {
+    var $exisiting = $('#form-builder-element-' + response.elementId);
+    var $new = $(response.html).find('div.form-builder-element:first');
+    $exisiting.replaceWith($new);
+    Drupal.attachBehaviors($new.parent().get(0));
+  }
 
   // Set the variable stating we're done updating.
   Drupal.formBuilder.updatingElement = false;
@@ -565,9 +587,10 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
  */
 Drupal.formBuilder.checkFieldsets = function(e, ui) {
   var $fieldsets = ui.element.find('div.form-builder-element > fieldset');
+  var $placeholder = ui.placeholder;
   var emptyFieldsets = [];
 
-  // Remove all current placeholders.
+  // Remove all current fieldset placeholders.
   $fieldsets.find('div.form-builder-empty-placeholder').remove();
 
   // Find all empty fieldsets.
@@ -579,7 +602,7 @@ Drupal.formBuilder.checkFieldsets = function(e, ui) {
       }
     }
     // Check for empty normal fieldsets.
-    if ($(this).children(':not(legend').size() == 0) {
+    if ($(this).children(':not(legend)').size() == 0) {
       emptyFieldsets.push(this);
     }
   });
@@ -587,7 +610,7 @@ Drupal.formBuilder.checkFieldsets = function(e, ui) {
   // Add a placeholder DIV in the empty fieldsets.
   $(emptyFieldsets).each(function() {
     var wrapper = $(this).children('div.fieldset-wrapper').get(0) || this;
-    $(wrapper).append(Drupal.settings.formBuilder.emptyFieldset);
+    $(Drupal.settings.formBuilder.emptyFieldset).appendTo(wrapper);
   });
 
 

@@ -113,32 +113,54 @@ function form_builder_get_saveable_properties($form_type, $element) {
 }
 
 /**
- * Recursive function to retrieve an element within a form structure.
+ * Function to retrieve a single element within a form structure.
+ *
+ * If needing to retreive multiple elements at once, use
+ * form_builder_get_elements().
  *
  * @param $form
  *   A complete hierarchical FAPI structure.
  * @param $element_id
- *   The unique identifier for an element that is to be retreived. This matches
- *   against the special property "#form_builder['element_id']", which is not
- *   available in normal FAPI structures. It must be added by the respective
- *   module that is providing support for a certain field type.
+ *   The unique identifier for an element that is to be retrieved.
+ * @return
+ *   A single Form API element array.
+ *
+ * @see form_builder_get_elements().
+ */
+function form_builder_get_element(&$form, $element_id) {
+  $elements = form_builder_get_elements(&$form, array($element_id));
+  return isset($elements[$element_id]) ? $elements[$element_id] : FALSE;
+}
+
+/**
+ * Recursive function to retrieve multiple elements within a form structure.
+ *
+ * @param $form
+ *   A complete hierarchical FAPI structure.
+ * @param $element_ids
+ *   An array of unique identifiers for elements that are to be retreived. These
+ *   identifiers match against the special property
+ *   "#form_builder['element_id']", which is not available in normal FAPI
+ *   structures. It must be added by the respective module that is providing
+ *   support for a certain field type.
  *
  *   For example, CCK provides a unique identifier for each field such as
- *   "field_my_name". This field name must be added to the form array as a
- *   #form_builder['element_id'] in CCK's implementation of
+ *   "field_my_name". This field name must be added to the form array as
+ *   #form_builder['element_id'] = 'field_my_name' in CCK's implementation of
  *   hook_form_builder_load().
  * @return
  *   A single Form API element array.
  */
-function form_builder_get_element(&$form, $element_id) {
+function form_builder_get_elements(&$form, $element_ids) {
+  $elements = array();
   foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element_id) {
-      return $form[$key];
+    if (isset($form[$key]['#form_builder']['element_id']) && in_array($form[$key]['#form_builder']['element_id'], $element_ids)) {
+      $elements[$form[$key]['#form_builder']['element_id']] = $form[$key];
     }
-    if ($element = form_builder_get_element($form[$key], $element_id)) {
-      return $element;
-    }
+    $additional_elements = form_builder_get_elements($form[$key], $element_ids);
+    $elements = array_merge($elements, $additional_elements);
   }
+  return $elements;
 }
 
 /**

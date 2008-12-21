@@ -22,9 +22,19 @@ function form_builder_property_key_form(&$form_state, $form_type, $element) {
     '#default_value' => $element['#key'],
     '#required' => TRUE,
     '#weight' => -9,
+    '#element_validate' => array('form_builder_property_key_form_validate'),
   );
 
   return $form;
+}
+
+/**
+ * Element validate function for the "key" property. Ensure safe characters.
+ */
+function form_builder_property_key_form_validate($element, $form_state) {
+  if (!preg_match('/^[a-z0-9_]+$/', $element['#value'])) {
+    form_error($element, t('The form key may only contain lowercase alphanumeric characters and underscores.'));
+  }
 }
 
 /**

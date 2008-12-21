@@ -91,18 +91,23 @@ function form_builder_add_page($form_type, $form_id, $field_type) {
 function form_builder_configure_page($form_type, $form_id, $element_id) {
   $output = drupal_get_form('form_builder_field_configure', $form_type, $form_id, $element_id);
 
-  if (isset($_REQUEST['js']) && !isset($_REQUEST['return'])) {
-    // This after build function immediately returns the form as JSON.
-    $data = array(
-      'formType' => $form_type,
-      'formId' => $form_id,
-      'elementId' => $element_id,
-      'html' => $output,
-      //'messages' => theme('status_messages'),
-    );
-
-    drupal_json($data);
-    exit();
+  if (isset($_REQUEST['js'])) {
+    if (isset($_REQUEST['return'])) {
+      form_builder_field_json($form_type, $form_id, $element_id);
+    }
+    else {
+      $data = array(
+        'formType' => $form_type,
+        'formId' => $form_id,
+        'elementId' => $element_id,
+        'html' => $output,
+        'errors' => form_get_errors(),
+        'messages' => theme('status_messages'),
+      );
+  
+      drupal_json($data);
+      exit();
+    }
   }
 
   return $output;
@@ -294,7 +299,7 @@ function theme_form_builder_element_suffix($element) {
 function theme_form_builder_empty_fieldset() {
   $output = '';
   $output .= '<div class="form-builder-wrapper form-builder-empty-placeholder">';
-  $output .= t('This fieldset is empty. Drag a form element into it.');
+  $output .= '<span>' . t('This fieldset is empty. Drag a form element into it.') .'</span>';
   $output .= '</div>';
   return $output;
 }
@@ -592,7 +597,8 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'formId' => $form_id,
     'elementId' => $element_id,
     'html' => form_builder_field_render($form_type, $form_id, $element_id),
-    //'messages' => theme('status_messages'),
+    'errors' => form_get_errors(),
+    'messages' => theme('status_messages'),
   );
 
   drupal_json($data);

@@ -67,10 +67,14 @@ div.form-builder-empty-fieldset {
 
 div.form-builder-empty-placeholder {
   border: none;
-  padding: 1px;
   text-align: center;
-  padding: 40px;
   color: #CCC;
+  overflow: hidden;
+}
+
+div.form-builder-empty-placeholder span {
+  display: block;
+  margin: 40px;
 }
 
 div.form-builder-title-bar {
