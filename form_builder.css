@@ -15,11 +15,12 @@
 
 div.form-builder-wrapper {
   padding: 1px;
+  margin-top: 4px; /* Match this to the Sortable drag threshold option. */
   position: relative;
 }
 
 div.form-builder-element {
-  margin: 14px 10px 0px 10px;
+  margin: 4px 10px 4px 10px;
 }
 
 div.form-builder-hover {
@@ -79,8 +80,10 @@ div.form-builder-empty-placeholder span {
 
 div.form-builder-title-bar {
   position: relative;
+  z-index: 10;
+  padding-top: 4px;
   height: 14px;
-  margin-bottom: -14px;
+  margin-bottom: -18px;
   border-bottom: none;
 }
 
@@ -98,14 +101,9 @@ span.form-builder-links {
   z-index: 40;
 }
 
-div.form-builder-hover div.form-builder-title-bar {
-  display: block;
-}
-
+div.form-builder-hover div.form-builder-title-bar,
 div.form-builder-active div.form-builder-title-bar {
   display: block;
-  border-bottom: none;
-  margin-bottom: -14px;
 }
 
 div.ui-sortable div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
@@ -207,7 +205,22 @@ div.form-builder-new-field span.progress {
   background: url(images/status-active.gif) no-repeat center left;
 }
 
-div.item-list ul.form-builder-fields li {
+#form-builder-field-palette .item-list {
+  margin: 0 0 10px 0;
+}
+
+#form-builder-field-palette h3 {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+#form-builder-field-palette ul.form-builder-fields {
+  width: 260px;
+  padding: 0;
+}
+
+#form-builder-field-palette ul li {
   list-style-type: none;
   background: white none no-repeat 6px center;
   padding: 2px 2px 2px 28px;
@@ -219,39 +232,39 @@ div.item-list ul.form-builder-fields li {
   display: block;
 }
 
-div.item-list ul.form-builder-fields li a,
-div.item-list ul.form-builder-fields li a:hover,
-div.item-list ul.form-builder-fields li a:active,
-div.item-list ul.form-builder-fields li a:visited {
+#form-builder-field-palette ul li a,
+#form-builder-field-palette ul li a:hover,
+#form-builder-field-palette ul li a:active,
+#form-builder-field-palette ul li a:visited {
   text-decoration: none;
   cursor: move;
   color: black;
 }
 
-div.item-list ul.form-builder-fields li.field-textfield {
+#form-builder-field-palette ul li.field-textfield {
   background-image: url(images/fields/textfield.png);
 }
-div.item-list ul.form-builder-fields li.field-radios {
+#form-builder-field-palette ul li.field-radios {
   background-image: url(images/fields/radios.png);
 }
-div.item-list ul.form-builder-fields li.field-checkboxes {
+#form-builder-field-palette ul li.field-checkboxes {
   background-image: url(images/fields/checkboxes.png);
 }
-div.item-list ul.form-builder-fields li.field-number {
+#form-builder-field-palette ul li.field-number {
   background-image: url(images/fields/number.png);
 }
-div.item-list ul.form-builder-fields li.field-textarea {
+#form-builder-field-palette ul li.field-textarea {
   background-image: url(images/fields/textarea.png);
 }
-div.item-list ul.form-builder-fields li.field-select {
+#form-builder-field-palette ul li.field-select {
   background-image: url(images/fields/select.png);
 }
-div.item-list ul.form-builder-fields li.field-fieldset {
+#form-builder-field-palette ul li.field-fieldset {
   background-image: url(images/fields/fieldset.png);
 }
-div.item-list ul.form-builder-fields li.field-file {
+#form-builder-field-palette ul li.field-file {
   background-image: url(images/fields/file.png);
 }
-div.item-list ul.form-builder-fields li.field-image {
+#form-builder-field-palette ul li.field-image {
   background-image: url(images/fields/image.png);
 }

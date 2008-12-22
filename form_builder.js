@@ -51,7 +51,6 @@ Drupal.behaviors.formBuilder = function(context) {
     axis: 'y',
     opacity: 0.8,
     forcePlaceholderSize: true,
-    dropOnEmpty: false,
     scroll: true,
     scrollSensitivity: 50,
     distance: 4, // Pixels before dragging starts.
@@ -158,7 +157,7 @@ Drupal.behaviors.formBuilderBlockScroll = function(context) {
 }
 
 /**
- * Behavior for the Add a new field block.
+ * Behavior for the Add a field block.
  * @param {Object} context
  */
 Drupal.behaviors.formBuilderNewField = function(context) {

@@ -178,6 +178,7 @@ function form_builder_examples_form_builder_types() {
       '#type' => 'textfield',
     ),
     'unique' => TRUE,
+    'palette_group' => 'special',
   );
 
   $fields['select'] = array(

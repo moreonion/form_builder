@@ -306,9 +306,20 @@ function theme_form_builder_empty_fieldset() {
 
 /**
  * Block for adding new fields.
+ *
+ * @param $fields
+ *   A list of all fields can be added to the current form type.
+ * @param $groups
+ *   A list of groups that fields may be sorted into. Each field is assigned
+ *   a 'palette_group' property which corresponds to one of these groups.
+ * @param $form_type
+ *   The form type to which these blocks apply.
+ * @param $form_id
+ *   The form ID that is being edited.
  */
-function theme_form_builder_add_field_block($fields, $form_type, $form_id) {
-  $list = array();
+function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id) {
+  $output = '';
+  $lists = array();
   foreach ($fields as $field_name => $field) {
     $class = array('field-' . $field_name);
     $style = '';
@@ -324,14 +335,20 @@ function theme_form_builder_add_field_block($fields, $form_type, $form_id) {
       }
     }
 
-    $list[] = array(
+    $lists[$field['palette_group']][] = array(
       'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
       'class' => implode(' ', $class),
       'style' => $style,
     );
   }
 
-  return theme('item_list', $list, NULL, 'ul', array('class' => 'form-builder-fields'));
+  $output .= '<div id="form-builder-field-palette">';
+  foreach ($lists as $group => $list) {
+    $output .= theme('item_list', $list, $groups[$group]['title'], 'ul', array('class' => 'form-builder-fields clear-block'));
+  }
+  $output .= '</div>';
+
+  return $output;
 }
 
 /**

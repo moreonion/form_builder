@@ -31,6 +31,7 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     $types = array();
     // Get the list of all properties for all elements.
     $types = module_invoke_all('form_builder_types');
+    $groups = module_invoke_all('form_builder_palette_groups');
 
     // Add default values for undefined properties.
     foreach ($types as $type_key => &$type) {
@@ -46,6 +47,7 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
         $field['unique'] = isset($field['unique']) && $field['unique'];
         $field['default']['#form_builder']['configurable'] = isset($field['default']['#form_builder']['configurable']) ? $field['default']['#form_builder']['configurable'] : TRUE;
         $field['default']['#form_builder']['removable'] = isset($field['default']['#form_builder']['removable']) ? $field['default']['#form_builder']['removable'] : TRUE;
+        $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
       }
     }
 

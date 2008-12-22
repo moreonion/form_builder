@@ -102,6 +102,26 @@ function hook_form_builder_properties() {
 }
 
 /**
+ * Define globally available #element_validate functions.
+ */
+function hook_form_builder_validators() {
+  return array(
+    'form_validate_integer' => array(
+      'form' => 'form_builder_validate_integer',
+    ),
+    'form_validate_decimal' => array(
+      'form' => 'form_builder_validate_decimal',
+    ),
+    'form_validate_email' => array(
+      'form' => 'form_builder_validate_email',
+    ),
+    'form_validate_url' => array(
+      'form' => 'form_builder_validate_url',
+    ),
+  );
+}
+
+/**
  * Designate groups of properties. Displayed as tabs when editing a field.
  *
  * Most properties will fall into one of the predefined categories created by
