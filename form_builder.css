@@ -268,3 +268,12 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-image {
   background-image: url(images/fields/image.png);
 }
+#form-builder-field-palette ul li.field-taxonomy {
+  background-image: url(images/fields/taxonomy.png);
+}
+#form-builder-field-palette ul li.field-menu_settings {
+  background-image: url(images/fields/menu.png);
+}
+#form-builder-field-palette ul li.field-path_settings {
+  background-image: url(images/fields/path.png);
+}

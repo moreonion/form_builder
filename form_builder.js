@@ -278,7 +278,7 @@ Drupal.formBuilder.deleteField = function() {
   $(this).parents('div.form-builder-wrapper:first').animate({ height: 'hide', opacity: 'hide' }, 'normal', function() {
     // If this is a unique field, show the field in the palette again.
     var elementId = $(this).find('div.form-builder-element').attr('id');
-    $('ul.form-builder-fields').find('li.' + elementId).slideDown();
+    $('ul.form-builder-fields').find('li.' + elementId).show('slow');
     // Remove the field from the form.
     $(this).remove();
   });
@@ -535,8 +535,8 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
   }
   // If dropped onto the form and a unique field, remove it from the palette.
   else if ($(this).is('.form-builder-unique')){
-    $(this).animate({ height: '0' }, function() {
-      $(this).css({ visibility: '', height: '', display: 'none' });
+    $(this).animate({ height: '0', width: '0' }, function() {
+      $(this).css({ visibility: '', height: '', width: '', display: 'none' });
     });
   }
 }

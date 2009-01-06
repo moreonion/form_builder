@@ -102,7 +102,7 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
         'elementId' => $element_id,
         'html' => $output,
         'errors' => form_get_errors(),
-        'messages' => theme('status_messages'),
+        //'messages' => theme('status_messages'),
       );
   
       drupal_json($data);
@@ -334,7 +334,8 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
         $style = 'display: none;';
       }
     }
-
+    
+    $lists[$field['palette_group']]['#weight'] = $groups[$field['palette_group']]['weight'];
     $lists[$field['palette_group']][] = array(
       'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
       'class' => implode(' ', $class),
@@ -342,8 +343,12 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
     );
   }
 
+  // Sort the lists by weight.
+  uasort($lists, 'element_sort');
+
   $output .= '<div id="form-builder-field-palette">';
   foreach ($lists as $group => $list) {
+    unset($list['#weight']);
     $output .= theme('item_list', $list, $groups[$group]['title'], 'ul', array('class' => 'form-builder-fields clear-block'));
   }
   $output .= '</div>';
@@ -444,6 +449,12 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
     }
   }
 
+  // Unique elements cannot have their key changed.
+  $form_type_fields = form_builder_get_form_type($form_type);
+  if (!empty($form_type_fields[$element['#type']]['unique'])) {
+    unset($form['key']);// = 'value';
+  }
+
   $form['#form_type'] = $form_type;
   $form['#form_id'] = $form_id;
   $form['#element_id'] = $element_id;
@@ -468,26 +479,32 @@ function theme_form_builder_field_configure($form) {
   $groups = module_invoke_all('form_builder_property_groups');
 
   foreach (element_children($form) as $key) {
+    // If no group is specified, put the element into the default group.
     if (!isset($form[$key]['#form_builder']['property_group']) || !isset($groups[$form[$key]['#form_builder']['property_group']])) {
-      $form[$key]['#form_builder']['property_group'] = 'default';
+      if (isset($form[$key]['#type']) && !in_array($form[$key]['#type'], array('hidden', 'button', 'submit', 'value', 'token'))) {
+        $form[$key]['#form_builder']['property_group'] = 'default';
+      }
     }
 
-    $group = $form[$key]['#form_builder']['property_group'];
-    // We add "_property_group" to the field key to prevent conflicts of
-    // property names and group names.
-    if (!isset($form[$group . '_property_group'])) {
-      $form[$group . '_property_group'] = array(
-        '#type' => 'fieldset',
-        '#title' => $groups[$group]['title'],
-        '#weight' => $groups[$group]['weight'],
-        '#collapsible' => isset($groups[$group]['collapsible']) ? $groups[$group]['collapsible'] : FALSE,
-        '#collapsed' => isset($groups[$group]['collapsed']) ? $groups[$group]['collapsed'] : FALSE,
-        '#attributes' => array('class' => 'form-builder-group'),
-      );
-    }
+    if (isset($form[$key]['#form_builder']['property_group'])) {
+      $group = $form[$key]['#form_builder']['property_group'];
 
-    $form[$group .'_property_group'][$key] = $form[$key];
-    unset($form[$key]);
+      // We add "_property_group" to the field key to prevent conflicts of
+      // property names and group names.
+      if (!isset($form[$group . '_property_group'])) {
+        $form[$group . '_property_group'] = array(
+          '#type' => 'fieldset',
+          '#title' => $groups[$group]['title'],
+          '#weight' => $groups[$group]['weight'],
+          '#collapsible' => isset($groups[$group]['collapsible']) ? $groups[$group]['collapsible'] : FALSE,
+          '#collapsed' => isset($groups[$group]['collapsed']) ? $groups[$group]['collapsed'] : FALSE,
+          '#attributes' => array('class' => 'form-builder-group'),
+        );
+      }
+  
+      $form[$group .'_property_group'][$key] = $form[$key];
+      unset($form[$key]);
+    }
   }
 
   return drupal_render($form);
@@ -615,7 +632,7 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'elementId' => $element_id,
     'html' => form_builder_field_render($form_type, $form_id, $element_id),
     'errors' => form_get_errors(),
-    'messages' => theme('status_messages'),
+    //'messages' => theme('status_messages'),
   );
 
   drupal_json($data);
