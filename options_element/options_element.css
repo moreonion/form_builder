@@ -1,14 +1,52 @@
 /* $Id$ */
 
+div.options-widget tr input {
+  float: left; /* RTL */
+}
+
+div.options-widget .draggable a.tabledrag-handle {
+  padding-right: .5em /* RTL */
+}
+
 input.form-options-value {
-  width: 80%;
+  width: 60%;
+  margin-right: 10px; /* RTL */
 }
 
 div.form-options-manual {
-  text-align: right; /* LTR */
+  text-align: right; /* RTL */
 }
 
 div.options-widget table,
 div.options-widget tbody {
   border: none;
+}
+
+div.options-widget a.add span,
+div.options-widget a.remove span {
+  display: none;
+}
+
+div.options-widget a.add,
+div.options-widget a.remove {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: .2em .1em;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  float: left; /* RTL */
+}
+
+div.options-widget a.add:hover,
+div.options-widget a.remove:hover {
+  background-position: 0 -16px;
+}
+
+div.options-widget a.add {
+  background-image: url(add.png);
+}
+
+div.options-widget a.remove {
+  background-image: url(delete.png);
 }

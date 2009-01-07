@@ -104,8 +104,13 @@ function form_type_options_value($element, $edit = FALSE) {
      );
   }
   else {
+    $duplicates = array();
+    $options = form_options_from_text($edit['options_field'], $element['#key_type'], empty($element['#optgroups']), $duplicates);
+    $duplicate_list = theme('item_list', array_walk($duplicates, 'check_plain'));
+    form_error($element['options_field'], t('The following keys have been used multiple times. This will cause these items to not display properly. Give each item a unique key.') . $duplicate_list);
+
     return array(
-      'options' => form_options_from_text($edit['options_field'], $element['#key_type']),
+      'options' => $options,
       'default_value' => $edit['default_value_field'],
     );
   }
@@ -135,8 +140,23 @@ function theme_options($element) {
   return theme('fieldset', $element);
 }
 
+/**
+ * Create a textual representation of options from an array.
+ *
+ * @param $options
+ *   An array of options used in a select list.
+ * @param $key_type
+ *   How key/value pairs should be interpreted. Available options:
+ *   - numeric
+ *   - associative
+ *   - custom
+ *   - none
+ */
 function form_options_to_text($options, $key_type) {
   $output = '';
+  $previous_key = false;
+  $all_options = array();
+
   foreach ($options as $key => $value) {
     // Convert groups.
     if (is_array($value)) {
@@ -144,10 +164,19 @@ function form_options_to_text($options, $key_type) {
       foreach ($value as $subkey => $subvalue) {
         $output .= ($key_type != 'none' ? $subkey . '|' : '') . $subvalue . "\n";
       }
+      $previous_key = $key;
     }
     // Typical key|value pairs.
     else {
-      $output .= $key . '|' . $value . "\n";
+      // Exit out of any groups.
+      if (is_array($options[$previous_key])) {
+        $output .= "<>\n";
+      }
+      // Skip empty rows.
+      if ($options[$key] !== '') {
+        $output .= $key . '|' . $value . "\n";
+        $previousKey = $key;
+      }
     }
   }
 

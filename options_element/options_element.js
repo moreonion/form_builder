@@ -87,26 +87,41 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
     };
   }
 
+  // Enable button for adding options.
+  $('a.add', this.optionElement).click(function() {
+    self.addOption($(this).parents('tr:first').get(0));
+    return false;
+  });
+
+  // Enable button for removing options.
+  $('a.remove', this.optionElement).click(function() {
+    self.removeOption($(this).parents('tr:first').get(0));
+    return false;
+  });
+
+  // Add the same update action to all textfields and radios.
+  $('input', this.optionsElement).change(function() {
+    self.updateOptionElements();
+    self.updateManualElements();
+  });
+
+  // Add a delayed update to textfields.
+  $('input.form-options-value', this.optionsElement).keyup(function(e) {
+    self.pendingUpdate(e);
+  });
+
   // Attach behaviors as normal to the new widget.
   Drupal.attachBehaviors(this.optionsElement);
 
   // Add an onDrop action to the table drag instance.
   Drupal.tableDrag[this.identifier].onDrop = function() {
+    // Update the checkbox/radio buttons for selecting default values.
     if (self.optgroups) {
-      self.updateDefaultOptions();
+      self.updateOptionElements();
     }
+    // Update the options within the hidden text area.
     self.updateManualElements();
   };
-
-  // Add the same update action to all textfields and radios.
-  $(this.optionsElement).find('input').change(function() {
-    self.updateManualElements();
-  });
-
-  // Add a delayed update to textfields.
-  $(this.optionsElement).find('input.form-options-value').keyup(function(e) {
-    self.pendingUpdate(e);
-  });
 }
 
 /**
@@ -156,24 +171,94 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
 }
 
 /**
- * When indenting elements, disable options for optgroups.
+ * Several maintenance routines to update all rows of the options element.
+ *
+ * - Disable options for optgroups if indented.
+ * - Disable add and delete links if indented.
+ * - Match the default value radio button value to the key of the text element.
  */
-Drupal.optionsElement.prototype.updateDefaultOptions = function() {
+Drupal.optionsElement.prototype.updateOptionElements = function() {
+  var self = this;
   var previousElement = false;
 
   $(this.optionsElement).find('tr').each(function() {
+    // Update the elements key if matching the key and value.
+    if (self.keyType == 'associative') {
+      var optionValue = $(this).find('input.form-options-value').val();
+      $(this).find('input.option-key').val(optionValue);
+    }
+    // Match the default value checkbox/radio button to the option's key.
+    var optionKey =$(this).find('input.option-key').val();
+    $(this).find('input.option-default').val(optionKey);
+
+    // Adjust the row if indented.
     var depth = $(this).find('input.option-depth').val();
     var defaultInput = $(this).find('input.option-default').get(0);
 
     if (depth == 1) {
       $(previousElement).attr('disabled', true).attr('checked', false);
+      $(previousElement).parent().find('a.add, a.remove').hide();
       $(defaultInput).attr('disabled', false);
     }
     else {
       $(defaultInput).attr('disabled', false);
+      $(defaultInput).parent().find('a.add, a.remove').show();
       previousElement = defaultInput;
     }
   });
+}
+
+/**
+ * Add a new option below the current row.
+ */
+Drupal.optionsElement.prototype.addOption = function(currentOption) {
+  console.log(currentOption);
+  var self = this;
+  var newOption = $(currentOption).clone()
+    .find('input.form-options-value').val('').end()
+    .find('input.option-default').attr('checked', false).end()
+    .find('a.tabledrag-handle').remove().end()
+    .removeClass('drag-previous')
+    .insertAfter(currentOption)
+    .get(0);
+
+  // Make the new option draggable.
+  Drupal.tableDrag[this.identifier].makeDraggable(newOption);
+
+  // Enable button for adding options.
+  $('a.add', newOption).click(function() {
+    self.addOption(newOption);
+    return false;
+  });
+
+  // Enable buttons for removing options.
+  $('a.remove', newOption).click(function() {
+    self.removeOption(newOption);
+    return false;
+  });
+
+  // Add the update action to all textfields and radios.
+  $('input', newOption).change(function() {
+    self.updateOptionElements();
+    self.updateManualElements();
+  });
+
+  // Add a delayed update to textfields.
+  $('input.form-options-value', newOption).keyup(function(e) {
+    self.pendingUpdate(e);
+  });
+
+  this.updateOptionElements();
+}
+
+/**
+ * Remove the current row.
+ */
+Drupal.optionsElement.prototype.removeOption = function(currentOption) {
+  $(currentOption).remove();
+
+  this.updateOptionElements();
+  this.updateManualElements();
 }
 
 /**
@@ -222,6 +307,7 @@ Drupal.optionsElement.prototype.pendingUpdate = function(e) {
   }
 
   this.updateDelay = setTimeout(function(){
+    self.updateOptionElements();
     self.updateManualElements();
   }, 500);
 };
@@ -248,8 +334,11 @@ Drupal.optionsElement.optionsToText = function(options) {
       if (typeof(options[previousKey]) == 'object') {
         output += "<>\n";
       }
-      output += key + '|' + options[key] + "\n";
-      previousKey = key;
+      // Skip empty rows.
+      if (options[key]) {
+        output += key + '|' + options[key] + "\n";
+        previousKey = key;
+      }
     }
   }
 
@@ -368,44 +457,39 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
     return false;
   }
 
+  // Helper function to print out a single draggable option row.
+  function tableDragRow(key, value, parent_key, indent, status) {
+    var output = '';
+    output += '<tr class="draggable">'
+    output += '<td>';
+    for (var n = 0; n < indent; n++) {
+      output += Drupal.theme('tableDragIndentation');
+    }
+    output += '<input type="hidden" class="option-key" value="' + key + '" />';
+    output += '<input type="hidden" class="option-parent" value="' + parent_key + '" />';
+    output += '<input type="hidden" class="option-depth" value="' + indent + '" />';
+    output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '"' + (status == 'checked' ? ' checked="checked"' : '') + (status == 'disabled' ? ' disabled="disabled"' : '') + ' />';
+    output += '<input class="form-text form-options-value" type="text" value="' + value + '" />';
+    output += '<a class="add" title="' + Drupal.t('Add new option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="add">' + Drupal.t('Add') + '</span></a>';
+    output += '<a class="remove" title="' + Drupal.t('Remove option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="remove">' + Drupal.t('Remove') + '</span></a>';
+    output += '</td>';
+    output += '</tr>';
+    return output;
+  }
+
   output += '<div class="options-widget">';
   output += '<table id="' + optionsElement.identifier + '">';
   output += '<tbody>';
 
   for (var key in options) {
     if (typeof(options[key]) == 'object') {
-      output += '<tr class="draggable">'
-      output += '<td>';
-      output += '<input type="hidden" class="option-key" value="' + key + '" />';
-      output += '<input type="hidden" class="option-parent" value="0" />';
-      output += '<input type="hidden" class="option-depth" value="0" />';
-      output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '" disabled="disabled" />';
-      output += '<input class="form-text form-options-value" type="text" value="' + key + '" />';
-      output += '</td>';
-      output += '</tr>';
+      output += tableDragRow(key, key, 0, 0, 'disabled');
       for (var subkey in options[key]) {
-        output += '<tr class="draggable">'
-        output += '<td>';
-        output += Drupal.theme('tableDragIndentation');
-        output += '<input type="hidden" class="option-key" value="' + subkey + '" />';
-        output += '<input type="hidden" class="option-parent" value="' + key + '" />';
-        output += '<input type="hidden" class="option-depth" value="1" />';
-        output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + subkey + '"' + (isSelected(subkey) ? ' checked="checked"' : '') + ' />';
-        output += '<input class="form-text form-options-value" type="text" value="' + options[key][subkey] + '" />';
-        output += '</td>';
-        output += '</tr>';
+        output += tableDragRow(subkey, options[key][subkey], key, 1, (isSelected(subkey) ? 'checked' : false));
       }
     }
     else {
-      output += '<tr class="draggable">'
-      output += '<td>';
-      output += '<input type="hidden" class="option-key" value="' + key + '" />';
-      output += '<input type="hidden" class="option-parent" value="0" />';
-      output += '<input type="hidden" class="option-depth" value="0" />';
-      output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '"' + (isSelected(key) ? ' checked="checked"' : '') + ' />';
-      output += '<input class="form-text form-options-value" type="text" value="' + options[key] + '" />';
-      output += '</td>';
-      output += '</tr>';
+      output += tableDragRow(key, options[key], 0, 0, (isSelected(key) ? 'checked' : false));
     }
   }
 
