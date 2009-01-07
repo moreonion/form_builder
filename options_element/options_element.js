@@ -180,27 +180,31 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
 Drupal.optionsElement.prototype.updateOptionElements = function() {
   var self = this;
   var previousElement = false;
+  var $rows = $(this.optionsElement).find('tr');
 
-  $(this.optionsElement).find('tr').each(function(index) {
+  $rows.each(function(index) {
     // Update the elements key if matching the key and value.
     if (self.keyType == 'associative') {
       var optionValue = $(this).find('input.option-value').val();
       $(this).find('input.option-key').val(optionValue);
     }
+
     // Match the default value checkbox/radio button to the option's key.
-    var optionKey =$(this).find('input.option-key').val();
+    var optionKey = $(this).find('input.option-key').val();
     $(this).find('input.option-default').val(optionKey);
 
     // Set the tab order.
     $(this).find('input.form-text').attr('tabindex', index + 1);
 
-    // Adjust the row if indented.
+    // Hide the add/remove links the row if indented.
     var depth = $(this).find('input.option-depth').val();
+    var parent = $(this).find('input.option-parent').val();
     var defaultInput = $(this).find('input.option-default').get(0);
 
     if (depth == 1) {
       $(previousElement).attr('disabled', true).attr('checked', false);
       $(previousElement).parent().find('a.add, a.remove').hide();
+      $(defaultInput).parent().find('a.add, a.remove').show();
       $(defaultInput).attr('disabled', false);
     }
     else {
@@ -209,6 +213,11 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
       previousElement = defaultInput;
     }
   });
+
+  // Do not allow the last item to be removed.
+  if ($rows.size() == 1) {
+    $rows.find('a.remove').hide();
+  }
 }
 
 /**
@@ -217,6 +226,7 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
 Drupal.optionsElement.prototype.addOption = function(currentOption) {
   var self = this;
   var newOption = $(currentOption).clone()
+    .find('input.option-key').val(self.keyType == 'numeric' ? self.nextNumericKey() : '').end()
     .find('input.option-value').val('').end()
     .find('input.option-default').attr('checked', false).end()
     .find('a.tabledrag-handle').remove().end()
@@ -269,8 +279,9 @@ Drupal.optionsElement.prototype.removeOption = function(currentOption) {
  */
 Drupal.optionsElement.prototype.toggleMode = function() {
   if ($(this.optionsElement).is(':visible')) {
+    var height = $(this.optionsElement).height();
     $(this.optionsElement).hide();
-    $(this.manualElement).show();
+    $(this.manualElement).show().find('textarea').height(height);
     $(this.optionsToggleElement).find('a').html(Drupal.t('Normal entry'));
   }
   else {
@@ -319,7 +330,7 @@ Drupal.optionsElement.prototype.pendingUpdate = function(e) {
 Drupal.optionsElement.prototype.optionsToText = function() {
   var $rows = $('tr', this.optionsElement);
   var output = '';
-  var previousParent = 0;
+  var previousParent = '';
   var rowCount = $rows.size();
   var defaultValues = [];
 
@@ -339,12 +350,12 @@ Drupal.optionsElement.prototype.optionsToText = function() {
     // Handle groups.
     if (key == previousParent) {
       output = '<' + key + '>' + "\n" + output;
-      previousParent = 0;
+      previousParent = '';
     }
     // Typical key|value pairs.
     else {
       // Exit out of any groups.
-      if (previousParent != parent && parent != 0) {
+      if (previousParent != parent && parent !== '') {
         output = "<>\n" + output;
       }
       if (this.keyType == 'none') {
@@ -370,7 +381,7 @@ Drupal.optionsElement.prototype.optionsToText = function() {
  */
 Drupal.optionsElement.prototype.optionsFromText = function() {
   var rows = this.manualOptionsElement.value.match(/^.*$/mg);
-  var parentKey = 0;
+  var parentKey = '';
   var options = [];
   var defaultValues = {};
 
@@ -403,7 +414,7 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
     // Row is a group.
     if (this.optgroups && (matches = row.match(/^\<([^>]*)\>$/))) {
       if (matches[0] == '<>') {
-        parentKey = 0;
+        parentKey = '';
         groupClear = true;
       }
       else {
@@ -418,7 +429,7 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
     }
     // Row is a straight value.
     else {
-      key = row;
+      key = this.keyType == 'numeric' ? '' : row;
       value = row;
     }
 
@@ -426,14 +437,42 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
       options.push({
         key: key,
         value: value,
-        parent: (key !== parentKey ? parentKey : 0),
+        parent: (key !== parentKey ? parentKey : ''),
         hasChildren: hasChildren,
         checked: (defaultValues[key] ? 'checked' : false)
       });
     }
   }
 
+  // Convert options to numeric if no key is specified.
+  if (this.keyType == 'numeric') {
+    var nextKey = this.nextNumericKey();
+    for (var n in options) {
+      if (options[n].key == '') {
+        options[n].key = nextKey;
+        nextKey++;
+      }
+    }
+  }
+
   return options;
+}
+
+/**
+ * Utility method to get the next numeric option in a list of options.
+ */
+Drupal.optionsElement.prototype.nextNumericKey = function(options) {
+  this.keyType = 'custom';
+  options = this.optionsFromText();
+  this.keyType = 'numeric';
+
+  var maxKey = -1;
+  for (var n in options) {
+    if (options[n].key.match(/^[0-9]+$/)) {
+      maxKey = Math.max(maxKey, options[n].key);
+    }
+  }
+  return maxKey + 1;
 }
 
 /**
@@ -473,7 +512,7 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
 
   for (var n in options) {
     var option = options[n];
-    var depth = option.parent == 0 ? 0 : 1;
+    var depth = option.parent === '' ? 0 : 1;
     if (option.hasChildren) {
       output += tableDragRow(option.key, option.key, option.parent, depth, 'disabled');
     }

@@ -381,7 +381,7 @@ Drupal.formBuilder.updateElement = function(response) {
   // Display messages, if any.
   $configureForm.find('.messages').remove();
   if (response.messages) {
-    $configureForm.find('fieldset:visible').prepend(response.messages);
+    $configureForm.find('fieldset:visible:first').prepend(response.messages);
   }
 
   // Do not update the element if errors were received.

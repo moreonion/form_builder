@@ -166,9 +166,8 @@ function form_builder_examples_form_builder_types() {
       'field_suffix',
       'default_value',
       'required',
-      // TODO: how to handle validate functions?
-      'number_validate',
     ),
+    // TODO: how to handle validate functions?
     'validate' => array(
       'number',
     ),
@@ -177,8 +176,6 @@ function form_builder_examples_form_builder_types() {
       '#title' => t('New number'),
       '#type' => 'textfield',
     ),
-    'unique' => TRUE,
-    'palette_group' => 'special',
   );
 
   $fields['select'] = array(
@@ -194,7 +191,7 @@ function form_builder_examples_form_builder_types() {
     'default' => array(
       '#title' => t('New select list'),
       '#type' => 'select',
-      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
+      '#options' => array('1' => 'one', '2' => 'two', '3' => 'three'),
     ),
   );
 

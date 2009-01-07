@@ -130,6 +130,8 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
     '#required' => TRUE,
     '#multiple' => isset($element['#multiple']) ? $element['#multiple'] : FALSE,
     '#optgroups' => $element['#type'] == 'select' ? TRUE : FALSE,
+    // Uncomment to test numeric fields.
+    //'#key_type' => 'numeric',
   );
 
   // Remove the default value field, since it's handled by the options field.
@@ -191,23 +193,6 @@ function form_builder_property_multiple_form(&$form_state, $form_type, $element)
   );
 
   return $form;
-}
-
-/**
- * Submit function for "multiple" property on checkboxes and select elements.
- */
-function form_builder_property_multiple_form_submit(&$form, &$form_state) {
-  // Convert default values to an array.
-  if ($form_state['values']['multiple']) {
-    // Expand on commas.
-    $form_state['values']['default_value'] = explode(',', $form_state['values']['default_value']);
-    // Trim space around options.
-    foreach ($form_state['values']['default_value'] as $key => $value) {
-      $form_state['values']['default_value'][$key] = trim($value);
-    }
-    // Remove any options with no value.
-    $form_state['values']['default_value'] = array_filter($form_state['values']['default_value']);
-  }
 }
 
 /**

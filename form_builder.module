@@ -229,7 +229,6 @@ function form_builder_form_builder_properties() {
     ),
     'multiple' => array(
       'form' => 'form_builder_property_multiple_form',
-      'submit' => array('form_builder_property_multiple_form_submit'),
     ),
     'required' => array(
       'form' => 'form_builder_property_required_form',
