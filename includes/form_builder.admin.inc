@@ -73,7 +73,7 @@ function form_builder_add_page($form_type, $form_id, $field_type) {
         'elementId' => $element_id,
         'html' => form_builder_field_render($form_type, $form_id, $element_id),
         'positionForm' => drupal_get_form('form_builder_positions', $preview_form, $form_type, $form_id),
-        //'messages' => theme('status_messages'),
+        'messages' => theme('status_messages'),
       );
 
       drupal_json($data);
@@ -102,7 +102,7 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
         'elementId' => $element_id,
         'html' => $output,
         'errors' => form_get_errors(),
-        //'messages' => theme('status_messages'),
+        'messages' => theme('status_messages'),
       );
   
       drupal_json($data);
@@ -126,7 +126,7 @@ function form_builder_remove_page($form_type, $form_id, $element_id) {
       'formId' => $form_id,
       'elementId' => $element_id,
       'html' => $output,
-      //'messages' => theme('status_messages'),
+      'messages' => theme('status_messages'),
     );
 
     drupal_json($data);
@@ -632,7 +632,7 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'elementId' => $element_id,
     'html' => form_builder_field_render($form_type, $form_id, $element_id),
     'errors' => form_get_errors(),
-    //'messages' => theme('status_messages'),
+    'messages' => theme('status_messages'),
   );
 
   drupal_json($data);
