@@ -8,7 +8,7 @@ div.options-widget .draggable a.tabledrag-handle {
   padding-right: .5em /* RTL */
 }
 
-input.form-options-value {
+input.option-value {
   width: 60%;
   margin-right: 10px; /* RTL */
 }

@@ -106,8 +106,16 @@ function form_type_options_value($element, $edit = FALSE) {
   else {
     $duplicates = array();
     $options = form_options_from_text($edit['options_field'], $element['#key_type'], empty($element['#optgroups']), $duplicates);
-    $duplicate_list = theme('item_list', array_walk($duplicates, 'check_plain'));
-    form_error($element['options_field'], t('The following keys have been used multiple times. This will cause these items to not display properly. Give each item a unique key.') . $duplicate_list);
+
+    // Throw an error if a key is used multiple times.
+    if (count($duplicates) == 1) {
+      form_error($element, t('The key %key has been used multiple times. Each key must be unique to display properly.', array('%key' => array_pop($duplicates))));
+    }
+    elseif (!empty($duplicates)) {
+      array_walk($duplicates, 'check_plain');
+      $duplicate_list = theme('item_list', $duplicates);
+      form_error($element, t('The following keys have been used multiple times. Each key must be unique to display properly.') . $duplicate_list);
+    }
 
     return array(
       'options' => $options,
@@ -169,14 +177,14 @@ function form_options_to_text($options, $key_type) {
     // Typical key|value pairs.
     else {
       // Exit out of any groups.
-      if (is_array($options[$previous_key])) {
+      if (isset($options[$previous_key]) && is_array($options[$previous_key])) {
         $output .= "<>\n";
       }
       // Skip empty rows.
       if ($options[$key] !== '') {
         $output .= $key . '|' . $value . "\n";
-        $previousKey = $key;
       }
+      $previous_key = $key;
     }
   }
 
@@ -195,10 +203,11 @@ function form_options_to_text($options, $key_type) {
  * <>
  *   Unsets the current group, allowing items to be inserted at the root element.  
  */
-function form_options_from_text($text, $key_type, $flat = FALSE) {
+function form_options_from_text($text, $key_type, $flat = FALSE, &$duplicates = array()) {
   $options = array();
   $rows = array_filter(explode("\n", trim($text)));
   $group = FALSE;
+
   foreach ($rows as $option) {
     $option = trim($option);
     $matches = array();
@@ -217,17 +226,17 @@ function form_options_from_text($text, $key_type, $flat = FALSE) {
       $key = $matches[1];
       $value = $matches[2];
       if ($group !== FALSE) {
-        $options[$group][$key] = $value;
+        isset($options[$group][$key]) ? $duplicates[$key] = $key : $options[$group][$key] = $value;
       }
       else {
-        $options[$key] = $value;
+        isset($options[$key]) ? $duplicates[$key] = $key : $options[$key] = $value;
       }
     }
     // Check if this row is a straight value.
     else {
       if ($group !== FALSE) {
         if ($key_type != 'none') {
-          $options[$group][$option] = $option;
+          isset($options[$group][$option]) ? $duplicates[$option] = $option : $options[$group][$option] = $option;
         }
         else {
           $options[$group][] = $option;
@@ -235,7 +244,7 @@ function form_options_from_text($text, $key_type, $flat = FALSE) {
       }
       else {
         if ($key_type == 'associative' || $key_type == 'custom') {
-          $options[$option] = $option;
+          isset($options[$option]) ? $duplicates[$option] = $option : $options[$option] = $option;
         }
         else {
           $options[] = $option;

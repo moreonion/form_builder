@@ -23,8 +23,6 @@ Drupal.optionsElement = function(element) {
   this.manualDefaultValueElement = $(element).find('input').get(0);
 
   // Setup variables containing the current status of the widget.
-  this.options = Drupal.optionsElement.optionsFromText(this.manualOptionsElement.value);
-  this.defaultValue = Drupal.optionsElement.defaultsFromText(this.manualDefaultValueElement.value, this.multiple);
   this.optgroups = $(element).is('.options-optgroups');
   this.multiple = $(element).is('.options-multiple');
   this.keyType = element.className.replace(/^.*?options-key-type-([a-z]+).*?$/, '$1');
@@ -106,7 +104,7 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
   });
 
   // Add a delayed update to textfields.
-  $('input.form-options-value', this.optionsElement).keyup(function(e) {
+  $('input.option-value', this.optionsElement).keyup(function(e) {
     self.pendingUpdate(e);
   });
 
@@ -122,6 +120,9 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
     // Update the options within the hidden text area.
     self.updateManualElements();
   };
+
+  // Set the tab indexes.
+  this.updateOptionElements();
 }
 
 /**
@@ -132,7 +133,7 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
 
   // Build a list of current options.
   var previousOption = false;
-  $(this.optionsElement).find('input.form-options-value').each(function() {
+  $(this.optionsElement).find('input.option-value').each(function() {
     var $row = $(this).is('tr') ? $(this) : $(this).parents('tr:first');
     var depth = $row.find('input.option-depth').val();
     if (depth == 1 && previousOption) {
@@ -164,10 +165,8 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
   this.defaultValue = defaultValue;
 
   // Update with the new text and trigger the change action on the field.
-  var optionsText = Drupal.optionsElement.optionsToText(options);
-  var defaultText = Drupal.optionsElement.defaultsToText(defaultValue);
-  $(this.manualDefaultValueElement).val(defaultText);
-  $(this.manualOptionsElement).val(optionsText).change();
+  this.optionsToText();
+  $(this.manualOptionsElement).change();
 }
 
 /**
@@ -176,20 +175,24 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
  * - Disable options for optgroups if indented.
  * - Disable add and delete links if indented.
  * - Match the default value radio button value to the key of the text element.
+ * - Reset the taborder.
  */
 Drupal.optionsElement.prototype.updateOptionElements = function() {
   var self = this;
   var previousElement = false;
 
-  $(this.optionsElement).find('tr').each(function() {
+  $(this.optionsElement).find('tr').each(function(index) {
     // Update the elements key if matching the key and value.
     if (self.keyType == 'associative') {
-      var optionValue = $(this).find('input.form-options-value').val();
+      var optionValue = $(this).find('input.option-value').val();
       $(this).find('input.option-key').val(optionValue);
     }
     // Match the default value checkbox/radio button to the option's key.
     var optionKey =$(this).find('input.option-key').val();
     $(this).find('input.option-default').val(optionKey);
+
+    // Set the tab order.
+    $(this).find('input.form-text').attr('tabindex', index + 1);
 
     // Adjust the row if indented.
     var depth = $(this).find('input.option-depth').val();
@@ -212,10 +215,9 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
  * Add a new option below the current row.
  */
 Drupal.optionsElement.prototype.addOption = function(currentOption) {
-  console.log(currentOption);
   var self = this;
   var newOption = $(currentOption).clone()
-    .find('input.form-options-value').val('').end()
+    .find('input.option-value').val('').end()
     .find('input.option-default').attr('checked', false).end()
     .find('a.tabledrag-handle').remove().end()
     .removeClass('drag-previous')
@@ -244,11 +246,12 @@ Drupal.optionsElement.prototype.addOption = function(currentOption) {
   });
 
   // Add a delayed update to textfields.
-  $('input.form-options-value', newOption).keyup(function(e) {
+  $('input.option-value', newOption).keyup(function(e) {
     self.pendingUpdate(e);
   });
 
   this.updateOptionElements();
+  this.updateManualElements();
 }
 
 /**
@@ -271,8 +274,6 @@ Drupal.optionsElement.prototype.toggleMode = function() {
     $(this.optionsToggleElement).find('a').html(Drupal.t('Normal entry'));
   }
   else {
-    this.options = Drupal.optionsElement.optionsFromText(this.manualOptionsElement.value);
-    this.defaultValue = Drupal.optionsElement.defaultsFromText(this.manualDefaultValueElement.value, this.multiple);
     this.updateWidgetElements();
     $(this.optionsElement).show();
     $(this.manualElement).hide();
@@ -315,123 +316,124 @@ Drupal.optionsElement.prototype.pendingUpdate = function(e) {
 /**
  * Given an object of options, convert it to a text string.
  */
-Drupal.optionsElement.optionsToText = function(options) {
+Drupal.optionsElement.prototype.optionsToText = function() {
+  var $rows = $('tr', this.optionsElement);
   var output = '';
-  var previousKey = false;
+  var previousParent = 0;
+  var rowCount = $rows.size();
+  var defaultValues = [];
 
-  for (var key in options) {
-    // Convert groups.
-    if (typeof(options[key]) == 'object') {
-      output += '<' + key + '>' + "\n";
-      for (var subkey in options[key]) {
-        output += subkey + '|' + options[key][subkey] + "\n";
-      }
-      previousKey = key;
+  // Loop through rows in reverse to find parents easier.
+  for (var rowIndex = rowCount - 1; rowIndex >= 0; rowIndex--) {
+    var indent = $rows.eq(rowIndex).find('input.option-depth').val();
+    var key = $rows.eq(rowIndex).find('input.option-key').val();
+    var value = $rows.eq(rowIndex).find('input.option-value').val();
+    var parent = $rows.eq(rowIndex).find('input.option-parent').val();
+    var checked = $rows.eq(rowIndex).find('input.option-default').attr('checked');
+
+    // Add to default values.
+    if (checked) {
+      defaultValues.push(key);
+    }
+
+    // Handle groups.
+    if (key == previousParent) {
+      output = '<' + key + '>' + "\n" + output;
+      previousParent = 0;
     }
     // Typical key|value pairs.
     else {
       // Exit out of any groups.
-      if (typeof(options[previousKey]) == 'object') {
-        output += "<>\n";
+      if (previousParent != parent && parent != 0) {
+        output = "<>\n" + output;
       }
-      // Skip empty rows.
-      if (options[key]) {
-        output += key + '|' + options[key] + "\n";
-        previousKey = key;
+      if (this.keyType == 'none') {
+        output = value + "\n" + output;
       }
+      else if (key == '' && value == '') {
+        output = "\n" + output;
+      }
+      else {
+        output = key + '|' + value + "\n" + output;
+      }
+      previousParent = parent;
+
     }
   }
 
-  return output;
+  this.manualOptionsElement.value = output;
+  this.manualDefaultValueElement.value = defaultValues.join(', ');
 };
 
 /**
  * Given a text string, convert it to an object.
  */
-Drupal.optionsElement.optionsFromText = function(text, flat) {
-  var flat = flat || false; // Default to false if not specified.
-  var options = {};
-  var rows = text.match(/^.+$/mg);
-  var group = false;
+Drupal.optionsElement.prototype.optionsFromText = function() {
+  var rows = this.manualOptionsElement.value.match(/^.*$/mg);
+  var parentKey = 0;
+  var options = [];
+  var defaultValues = {};
+
+  // Drop the last row if empty.
+  if (rows.length && rows[rows.length - 1] == '') {
+    rows.pop();
+  }
+
+  if (this.multiple) {
+    var defaults = this.manualDefaultValueElement.value.split(',');
+    for (var n in defaults) {
+      var defaultValue = defaults[n].replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
+      defaultValues[defaultValue] = defaultValue;
+    }
+  }
+  else {
+    var defaultValue = this.manualDefaultValueElement.value.replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
+    defaultValues[defaultValue] = defaultValue;
+  }
+
   for (var n in rows) {
-    var option = rows[n].replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
+    var row = rows[n].replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
+    var key = '';
+    var value = '';
+    var checked = false;
+    var hasChildren = false;
+    var groupClear = false;
 
     var matches = {};
-    // Check if this row is a group.
-    if (!flat && (matches = option.match(/^\<([^>]*)\>$/))) {
-      if (matches[1] === '') {
-        group = false;
+    // Row is a group.
+    if (this.optgroups && (matches = row.match(/^\<([^>]*)\>$/))) {
+      if (matches[0] == '<>') {
+        parentKey = 0;
+        groupClear = true;
       }
       else {
-        group = matches[1];
-        options[group] = {};
+        parentKey = key = value = matches[1];
+        hasChildren = true;
       }
     }
-    // Check if this row is a key|value pair.
-    else if (matches = option.match(/^([^|]+)\|(.*)$/)) {
-      var key = matches[1];
-      var value = matches[2];
-      if (group !== false) {
-        options[group][key] = value;
-      }
-      else {
-        options[key] = value;
-      }
+    // Row is a key|value pair.
+    else if (matches = row.match(/^([^|]+)\|(.*)$/)) {
+      key = matches[1];
+      value = matches[2];
     }
-    // Check if this row is a straight value.
+    // Row is a straight value.
     else {
-      if (group !== false) {
-        options[group][option] = option
-      }
-      else {
-        options[option] = option;
-      }
+      key = row;
+      value = row;
+    }
+
+    if (!groupClear) {
+      options.push({
+        key: key,
+        value: value,
+        parent: (key !== parentKey ? parentKey : 0),
+        hasChildren: hasChildren,
+        checked: (defaultValues[key] ? 'checked' : false)
+      });
     }
   }
 
   return options;
-}
-
-/**
- * Convert from a default value to a text string.
- *
- * @param defaults
- *   The string or array of defaults being converted to default values.
- */
-Drupal.optionsElement.defaultsToText = function(defaults) {
-  var text = defaults;
-
-  if (typeof(defaults) == 'array') {
-    text = defaults.join(', ');
-  }
-
-  return text;
-}
-
-
-/**
- * Convert text from a string to an array (or string) of default values.
- *
- * @param text
- *   The string being converted to default values.
- * @param multiple
- *   The type of values being parsed. If true, the returned value will be an
- *   array. Otherwise the returned value will be a string.
- */
-Drupal.optionsElement.defaultsFromText = function(text, multiple) {
-  var defaultValue = multiple ? [] : '';
-
-  if (multiple) {
-    defaultValue = text.split(',');
-    for (var n in defaultValue) {
-      defaultValue[n] = defaultValue[n].replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
-    }
-  }
-  else {
-    defaultValue = text.replace(/^[ ]*(.*?)[ ]*$/, '$1'); // trim().
-  }
-
-  return defaultValue;
 }
 
 /**
@@ -442,23 +444,11 @@ Drupal.optionsElement.defaultsFromText = function(text, multiple) {
  */
 Drupal.theme.prototype.optionsElement = function(optionsElement) {
   var output = '';
-  var options = optionsElement.options;
-  var defaultValue = optionsElement.defaultValue;
+  var options = optionsElement.optionsFromText();
   var defaultType = optionsElement.multiple ? 'checkbox' : 'radio';
 
-  // Helper function to check if an option is selected.
-  function isSelected(option) {
-    if (optionsElement.multiple && defaultValue.indexOf(option) != -1) {
-      return true;
-    }
-    else if (!optionsElement.multiple && defaultValue == option) {
-      return true;
-    }
-    return false;
-  }
-
   // Helper function to print out a single draggable option row.
-  function tableDragRow(key, value, parent_key, indent, status) {
+  function tableDragRow(key, value, parentKey, indent, status) {
     var output = '';
     output += '<tr class="draggable">'
     output += '<td>';
@@ -466,10 +456,10 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
       output += Drupal.theme('tableDragIndentation');
     }
     output += '<input type="hidden" class="option-key" value="' + key + '" />';
-    output += '<input type="hidden" class="option-parent" value="' + parent_key + '" />';
+    output += '<input type="hidden" class="option-parent" value="' + parentKey + '" />';
     output += '<input type="hidden" class="option-depth" value="' + indent + '" />';
     output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '"' + (status == 'checked' ? ' checked="checked"' : '') + (status == 'disabled' ? ' disabled="disabled"' : '') + ' />';
-    output += '<input class="form-text form-options-value" type="text" value="' + value + '" />';
+    output += '<input class="form-text option-value" type="text" value="' + value + '" />';
     output += '<a class="add" title="' + Drupal.t('Add new option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="add">' + Drupal.t('Add') + '</span></a>';
     output += '<a class="remove" title="' + Drupal.t('Remove option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="remove">' + Drupal.t('Remove') + '</span></a>';
     output += '</td>';
@@ -481,15 +471,14 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
   output += '<table id="' + optionsElement.identifier + '">';
   output += '<tbody>';
 
-  for (var key in options) {
-    if (typeof(options[key]) == 'object') {
-      output += tableDragRow(key, key, 0, 0, 'disabled');
-      for (var subkey in options[key]) {
-        output += tableDragRow(subkey, options[key][subkey], key, 1, (isSelected(subkey) ? 'checked' : false));
-      }
+  for (var n in options) {
+    var option = options[n];
+    var depth = option.parent == 0 ? 0 : 1;
+    if (option.hasChildren) {
+      output += tableDragRow(option.key, option.key, option.parent, depth, 'disabled');
     }
     else {
-      output += tableDragRow(key, options[key], 0, 0, (isSelected(key) ? 'checked' : false));
+      output += tableDragRow(option.key, option.value, option.parent, depth, option.checked);
     }
   }
 
