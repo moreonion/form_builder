@@ -212,7 +212,9 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
     }
 
     // Recurse into this element to look for the target element.
-    form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
+    if (isset($form[$key]['#form_builder'])) {
+      form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
+    }
   }
 }
 
