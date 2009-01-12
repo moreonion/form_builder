@@ -171,9 +171,6 @@ function form_type_options_value(&$element, $edit = FALSE) {
       $element['#key_type'] = $edit['key_type'];
     }
 
-    // Change the multiple value if needed.
-    $element['#multiple'] = isset($edit['multiple']) && $edit['multiple'];
-
     // Convert text to an array of options.
     $duplicates = array();
     $options = form_options_from_text($edit['options_field'], $element['#key_type'], empty($element['#optgroups']), $duplicates);

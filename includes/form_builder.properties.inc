@@ -120,7 +120,7 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
   if ($element['#type'] == 'checkboxes') {
     $element['#multiple'] = TRUE;
   }
-dsm($element);
+
   $form['options'] = array(
     '#form_builder' => array('property_group' => 'options'),
     '#title' => t('Options'),

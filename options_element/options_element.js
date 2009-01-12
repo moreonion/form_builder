@@ -45,14 +45,18 @@ Drupal.optionsElement = function(element) {
   });
 
   // Add a handler for key type changes.
-  $(this.keyTypeToggle).change(function() {
-    self.setKeyType($(this).attr('checked') ? 'custom' : 'associative');
-  });
+  if (this.keyTypeToggle) {
+    $(this.keyTypeToggle).change(function(){
+      self.setKeyType($(this).attr('checked') ? 'custom' : 'associative');
+    });
+  }
 
   // Add a handler for multiple value changes.
-  $(this.multipleToggle).change(function() {
-    self.setMultiple($(this).attr('checked'));
-  });
+  if (this.multipleToggle) {
+    $(this.multipleToggle).change(function(){
+      self.setMultiple($(this).attr('checked'));
+    });
+  }
 
   // Update the options widget with the current state of the textarea.
   this.updateWidgetElements();

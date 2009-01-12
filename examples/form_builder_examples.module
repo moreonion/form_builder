@@ -62,7 +62,7 @@ function form_builder_examples_example() {
       '#form_builder' => array(
         'element_id' => 'sample_textfield',
         'configurable' => TRUE,
-        'removable' => FALSE,
+        'removable' => TRUE,
       ),
       '#type' => 'textfield',
       '#title' => 'Sample textfield',
@@ -75,7 +75,7 @@ function form_builder_examples_example() {
     'sample_checkboxes' => array(
       '#form_builder' => array(
         'element_id' => 'sample_checkboxes',
-        'configurable' => FALSE,
+        'configurable' => TRUE,
         'removable' => TRUE,
       ),
       '#type' => 'checkboxes',
@@ -225,6 +225,7 @@ function form_builder_examples_form_builder_types() {
       'required',
       'options',
       'multiple',
+      'key_type', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New checkboxes'),
@@ -241,6 +242,7 @@ function form_builder_examples_form_builder_types() {
       'default_value',
       'required',
       'options',
+      'key_type', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New radios'),
