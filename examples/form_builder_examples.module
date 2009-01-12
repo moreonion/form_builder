@@ -186,12 +186,15 @@ function form_builder_examples_form_builder_types() {
       'default_value',
       'required',
       'options',
-      'multiple',
+      'multiple', // Handled by options element.
+      'key_type', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New select list'),
       '#type' => 'select',
       '#options' => array('1' => 'one', '2' => 'two', '3' => 'three'),
+      '#multiple_toggle' => TRUE,
+      '#key_type' => 'associative',
     ),
   );
 

@@ -8,7 +8,7 @@
 
 /**
  * Configuration form for the "key" property.
- * 
+ *
  * The key property is special in that it's not actually part of the element,
  * but instead the array key that is used to reference the element in the
  * Form API structure.
@@ -120,7 +120,7 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
   if ($element['#type'] == 'checkboxes') {
     $element['#multiple'] = TRUE;
   }
-
+dsm($element);
   $form['options'] = array(
     '#form_builder' => array('property_group' => 'options'),
     '#title' => t('Options'),
@@ -129,9 +129,12 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
     '#options' => $element['#options'],
     '#required' => TRUE,
     '#multiple' => isset($element['#multiple']) ? $element['#multiple'] : FALSE,
+    '#multiple_toggle' => isset($element['#multiple_toggle']) ? $element['#multiple_toggle'] : FALSE,
     '#optgroups' => $element['#type'] == 'select' ? TRUE : FALSE,
+    '#limit' => 10,
     // Uncomment to test numeric fields.
-    //'#key_type' => 'numeric',
+    '#key_type' => isset($element['#key_type']) ? $element['#key_type'] : 'associative',
+    '#key_type_toggle' => isset($element['#key_type_toggle']) ? $element['#key_type'] : TRUE,
   );
 
   // Remove the default value field, since it's handled by the options field.
@@ -144,52 +147,31 @@ function form_builder_property_options_form_submit(&$form, &$form_state) {
   $options = $form_state['values']['options']['options'];
   $default_value = $form_state['values']['options']['default_value'];
 
+  if (isset($form_state['values']['options']['multiple'])) {
+    $multiple = $form_state['values']['options']['multiple'];
+    $form_state['values']['multiple'] = $multiple;
+  }
+
+  if (isset($form_state['values']['options']['key_type'])) {
+    $key_type = $form_state['values']['options']['key_type'] ? $form_state['values']['options']['key_type'] : 'associative';
+    $form_state['values']['key_type'] = $key_type;
+  }
+
   $form_state['values']['options'] = $options;
   $form_state['values']['default_value'] = $default_value;
 }
 
 /**
  * Configuration form for the "default_value" property.
- *
- * @todo Handle multiple value defaults, such as for checkboxes or selects.
  */
 function form_builder_property_default_value_form(&$form_state, $form_type, $element) {
   $form = array();
-
-  // If this default value is an array, convert it to a string.
-  if (is_array($element['#default_value'])) {
-    $element['#default_value'] = implode(', ', $element['#default_value']);
-  }
 
   $form['default_value'] = array(
     '#type' => 'textfield',
     '#title' => t('Default value'),
     '#default_value' => $element['#default_value'],
     '#weight' => 1,
-  );
-
-  // Add help text if this is a multi-value field.
-  if (!empty($element['#multiple'])) {
-    $form['default_value']['#description'] = t('Multiple values may be specified by separating by a comma.');
-  }
-
-  return $form;
-}
-
-
-/**
- * Configuration form for the "multiple" property.
- */
-function form_builder_property_multiple_form(&$form_state, $form_type, $element) {
-  $form = array();
-
-  $form['multiple'] = array(
-    '#title' => t('Multiple'),
-    '#type' => 'checkbox',
-    '#default_value' => $element['#type'] != 'checkboxes' ? $element['#multiple'] : 1,
-    '#weight' => 2,
-    // This property is utilized by checkboxes, but no option is ever shown.
-    '#access' => $element['#type'] != 'checkboxes',
   );
 
   return $form;

@@ -8,13 +8,13 @@ div.options-widget .draggable a.tabledrag-handle {
   padding-right: .5em /* RTL */
 }
 
-input.option-value {
-  width: 60%;
-  margin-right: 10px; /* RTL */
+div.form-options fieldset.options {
+  margin-bottom: -2em;
 }
 
 div.form-options-manual {
   text-align: right; /* RTL */
+  padding-right: 10px; /* RTL */
 }
 
 div.options-widget table,
@@ -49,4 +49,43 @@ div.options-widget a.add {
 
 div.options-widget a.remove {
   background-image: url(delete.png);
+}
+
+div.options-widget table {
+  width: 100%;
+}
+
+div.options-widget table td.option-default-cell {
+  width: 5em;
+}
+
+div.options-widget table td.option-key-cell {
+  width: 20%;
+  padding-left: 20px;
+}
+
+div.options-widget table td.option-value-cell {
+  padding-left: 20px;
+}
+
+div.options-widget table td.option-actions-cell {
+  width: 40px;
+}
+
+div.options-widget table tr input.form-text,
+div.options-widget table tr a.add {
+  margin-left: -20px;
+}
+
+div.options-widget table tr.indented input.form-text,
+div.options-widget table tr.indented a.add {
+  margin-left: 0;
+}
+
+div.options-widget table tr.indented input.option-default {
+  margin-right: -20px;
+}
+
+div.options-widget input.form-text {
+  width: 100%;
 }

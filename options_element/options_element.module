@@ -8,6 +8,65 @@
 
 /**
  * Implementation of hook_elements().
+ *
+ * Defines the #type = 'options' form element type.
+ *
+ * The 'options' form element type is useful when collecting a series of
+ * values in a list. The values within the list may optionally have unique
+ * keys, such as that in a array structure. In addition, a default choice
+ * (or several default choices) may be selected by the user.
+ *
+ * @code
+ * $element['options'] = array(
+ *   'type' => 'options',
+ *   'limit' => 20,
+ *   'optgroups' => FALSE,
+ *   'multiple' => FALSE,
+ *   'options' => array(
+ *     'foo' => 'foo',
+ *     'bar' => 'bar',
+ *     'baz' => 'baz',
+ *   ),
+ *   'default_value' => 'foo'
+ *   'key_type' => 'associative',
+ * );
+ * @endcode
+ *
+ * Properties for the 'options' element include:
+ * - limit: The maximum number of options that can be added to a list. Defaults
+ *   to 100.
+ * - optgroups: If nesting of options is supported, up to one level. This is
+ *   used when building a select HTML element that uses optgroups. Defaults to
+ *   FALSE.
+ * - multiple: Affects the number of default values that may be selected.
+ * - default_value: The key(s) for the options that are currently selected. If
+ *   #multiple is TRUE then, the default value is an array, otherwise it is a
+ *   string.
+ * - options: An array of options currently within the list.
+ * - key_type: The method by which keys are determined for each value in the
+ *   option list. Available options include:
+ *   - numeric: Each value is automatically given a unique numeric ID. This can
+ *     be useful when wanting duplicate values in a list and not have to bother
+ *     the end-user for keys.
+ *   - associative: Keys are automatically mapped from the user-entered values.
+ *     This is equivalent to making key|value pairs, but both the key and value
+ *     are the same. Each key must be unique.
+ *   - custom: Keys are manually entered by the end user. A second set of
+ *     textfields are presented to let the user provide keys as well as values.
+ *   - none: No keys are specified at all. This effectively creates numeric keys
+ *     but unlike numeric keys, the keys are renumbered if the options in the
+ *     list are rearranged.
+ * - key_type_toggle: If specified, a checkbox will be added that allows the
+ *   user to toggle between the current "associative" key type and the "custom"
+ *   key type, letting them customize the keys as desired. This option has no
+ *   effect with "numeric" or "none" key types.
+ *   @code
+ *   $element['options'] = array(
+ *     'type' => 'options',
+ *     'key_type' => 'associative',
+ *     'key_type_toggle' => t('Custom keys'),
+ *   );
+ *   @endcode
  */
 function options_element_elements() {
   $type = array();
@@ -15,22 +74,9 @@ function options_element_elements() {
   $type['options'] = array(
     '#input' => TRUE,
     '#process' => array('form_options_expand'),
-
-    // Maxiumum number of values for this option list.
     '#limit' => 100,
-    // Allow optgroups in this element? Set to FALSE for radios and checkboxes.
     '#optgroups' => TRUE,
-    // The current options for the select list.
     '#options' => array(),
-    // Possible values: 'numeric', 'associative', 'custom', or 'none'.
-    // Numeric keys are auto-indexed by their line number and allow duplicate
-    // values within the same list.
-    // Associative keys are automatically mapped into key|value pairs, but
-    // both the key and value are the same.
-    // Custom keys are the same as associative, only users are allowed to
-    // manually change the keys as well as the values.
-    // Keys of type "none" do not allow any keys at all, they depend entirely
-    // on the entered value and return an un-indexed array.
     '#key_type' => 'associative',
   );
 
@@ -58,11 +104,8 @@ function form_options_expand($element) {
   $element['#options'] = isset($element['#options']) ? $element['#options'] : array();
   $element['#multiple'] = isset($element['#multiple']) ? $element['#multiple'] : FALSE;
 
-  drupal_add_js('misc/tabledrag.js');
-  drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
-  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
-
   $element['#tree'] = TRUE;
+  $element['#theme'] = 'options';
 
   if (!isset($element['options'])) {
     $element['options_field'] = array(
@@ -80,7 +123,26 @@ function form_options_expand($element) {
       '#title' => t('Default value'),
       '#type' => 'textfield',
       '#size' => 60,
-      '#value' => isset($element['#default_value']) ? ($element['#multiple'] ? implode(', ', $element['#default_value']) : $element['#default_value']) : '',
+      '#value' => isset($element['#default_value']) ? ($element['#multiple'] ? implode(', ', (array) $element['#default_value']) : $element['#default_value']) : '',
+    );
+  }
+
+  if (!isset($element['key_type']) && !empty($element['#key_type_toggle'])) {
+    $element['key_type'] = array(
+      '#title' => is_string($element['#key_type_toggle']) ? $element['#key_type_toggle'] : t('Customize keys'),
+      '#type' => 'checkbox',
+      '#return_value' => 'custom',
+      '#default_value' => $element['#key_type'] == 'custom' ? 'custom' : '',
+      '#attributes' => array('class' => 'key-type-toggle'),
+    );
+  }
+
+  if (!isset($element['multiple']) && !empty($element['#multiple_toggle'])) {
+    $element['multiple'] = array(
+      '#title' => is_string($element['#multiple_toggle']) ? $element['#multiple_toggle'] : t('Allow multiple values'),
+      '#type' => 'checkbox',
+      '#default_value' => !empty($element['#multiple']),
+      '#attributes' => array('class' => 'multiple-toggle'),
     );
   }
 
@@ -96,7 +158,7 @@ function form_options_expand($element) {
  *
  * This function adjusts the value of the element from a text value to an array.
  */
-function form_type_options_value($element, $edit = FALSE) {
+function form_type_options_value(&$element, $edit = FALSE) {
   if ($edit === FALSE) {
      return array(
        'options' => isset($element['#options']) ? $element['#options'] : array(),
@@ -104,6 +166,15 @@ function form_type_options_value($element, $edit = FALSE) {
      );
   }
   else {
+    // Change the key type if a new type is specified.
+    if (isset($edit['key_type'])) {
+      $element['#key_type'] = $edit['key_type'];
+    }
+
+    // Change the multiple value if needed.
+    $element['#multiple'] = isset($edit['multiple']) && $edit['multiple'];
+
+    // Convert text to an array of options.
     $duplicates = array();
     $options = form_options_from_text($edit['options_field'], $element['#key_type'], empty($element['#optgroups']), $duplicates);
 
@@ -126,9 +197,25 @@ function form_type_options_value($element, $edit = FALSE) {
     if ($element['#key_type'] == 'numeric') {
       foreach ($options as $key => $value) {
         if (!is_int($key)) {
-          form_error($element, t('All specified keys must be integers for this field.'));
+          form_error($element, t('The keys for the %title field must be integers.', array('%title' => $element['#title'])));
           break;
         }
+      }
+    }
+
+    // Check that the limit of options has not been exceeded.
+    if (!empty($element['#limit'])) {
+      $count = 0;
+      foreach ($options as $value) {
+        if (is_array($value)) {
+          $count += count($value);
+        }
+        else {
+          $count++;
+        }
+      }
+      if ($count > $element['#limit']) {
+        form_error($element, t('The %title field supports a maximum of @count options. Please reduce the number of options.', array('%title' => $element['#title'], '@count' => $element['#limit'])));
       }
     }
 
@@ -154,8 +241,11 @@ function form_type_options_value($element, $edit = FALSE) {
 }
 
 function theme_options($element) {
-  $classes = array();
+  drupal_add_js('misc/tabledrag.js');
+  drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
+  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
 
+  $classes = array();
   if (isset($element['#attributes']['class'])) {
     $classes[] = $element['#attributes']['class'];
   }
@@ -171,10 +261,38 @@ function theme_options($element) {
     $classes[] = 'options-multiple';
   }
 
-  $element['#collapsible'] = FALSE;
-  $element['#attributes']['class'] = implode(' ', $classes);
-  unset($element['#value']);
-  return theme('fieldset', $element);
+  $options = '';
+  $options .= drupal_render($element['options_field']);
+  $options .= drupal_render($element['default_value_field']);
+
+  $settings = '';
+  if (isset($element['key_type'])) {
+    $settings .= drupal_render($element['key_type']);
+  }
+  if (isset($element['multiple'])) {
+    $settings .= drupal_render($element['multiple']);
+  }
+
+  $output = '';
+  $output .= '<div class="' . implode(' ', $classes) .'">';
+  $output .= theme('fieldset', array(
+    '#title' => t('Options'),
+    '#collapsible' => FALSE,
+    '#children' => $options,
+    '#attributes' => array('class' => 'options'),
+  ));
+
+  if (!empty($settings)) {
+    $output .= theme('fieldset', array(
+      '#title' => t('Option settings'),
+      '#collapsible' => FALSE,
+      '#children' => $settings,
+      '#attributes' => array('class' => 'option-settings'),
+    ));
+  }
+  $output .= '</div>';
+
+  return $output;
 }
 
 /**
@@ -242,7 +360,7 @@ function form_options_from_text($text, $key_type, $flat = FALSE, &$duplicates = 
     $matches = array();
 
     // Check if this row is a group.
-    if (preg_match('/^\<([^>]*)\>$/', $option, $matches)) {
+    if (!$flat && preg_match('/^\<([^>]*)\>$/', $option, $matches)) {
       if ($matches[1] === '') {
         $group = FALSE;
       }

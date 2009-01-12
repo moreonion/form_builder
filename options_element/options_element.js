@@ -5,7 +5,7 @@
  * Add JavaScript behaviors for the "options" form element type.
  */
 Drupal.behaviors.optionsElement = function(context) {
-  $('fieldset.form-options:not(.options-element-processed)', context).each(function() {
+  $('div.form-options:not(.options-element-processed)', context).each(function() {
     $(this).addClass('options-element-processed');
     new Drupal.optionsElement(this);
   });
@@ -18,9 +18,12 @@ Drupal.optionsElement = function(element) {
   var self = this;
 
   // Find the original "manual" fields.
-  this.manualElement = element;
+  this.element = element;
+  this.manualElement = $(element).find('fieldset.options').get(0);
   this.manualOptionsElement = $(element).find('textarea').get(0);
-  this.manualDefaultValueElement = $(element).find('input').get(0);
+  this.manualDefaultValueElement = $(element).find('input.form-text').get(0);
+  this.keyTypeToggle = $(element).find('input.key-type-toggle').get(0);
+  this.multipleToggle = $(element).find('input.multiple-toggle').get(0);
 
   // Setup variables containing the current status of the widget.
   this.optgroups = $(element).is('.options-optgroups');
@@ -33,12 +36,22 @@ Drupal.optionsElement = function(element) {
   this.optionsToggleElement = $(Drupal.theme('optionsElementToggle')).get(0);
 
   // Add the options widget and toggle elements to the page.
-  $(element).hide().before(this.optionsElement).after(this.optionsToggleElement);
+  $(this.manualElement).hide().before(this.optionsElement).after(this.optionsToggleElement);
 
   // Add a toggle action for manual entry of options.
-  $(this.optionsToggleElement).find('a').click(function(){
+  $(this.optionsToggleElement).find('a').click(function() {
     self.toggleMode();
     return false;
+  });
+
+  // Add a handler for key type changes.
+  $(this.keyTypeToggle).change(function() {
+    self.setKeyType($(this).attr('checked') ? 'custom' : 'associative');
+  });
+
+  // Add a handler for multiple value changes.
+  $(this.multipleToggle).change(function() {
+    self.setMultiple($(this).attr('checked'));
   });
 
   // Update the options widget with the current state of the textarea.
@@ -119,6 +132,16 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
     }
     // Update the options within the hidden text area.
     self.updateManualElements();
+  };
+
+  // Add an onIndent action to the table drag row instances.
+  Drupal.tableDrag[this.identifier].row.prototype.onIndent = function() {
+    if (this.indents) {
+      $(this.element).addClass('indented');
+    }
+    else {
+      $(this.element).removeClass('indented');
+    }
   };
 
   // Set the tab indexes.
@@ -203,13 +226,13 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
 
     if (depth == 1) {
       $(previousElement).attr('disabled', true).attr('checked', false);
-      $(previousElement).parent().find('a.add, a.remove').hide();
-      $(defaultInput).parent().find('a.add, a.remove').show();
+      $(previousElement).parents('tr:first').find('a.add, a.remove').hide();
+      $(defaultInput).parents('tr:first').find('a.add, a.remove').show();
       $(defaultInput).attr('disabled', false);
     }
     else {
       $(defaultInput).attr('disabled', false);
-      $(defaultInput).parent().find('a.add, a.remove').show();
+      $(defaultInput).parents('tr:first').find('a.add, a.remove').show();
       previousElement = defaultInput;
     }
   });
@@ -293,6 +316,36 @@ Drupal.optionsElement.prototype.toggleMode = function() {
 }
 
 /**
+ * Change the current key type (associative, custom, numeric, none).
+ */
+Drupal.optionsElement.prototype.setKeyType = function(type) {
+  $(this.element)
+    .removeClass('options-key-type-' + this.keyType)
+    .addClass('options-key-type-' + type);
+  this.keyType = type;
+  // Rebuild the options widget.
+  this.updateWidgetElements();
+}
+
+/**
+ * Set the element's #multiple property. Boolean TRUE or FALSE.
+ */
+Drupal.optionsElement.prototype.setMultiple = function(multiple) {
+  if (multiple) {
+    $(this.element).addClass('options-multiple');
+  }
+  else {
+    // Unselect all default options except the first.
+    $(this.optionsElement).find('input.option-default:checked:not(:first)').attr('checked', false);
+    this.updateManualElements();
+    $(this.element).removeClass('options-multiple');
+  }
+  this.multiple = multiple;
+  // Rebuild the options widget.
+  this.updateWidgetElements();
+}
+
+/**
  * Update a field after a delay.
  *
  * Similar to immediately changing a field, this field as pending changes that
@@ -328,9 +381,9 @@ Drupal.optionsElement.prototype.pendingUpdate = function(e) {
  * Given an object of options, convert it to a text string.
  */
 Drupal.optionsElement.prototype.optionsToText = function() {
-  var $rows = $('tr', this.optionsElement);
+  var $rows = $('tbody tr', this.optionsElement);
   var output = '';
-  var previousParent = '';
+  var previousParent = $rows.filter(':last').find('input.option-parent').val();
   var rowCount = $rows.size();
   var defaultValues = [];
 
@@ -348,27 +401,27 @@ Drupal.optionsElement.prototype.optionsToText = function() {
     }
 
     // Handle groups.
-    if (key == previousParent) {
+    if (this.optgroups && key == previousParent) {
       output = '<' + key + '>' + "\n" + output;
       previousParent = '';
     }
     // Typical key|value pairs.
     else {
       // Exit out of any groups.
-      if (previousParent != parent && parent !== '') {
+      if (this.optgroups && previousParent != parent && parent !== '') {
         output = "<>\n" + output;
       }
       if (this.keyType == 'none') {
         output = value + "\n" + output;
+        previousParent = parent;
       }
       else if (key == '' && value == '') {
         output = "\n" + output;
       }
       else {
         output = key + '|' + value + "\n" + output;
+        previousParent = parent;
       }
-      previousParent = parent;
-
     }
   }
 
@@ -485,20 +538,24 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
   var output = '';
   var options = optionsElement.optionsFromText();
   var defaultType = optionsElement.multiple ? 'checkbox' : 'radio';
+  var keyType = optionsElement.keyType == 'custom' ? 'textfield' : 'hidden';
 
   // Helper function to print out a single draggable option row.
   function tableDragRow(key, value, parentKey, indent, status) {
     var output = '';
-    output += '<tr class="draggable">'
-    output += '<td>';
+    output += '<tr class="draggable' + (indent > 0 ? ' indented' : '') + '">'
+    output += '<td class="option-default-cell">';
     for (var n = 0; n < indent; n++) {
       output += Drupal.theme('tableDragIndentation');
     }
-    output += '<input type="hidden" class="option-key" value="' + key + '" />';
     output += '<input type="hidden" class="option-parent" value="' + parentKey + '" />';
     output += '<input type="hidden" class="option-depth" value="' + indent + '" />';
     output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '"' + (status == 'checked' ? ' checked="checked"' : '') + (status == 'disabled' ? ' disabled="disabled"' : '') + ' />';
+    output += '</td><td class="' + (keyType == 'textfield' ? 'option-key-cell' : 'option-value') +'">';
+    output += '<input type="' + keyType + '" class="' + (keyType == 'textfield' ? 'form-text ' : '') + 'option-key" value="' + key + '" />';
+    output += keyType == 'textfield' ? '</td><td class="option-value-call">' : '';
     output += '<input class="form-text option-value" type="text" value="' + value + '" />';
+    output += '</td><td class="option-actions-cell">'
     output += '<a class="add" title="' + Drupal.t('Add new option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="add">' + Drupal.t('Add') + '</span></a>';
     output += '<a class="remove" title="' + Drupal.t('Remove option') + '" href="#"' + (status == 'disabled' ? ' style="display: none"' : '') + '><span class="remove">' + Drupal.t('Remove') + '</span></a>';
     output += '</td>';
@@ -508,6 +565,14 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
 
   output += '<div class="options-widget">';
   output += '<table id="' + optionsElement.identifier + '">';
+
+  output += '<thead><tr>';
+  output += '<th>' + Drupal.t('Default') + '</th>';
+  output += keyType == 'textfield' ? '<th>' + Drupal.t('Key') + '</th>' : '';
+  output += '<th>' + Drupal.t('Value') + '</th>';
+  output += '<th>&nbsp;</th>';
+  output += '</tr></thead>';
+
   output += '<tbody>';
 
   for (var n in options) {
