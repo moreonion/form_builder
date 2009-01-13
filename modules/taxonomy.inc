@@ -14,6 +14,11 @@ function taxonomy_form_builder_types() {
 
   $vocabularies = taxonomy_get_vocabularies();
 
+  // If no taxonomies are specified, do not allow the field to be added.
+  if (empty($vocabularies)) {
+    return array();
+  }
+
   $fields['taxonomy'] = array(
     'title' => t('Taxonomy'),
     'properties' => array(
