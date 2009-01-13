@@ -49,7 +49,9 @@ function form_builder_add_page($form_type, $form_id, $field_type) {
     $cache = form_builder_cache_load($form_type, $form_id);
     $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
     $element = $fields[$field_type]['default'];
-    if ($element['unique']) {
+
+    // Unique fields use their type as their key (taxonomy, menu, etc.).
+    if (!empty($element['unique'])) {
       $element_id = $field_type;
     }
 
@@ -92,9 +94,11 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
   $output = drupal_get_form('form_builder_field_configure', $form_type, $form_id, $element_id);
 
   if (isset($_REQUEST['js'])) {
+    // Return the newly changed field.
     if (isset($_REQUEST['return'])) {
       form_builder_field_json($form_type, $form_id, $element_id);
     }
+    // Display the configuration form for a field.
     else {
       $data = array(
         'formType' => $form_type,
@@ -549,8 +553,15 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   form_builder_cache_field_save($form_type, $form_id, $element);
 
   if (isset($_GET['js'])) {
+    // Option A: Use the destination variable to do a drupal_goto(). Allows
+    // other submit handlers to add on extra functionality.
     // The destination variable takes precedence over $form_state['redirect'].
-    $_REQUEST['destination'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+    //$_REQUEST['destination'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+
+    // Option B: Immediately print the JSON and exit. Faster and requires only
+    // one HTTP request instead of two. Other submit handlers must be before
+    // this on.
+    form_builder_field_json($form_type, $form_id, $element_id);
   }
 }
 
@@ -584,7 +595,10 @@ function form_builder_field_remove_submit(&$form, &$form_state) {
   form_builder_cache_field_delete($form_type, $form_id, $element_id);
 
   if (isset($_GET['js'])) {
-    $form_state['redirect'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+    // See form_builder_field_configure_submit() for comparison between using
+    // redirect and immediately printing the JSON.
+    //$form_state['redirect'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+    form_builder_field_json($form_type, $form_id, $element_id);
   }
 }
 
@@ -633,6 +647,7 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'html' => form_builder_field_render($form_type, $form_id, $element_id),
     'errors' => form_get_errors(),
     'messages' => theme('status_messages'),
+    'time' => time(),
   );
 
   drupal_json($data);

@@ -41,6 +41,23 @@ Drupal.behaviors.formBuilderElement = function(context) {
   $elements.find('input, textarea').bind('mousedown', Drupal.formBuilder.disableField);
 };
 
+Drupal.behaviors.formBuilderFields = function(context) {
+  // Bind a function to all elements to update the preview on change.
+  var $configure_form = $('#form-builder-field-configure');
+
+  $configure_form.find('input, textarea, select')
+    .filter(':not(.form-builder-field-change)')
+    .addClass('form-builder-field-change')
+    .bind('change', Drupal.formBuilder.elementPendingChange);
+
+  console.log($configure_form.find('input.form-text, textarea'));
+
+  $configure_form.find('input.form-text, textarea')
+    .filter(':not(.form-builder-field-keyup)')
+    .addClass('form-builder-field-keyup')
+    .bind('keyup', Drupal.formBuilder.elementPendingChange);
+}
+
 /**
  * Behavior for the entire form builder. Add drag and drop to elements.
  */
@@ -187,7 +204,10 @@ Drupal.formBuilder = {
   // Variable holding the actively edited element (if any).
   activeElement: false,
   // Variable holding the active drag object (if any).
-  activeDragUi: false
+  activeDragUi: false,
+  // Variable of the time of the last update, used to prevent old data from
+  // replacing newer updates.
+  lastUpdateTime: 0
 };
 
 Drupal.formBuilder.addHover = function() {
@@ -305,10 +325,6 @@ Drupal.formBuilder.displayForm = function(response) {
     // Manually add a hidden element to pass additional data on submit.
     .prepend('<input type="hidden" name="return" value="field" />');
 
-  // Bind a function to all elements to update the preview on change.
-  $form.find('input, textarea, select').bind('change', Drupal.formBuilder.elementChange);
-  $form.find('input.form-text, textarea').bind('keyup', Drupal.formBuilder.elementPendingChange)
-
   $form.slideDown(function() {
     $form.parents('div.form-builder-wrapper:first').find('a.progress').removeClass('progress');
   });
@@ -347,7 +363,7 @@ Drupal.formBuilder.elementChange = function() {
 Drupal.formBuilder.elementPendingChange = function(e) {
   // Only operate on "normal" keys, excluding special function keys.
   // http://protocolsofmatrix.blogspot.com/2007/09/javascript-keycode-reference-table-for.html
-  if (!(
+  if (e.type == 'keyup' && !(
     e.keyCode >= 48 && e.keyCode <= 90 || // 0-9, A-Z.
     e.keyCode >= 93 && e.keyCode <= 111 || // Number pad.
     e.keyCode >= 186 && e.keyCode <= 222 || // Symbols.
@@ -368,6 +384,14 @@ Drupal.formBuilder.elementPendingChange = function(e) {
  */
 Drupal.formBuilder.updateElement = function(response) {
   var $configureForm = $('#form-builder-field-configure');
+
+  // Do not let older requests replace newer updates.
+  if (response.time < Drupal.formBuilder.lastUpdateTime) {
+    return;
+  }
+  else {
+    Drupal.formBuilder.lastUpdateTime = response.time;
+  }
 
   // Set the error class on fields.
   $configureForm.find('.error').removeClass('error');
