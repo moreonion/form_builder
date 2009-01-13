@@ -50,8 +50,6 @@ Drupal.behaviors.formBuilderFields = function(context) {
     .addClass('form-builder-field-change')
     .bind('change', Drupal.formBuilder.elementPendingChange);
 
-  console.log($configure_form.find('input.form-text, textarea'));
-
   $configure_form.find('input.form-text, textarea')
     .filter(':not(.form-builder-field-keyup)')
     .addClass('form-builder-field-keyup')
@@ -73,7 +71,6 @@ Drupal.behaviors.formBuilder = function(context) {
     distance: 4, // Pixels before dragging starts.
     appendTo: 'body',
     helper: createHelper,
-    accept: Drupal.formBuilder.acceptDrag,
     sort: Drupal.formBuilder.elementIndent, // Called on drag.
     start: Drupal.formBuilder.startDrag,
     stop: Drupal.formBuilder.stopDrag,
@@ -459,15 +456,6 @@ Drupal.formBuilder.updateElementPosition = function(element) {
 
   // Submit the position form via AJAX to save the new weights and parents.
   $('#form-builder-positions').ajaxSubmit();
-}
-
-/**
- * Called when a field is hovering over a potential landing spot.
- */
-Drupal.formBuilder.acceptDrag = function(e, ui) {
-  console.log(e);
-  console.log(this);
-  return true;
 }
 
 /**
