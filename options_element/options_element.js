@@ -31,6 +31,9 @@ Drupal.optionsElement = function(element) {
   this.keyType = element.className.replace(/^.*?options-key-type-([a-z]+).*?$/, '$1');
   this.identifier = this.manualOptionsElement.id + '-widget';
 
+  // Warning messages.
+  this.keyChangeWarning = Drupal.t('Custom keys have been specified in this list. Removing these custom keys may change way data is stored. Are you sure you wish to remove these custom keys?');
+
   // Setup new DOM elements containing the actual options widget.
   this.optionsElement = $('<div></div>').get(0); // Temporary DOM object. 
   this.optionsToggleElement = $(Drupal.theme('optionsElementToggle')).get(0);
@@ -47,7 +50,30 @@ Drupal.optionsElement = function(element) {
   // Add a handler for key type changes.
   if (this.keyTypeToggle) {
     $(this.keyTypeToggle).change(function(){
-      self.setKeyType($(this).attr('checked') ? 'custom' : 'associative');
+      var checked = $(this).attr('checked');
+      // Before switching to associative keys, ensure we're not destorying
+      // any custom specified keys.
+      if (!checked) {
+        var options = self.optionsFromText();
+        var confirm = false;
+        for (var n in options) {
+          if (options[n].key != options[n].value) {
+            confirm = true;
+            break;
+          }
+        }
+        if (confirm) {
+          if (window.confirm(self.keyChangeWarning)) {
+            self.setKeyType('associative');
+          }
+        }
+        else {
+          self.setKeyType('associative');
+        }
+      }
+      else {
+        self.setKeyType('custom');
+      }
     });
   }
 
@@ -70,6 +96,9 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
 
   // Create a new options element and replace the existing one.
   var newElement = $(Drupal.theme('optionsElement', this)).get(0);
+  if ($(this.optionsElement).is(':not(:visible)')) {
+    $(newElement).css('display', 'none');
+  }
   $(this.optionsElement).replaceWith(newElement);
   this.optionsElement = newElement;
 
@@ -328,6 +357,7 @@ Drupal.optionsElement.prototype.setKeyType = function(type) {
     .addClass('options-key-type-' + type);
   this.keyType = type;
   // Rebuild the options widget.
+  this.updateManualElements();
   this.updateWidgetElements();
 }
 
@@ -415,7 +445,7 @@ Drupal.optionsElement.prototype.optionsToText = function() {
       if (this.optgroups && previousParent != parent && parent !== '') {
         output = "<>\n" + output;
       }
-      if (this.keyType == 'none') {
+      if (this.keyType == 'none' || this.keyType == 'associative') {
         output = value + "\n" + output;
         previousParent = parent;
       }
@@ -480,7 +510,7 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
       }
     }
     // Row is a key|value pair.
-    else if (matches = row.match(/^([^|]+)\|(.*)$/)) {
+    else if ((this.keyType == 'numeric' || this.keyType == 'custom') && (matches = row.match(/^([^|]+)\|(.*)$/))) {
       key = matches[1];
       value = matches[2];
     }
@@ -555,7 +585,7 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
     output += '<input type="hidden" class="option-parent" value="' + parentKey + '" />';
     output += '<input type="hidden" class="option-depth" value="' + indent + '" />';
     output += '<input type="' + defaultType + '" name="' + optionsElement.identifier + '-default" class="form-radio option-default" value="' + key + '"' + (status == 'checked' ? ' checked="checked"' : '') + (status == 'disabled' ? ' disabled="disabled"' : '') + ' />';
-    output += '</td><td class="' + (keyType == 'textfield' ? 'option-key-cell' : 'option-value') +'">';
+    output += '</td><td class="' + (keyType == 'textfield' ? 'option-key-cell' : 'option-value-cell') +'">';
     output += '<input type="' + keyType + '" class="' + (keyType == 'textfield' ? 'form-text ' : '') + 'option-key" value="' + key + '" />';
     output += keyType == 'textfield' ? '</td><td class="option-value-call">' : '';
     output += '<input class="form-text option-value" type="text" value="' + value + '" />';

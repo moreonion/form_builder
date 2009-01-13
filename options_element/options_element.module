@@ -107,6 +107,30 @@ function form_options_expand($element) {
   $element['#tree'] = TRUE;
   $element['#theme'] = 'options';
 
+  // Add the key type toggle checkbox.
+  if (!isset($element['key_type']) && !empty($element['#key_type_toggle'])) {
+    $element['key_type'] = array(
+      '#title' => is_string($element['#key_type_toggle']) ? $element['#key_type_toggle'] : t('Customize keys'),
+      '#type' => 'checkbox',
+      '#return_value' => 'custom',
+      '#default_value' => $element['#key_type'] == 'custom' ? 'custom' : '',
+      '#attributes' => array('class' => 'key-type-toggle'),
+      '#description' => t('Customizing the keys will allow you to save one value internally while showing a different option to the user. Specifying keys manually will let you change the values later without loosing data.'),
+    );
+  }
+
+  // Add the multiple value toggle checkbox.
+  if (!isset($element['multiple']) && !empty($element['#multiple_toggle'])) {
+    $element['multiple'] = array(
+      '#title' => is_string($element['#multiple_toggle']) ? $element['#multiple_toggle'] : t('Allow multiple values'),
+      '#type' => 'checkbox',
+      '#default_value' => !empty($element['#multiple']),
+      '#attributes' => array('class' => 'multiple-toggle'),
+      '#description' => t('Multiple values will let users select multiple items in this list.'),
+    );
+  }
+
+  // Add the main textfield for adding options.
   if (!isset($element['options'])) {
     $element['options_field'] = array(
       '#type' => 'textarea',
@@ -115,35 +139,34 @@ function form_options_expand($element) {
       '#rows' => 5,
       '#value' => isset($element['#options']) ? form_options_to_text($element['#options'], $element['#key_type']) : '',
       '#required' => isset($element['#required']) ? $element['#required'] : FALSE,
+      '#description' => t('List options one option per line.'),
     );
+
+    if ($element['#key_type'] == 'numeric' || $element['#key_type'] == 'custom') {
+      $element['options_field']['#description'] .= ' ' . t('Key-value pairs may be specified by separating each option with pipes, such as <em>key|value</em>.');
+    }
+
+    if (!empty($element['#key_type_toggle'])) {
+      $element['options_field']['#description'] .= ' ' . t('If the %toggle field is checked, key-value pairs may be specified by separating each option with pipes, such as <em>key|value</em>.', array('%toggle' => $element['key_type']['#title']));
+    }
+
+    if ($element['#key_type'] == 'numeric') {
+      $element['options_field']['#description'] .= ' ' . t('This field requires all specified keys to be integers.');
+    }
   }
 
+  // Add the field for storing default values.
   if (!isset($element['default_value_field'])) {
     $element['default_value_field'] = array(
       '#title' => t('Default value'),
       '#type' => 'textfield',
       '#size' => 60,
       '#value' => isset($element['#default_value']) ? ($element['#multiple'] ? implode(', ', (array) $element['#default_value']) : $element['#default_value']) : '',
+      '#description' => t('Specify the keys that should be selected by default.'),
     );
-  }
-
-  if (!isset($element['key_type']) && !empty($element['#key_type_toggle'])) {
-    $element['key_type'] = array(
-      '#title' => is_string($element['#key_type_toggle']) ? $element['#key_type_toggle'] : t('Customize keys'),
-      '#type' => 'checkbox',
-      '#return_value' => 'custom',
-      '#default_value' => $element['#key_type'] == 'custom' ? 'custom' : '',
-      '#attributes' => array('class' => 'key-type-toggle'),
-    );
-  }
-
-  if (!isset($element['multiple']) && !empty($element['#multiple_toggle'])) {
-    $element['multiple'] = array(
-      '#title' => is_string($element['#multiple_toggle']) ? $element['#multiple_toggle'] : t('Allow multiple values'),
-      '#type' => 'checkbox',
-      '#default_value' => !empty($element['#multiple']),
-      '#attributes' => array('class' => 'multiple-toggle'),
-    );
+    if ($element['#multiple']) {
+      $element['default_value_field']['#description'] .= ' ' . t('Multiple default values may be specified by separating keys with commas.');
+    }
   }
 
   // Remove properties that will confuse the FAPI.
@@ -167,8 +190,8 @@ function form_type_options_value(&$element, $edit = FALSE) {
   }
   else {
     // Change the key type if a new type is specified.
-    if (isset($edit['key_type'])) {
-      $element['#key_type'] = $edit['key_type'];
+    if (!empty($element['#key_type_toggle'])) {
+      $element['#key_type'] = empty($edit['key_type']) ? 'associative' : 'custom';
     }
 
     // Convert text to an array of options.
@@ -314,7 +337,7 @@ function form_options_to_text($options, $key_type) {
     if (is_array($value)) {
       $output .= '<' . $key . '>' . "\n";
       foreach ($value as $subkey => $subvalue) {
-        $output .= ($key_type != 'none' ? $subkey . '|' : '') . $subvalue . "\n";
+        $output .= (($key_type == 'numeric' || $key_type == 'custom') ? $subkey . '|' : '') . $subvalue . "\n";
       }
       $previous_key = $key;
     }
@@ -326,7 +349,12 @@ function form_options_to_text($options, $key_type) {
       }
       // Skip empty rows.
       if ($options[$key] !== '') {
-        $output .= $key . '|' . $value . "\n";
+        if ($key_type == 'numeric' || $key_type == 'custom') {
+          $output .= $key . '|' . $value . "\n";
+        }
+        else {
+          $output .= $value . "\n";
+        }
       }
       $previous_key = $key;
     }
@@ -366,7 +394,7 @@ function form_options_from_text($text, $key_type, $flat = FALSE, &$duplicates = 
       }
     }
     // Check if this row is a key|value pair.
-    elseif ($key_type != 'none' && preg_match('/^([^|]+)\|(.*)$/', $option, $matches)) {
+    elseif (($key_type == 'custom' || $key_type == 'numeric') && preg_match('/^([^|]+)\|(.*)$/', $option, $matches)) {
       $key = $matches[1];
       $value = $matches[2];
       if ($group !== FALSE) {
@@ -387,7 +415,7 @@ function form_options_from_text($text, $key_type, $flat = FALSE, &$duplicates = 
         }
       }
       else {
-        if ($key_type == 'associative' || $key_type == 'custom') {
+        if ($key_type != 'none') {
           isset($options[$option]) ? $duplicates[$option] = $option : $options[$option] = $option;
         }
         else {
