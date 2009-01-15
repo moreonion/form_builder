@@ -79,6 +79,10 @@ function hook_form_builder_types() {
  * hook_form_builder_properties to inform Form Builder of the new properties
  * that are configurable.
  *
+ * @param $form_type
+ *   The type of form for which these properties apply. You may choose to ignore
+ *   the value of this parameter if your properties apply globally to all forms.
+ *
  * @return
  *   An array of properties, each containing the name of a function for a form
  *   to editing that property. If needed additional submit and validate
@@ -86,7 +90,7 @@ function hook_form_builder_types() {
  *
  * @ingroup form_builder
  */
-function hook_form_builder_properties() {
+function hook_form_builder_properties($form_type) {
   return array(
     'title' => array(
       'form' => 'form_builder_property_title_form',

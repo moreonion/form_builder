@@ -296,6 +296,7 @@ function form_builder_property_collapsed_form(&$form_state, $form_type, $element
     '#title' => t('Collapsed'),
     '#default_value' => $element['#collapsed'],
     '#weight' => -1,
+    '#description' => t('This property will not affect the preview immediately.'),
   );
 
   return $form;

@@ -18,12 +18,6 @@ function path_form_builder_types() {
     'collapsible' => TRUE,
     'collapsed' => TRUE,
   );
-  $default = path_node_form('', $settings);
-
-  // Give the form item a pseudo field type.
-  // This is then modified in path_form_builder_preview_alter().
-  $default['path']['#key'] = 'path';
-  $default['path']['#type'] = 'path_settings';
 
   $fields['path_settings'] = array(
     'title' => t('Path'),
@@ -31,8 +25,10 @@ function path_form_builder_types() {
       'collapsible',
       'collapsed',
     ),
-    'default' => $default['path'],
+    'default' => path_fieldset('', $settings),
     'unique' => TRUE,
+    'removable' => TRUE,
+    'configurable' => TRUE,
     'palette_group' => 'special',
   );
 
@@ -43,30 +39,18 @@ function path_form_builder_types() {
 }
 
 /**
- * Implementation of hook_form_builder_preview_alter().
- *
- * Convert the #type => path_settings pseudo-element into a real fieldset.
- */
-function path_form_builder_preview_alter(&$element, $form_type, $form_id) {
-  if ($element['#type'] == 'path_settings') {
-    $element['#type'] = 'fieldset';
-  }
-}
-
-/**
  * A straight copy/paste of path_form_alter(). Get the path node form.
  *
- * @param $path_settings
- *   An array with the following values:
+ * @param $path
  *   The contents of $node->path.
+ * @param $path_settings
+ *   An array with configuring properties of the path fieldset.
  *
  * @todo Put this function directly in path.module, abstracting it from
  * path_form_alter().
  */
-function path_node_form($path, $path_settings) {
-  $form = array();
-
-  $form['path'] = array(
+function path_fieldset($path, $path_settings) {
+  $form = array(
     '#type' => 'fieldset',
     '#title' => t('URL path settings'),
     '#collapsible' => $path_settings['collapsible'],
@@ -74,7 +58,7 @@ function path_node_form($path, $path_settings) {
     '#access' => user_access('create url aliases'),
     '#weight' => $path_settings['weight'],
   );
-  $form['path']['path'] = array(
+  $form['path'] = array(
     '#type' => 'textfield',
     '#default_value' => $path,
     '#maxlength' => 250,
@@ -83,7 +67,7 @@ function path_node_form($path, $path_settings) {
     '#description' => t('Optionally specify an alternative URL by which this node can be accessed. For example, type "about" when writing an about page. Use a relative path and don\'t add a trailing slash or the URL alias won\'t work.'),
   );
   if ($path) {
-    $form['path']['pid'] = array(
+    $form['pid'] = array(
       '#type' => 'value',
       '#value' => db_result(db_query("SELECT pid FROM {url_alias} WHERE dst = '%s' AND language = '%s'", $path, $form['#node']->language))
     );
@@ -92,21 +76,19 @@ function path_node_form($path, $path_settings) {
   return $form;
 }
 
-
 /**
- * Implementation of hook_form_builder_load().
+ * Implementation of hook_form_builder_load_alter().
  */
-function path_form_builder_load($form_type, $form_id) {
+function path_form_builder_load_alter(&$form, $form_type, $form_id) {
   if ($form_type == 'node') {
-    $form['path']['#form_builder'] = array(
-      'element_id' => 'path',
-      'configurable' => TRUE,
-      'removable' => TRUE,
-      'unique' => TRUE,
-    );
-    $form['path']['#type'] = 'path_settings';
-
-    return $form;
+    $settings = path_node_form_settings($form_id);
+    if ($settings['enabled']) {
+      $form['path'] = path_fieldset('', $settings);
+      $form['path']['#form_builder'] = array(
+        'element_id' => 'path_settings',
+        'element_type' => 'path_settings',
+      );
+    }
   }
 }
 
@@ -115,16 +97,26 @@ function path_form_builder_load($form_type, $form_id) {
  */
 function path_form_builder_save(&$form, $form_type, $form_id) {
   if ($form_type == 'node') {
-    $element = form_builder_get_element($form, 'path');
-    $settings = array(
-      'collapsible' => $element['#collapsible'],
-      'collapsed' => $element['#collapsed'],
-      'weight' => $element['#weight'],
-    );
-    variable_set('path_settings_' . $form_type, $settings);
+    $element = form_builder_get_element($form, 'path_settings');
+    $node_type = $form_id;
+
+    if ($element) {
+      $settings = array(
+        'enabled' => TRUE,
+        'collapsible' => $element['#collapsible'],
+        'collapsed' => $element['#collapsed'],
+        'weight' => $element['#weight'],
+      );
+    }
+    else {
+      $settings = array(
+        'enabled' => FALSE,
+      );
+    }
+
+    variable_set('path_settings_' . $node_type, $settings);
   }
 }
-
 
 /**
  * Implementation of hook_form_alter().
@@ -133,15 +125,33 @@ function path_form_builder_save(&$form, $form_type, $form_id) {
  */
 function path_form_builder_form_alter(&$form, &$form_state, $form_id) {
   // Set properties of the path form item based on the path node form settings.
-  if (preg_match('/_node_form$/', $form_id) && isset($form['path'])) {
-    $settings = array(
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
-      'weight' => 30,
-    );
-    $settings = variable_get('path_settings_' . $form['#node']->type, $settings);
-    $form['path']['#collapsible'] = $settings['collapsible'];
-    $form['path']['#collapsed'] = $settings['collapsed'];
-    $form['path']['#weight'] = $settings['weight'];
+  if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
+    $settings = path_node_form_settings($form['#node']->type);
+
+    if ($settings['enabled']) {
+      $path = isset($form['#node']->path) ? $form['#node']->path : '';
+      $form['path'] = path_fieldset($path, $settings);
+    }
+    else {
+      $form['path']['#access'] = FALSE;
+    }
   }
+}
+
+/**
+ * Get the settings for the path fieldset on the node form.
+ */
+function path_node_form_settings($type = NULL) {
+  $settings = array(
+    'enabled' => TRUE,
+    'collapsible' => TRUE,
+    'collapsed' => TRUE,
+    'weight' => 30,
+  );
+
+  if (!isset($type)) {
+    return $settings;
+  }
+
+  return variable_get('path_settings_' . $type, $settings);
 }

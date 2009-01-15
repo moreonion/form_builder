@@ -6,8 +6,6 @@
  * Administrative interface for editing forms.
  */
 
-define('FORM_BUILDER_ROOT', 0);
-
 /**
  * Main form building interface. Can be used as a menu callback.
  *
@@ -26,7 +24,7 @@ function form_builder_interface($form_type, $form_id) {
   // Load the current state of the form, or create a new cache if needed.
   $form = form_builder_cache_load($form_type, $form_id);
   if (!$form) {
-    $form = form_builder_load($form_type, $form_id);
+    $form = form_builder_load_form($form_type, $form_id);
     form_builder_cache_save($form_type, $form_id, $form);
   }
 
@@ -40,25 +38,25 @@ function form_builder_interface($form_type, $form_id) {
 /**
  * Menu callback for adding a field.
  */
-function form_builder_add_page($form_type, $form_id, $field_type) {
+function form_builder_add_page($form_type, $form_id, $element_type) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
   $fields = form_builder_get_form_type($form_type);
-  if (isset($fields[$field_type])) {
+  if (isset($fields[$element_type])) {
     $cache = form_builder_cache_load($form_type, $form_id);
     $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
-    $element = $fields[$field_type]['default'];
+    $element = $fields[$element_type]['default'];
 
-    // Unique fields use their type as their key (taxonomy, menu, etc.).
-    if (!empty($element['unique'])) {
-      $element_id = $field_type;
+    // Set the element ID to a hard-coded value if a unique field type.
+    if (isset($fields[$element_type]['unique']) && $fields[$element_type]['unique']) {
+      $element_id = $element_type;
     }
 
     $element['#form_builder']['element_id'] = $element_id;
-    $element['#form_builder']['parent_id'] = FORM_BUILDER_ROOT;
     $element['#form_builder']['is_new'] = TRUE;
-    $element['#key'] = $element_id;
+    $element = form_builder_add_default_properties($element, $form_type, $element_id);
+
     $element['#weight'] = count(element_children($cache));
 
     drupal_alter('form_builder_add_element', $element, $form_type, $form_id);
@@ -190,6 +188,9 @@ function form_builder_positions(&$form_state, $preview_form, $form_type, $form_i
   return $form;
 }
 
+/**
+ * Recursive helper for form_builder_positions(). Add weight fields.
+ */
 function form_builder_positions_prepare(&$form, &$preview_form, $parent_id = FORM_BUILDER_ROOT) {
   foreach (element_children($preview_form) as $key) {
     // Keep record of the current parent ID.
@@ -203,7 +204,7 @@ function form_builder_positions_prepare(&$form, &$preview_form, $parent_id = FOR
 
       $form[$element_id]['weight'] = array(
         '#type' => 'hidden',
-        '#default_value' => $preview_form[$key]['#weight'],
+        '#default_value' => isset($preview_form[$key]['#weight']) ? $preview_form[$key]['#weight'] : 0,
         '#attributes' => array('class' => 'form-builder-weight form-builder-element-' . $element_id),
       );
       $form[$element_id]['parent'] = array(
@@ -353,7 +354,7 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
   $output .= '<div id="form-builder-field-palette">';
   foreach ($lists as $group => $list) {
     unset($list['#weight']);
-    $output .= theme('item_list', $list, $groups[$group]['title'], 'ul', array('class' => 'form-builder-fields clear-block'));
+    $output .= theme('item_list', $list, (count($lists) > 1) ? $groups[$group]['title'] : '', 'ul', array('class' => 'form-builder-fields clear-block'));
   }
   $output .= '</div>';
 
@@ -366,6 +367,10 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
 function form_builder_pre_render($element) {
   $element['#prefix'] = isset($element['#prefix']) ? theme('form_builder_element_prefix', $element) . $element['#prefix'] : theme('form_builder_element_prefix', $element);
   $element['#suffix'] = isset($element['#suffix']) ? $element['#suffix'] . theme('form_builder_element_suffix', $element) : theme('form_builder_element_suffix', $element);
+
+  if ($element['#form_builder']['element_type'] == 'fieldset') {
+    $element['#attributes']['class'] = isset($element['#attributes']['class']) ? $element['#attributes']['class'] . ' form-builder-fieldset' : 'form-builder-fieldset';
+  }
 
   if (isset($element['#type']) && $element['#type'] == 'fieldset' && count(element_children($element)) == 0) {
     $element['#children'] = theme('form_builder_empty_fieldset');
@@ -444,19 +449,13 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
   // Assemble a form made up of all the configurable properties that this type
   // of form supports.
   $form = array();
-  foreach (form_builder_get_element_properties($form_type, $element['#type']) as $property => $property_settings) {
+  foreach (form_builder_get_element_properties($form_type, $element['#form_builder']['element_type']) as $property => $property_settings) {
     if (isset($property_settings['form']) && function_exists($property_settings['form'])) {
       $function = $property_settings['form'];
       // Set a default value on the property to avoid notices.
       $element['#' . $property] = isset($element['#' . $property]) ? $element['#' . $property] : NULL;
       $form = array_merge($form, $function($form_state, $form_type, $element));
     }
-  }
-
-  // Unique elements cannot have their key changed.
-  $form_type_fields = form_builder_get_form_type($form_type);
-  if (!empty($form_type_fields[$element['#type']]['unique'])) {
-    unset($form['key']);// = 'value';
   }
 
   $form['#form_type'] = $form_type;
@@ -485,7 +484,7 @@ function theme_form_builder_field_configure($form) {
   foreach (element_children($form) as $key) {
     // If no group is specified, put the element into the default group.
     if (!isset($form[$key]['#form_builder']['property_group']) || !isset($groups[$form[$key]['#form_builder']['property_group']])) {
-      if (isset($form[$key]['#type']) && !in_array($form[$key]['#type'], array('hidden', 'button', 'submit', 'value', 'token'))) {
+      if (!isset($form[$key]['#type']) || (isset($form[$key]['#type']) && !in_array($form[$key]['#type'], array('hidden', 'button', 'submit', 'value', 'token')))) {
         $form[$key]['#form_builder']['property_group'] = 'default';
       }
     }
@@ -521,7 +520,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   $element = $form['#element'];
 
   // Allow each element to do any necessary submission handling.
-  foreach (form_builder_get_element_properties($form_type, $element['#type']) as $property => $property_settings) {
+  foreach (form_builder_get_element_properties($form_type, $element['#form_builder']['element_type']) as $property => $property_settings) {
     if (isset($property_settings['submit'])) {
       foreach ($property_settings['submit'] as $function) {
         if (function_exists($function)) {
@@ -580,7 +579,7 @@ function form_builder_field_remove($form_state, $form_type, $form_id, $element_i
 
   $quesion = t('Remove the field %title?', array('%title' => $element['#title']));
   $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
-  $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => $element['#title']));
+  $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => isset($element['#title']) ? $element['#title'] : $element['#form_builder']['element_id']));
   $yes = t('Remove');
 
   return confirm_form($form, $quesion, $path, $description, $yes);
@@ -617,7 +616,7 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
   $form['#post'] = array();
   $form = form_builder('form_builder_preview', $form, $form_state);
 
-  // Get only the element want and render it.
+  // Get only the element wanted and render it.
   $element = form_builder_get_element($form, $element_id);
   $content = drupal_render($element);
 

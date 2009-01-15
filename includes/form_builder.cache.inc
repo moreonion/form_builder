@@ -71,6 +71,50 @@ function form_builder_cache_purge($expire_threshold = NULL) {
 }
 
 /**
+ * Compare the cached form with the original and return all changed elements.
+ *
+ * @return
+ *   An array of elements keyed by the element_id of the changed element. Each
+ *   value contains an array of the 'original' and 'modified' elements.
+ */
+function form_builder_cache_difference($form_type, $form_id, $exclude_weight = TRUE) {
+  if ($modified_form = form_builder_cache_load($form_type, $form_id)) {
+    $original_form = form_builder_load_form($form_type, $form_id);
+    $original_ids = form_builder_get_element_ids($original_form);
+    $modified_ids = form_builder_get_element_ids($modified_form);
+
+    // Find the union of IDs in both arrays.
+    $element_ids = array_keys(array_flip($original_ids) + array_flip($modified_ids));
+
+    // Build a list of all elements that have changed.
+    $differences = array();
+    foreach ($element_ids as $element_id) {
+      $original = form_builder_get_element($original_form, $element_id);
+      $modified = form_builder_get_element($modified_form, $element_id);
+
+      if ($exclude_weight) {
+        if (isset($original['#weight'])) {
+          unset($original['#weight']);
+        }
+        if (isset($modified['#weight'])) {
+          unset($modified['#weight']);
+        }
+      }
+
+      if ($original != $modified) {
+        $differences[$element_id] = array(
+          'original' => $original,
+          'modified' => $modified,
+        );
+      }
+    }
+
+    return $differences;
+  }
+  return FALSE;
+}
+
+/**
  * Retrieve a single field from a form cache..
  */
 function form_builder_cache_field_load($form_type, $form_id, $element_id, $sid = NULL, $reset = FALSE) {

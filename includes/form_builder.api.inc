@@ -7,15 +7,19 @@
  */
 
 /**
- * Get a list of all properties that are supported globally.
+ * Get a list of all properties that are supported within a form type.
  */
-function form_builder_get_properties($reset = FALSE) {
-  static $properties;
+function form_builder_get_properties($form_type, $reset = FALSE) {
+  static $properties = array();
 
-  if (!isset($properties) || $reset) {
+  if ($reset) {
+    $properties = array();
+  }
+
+  if (!isset($properties[$form_type])) {
     // Get the list of all properties for all elements.
-    $properties = module_invoke_all('form_builder_properties');
-    drupal_alter('form_builder_properties', $properties);
+    $properties = module_invoke_all('form_builder_properties', $form_type);
+    drupal_alter('form_builder_properties', $properties, $form_type);
   }
 
   return $properties;
@@ -36,17 +40,22 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     // Add default values for undefined properties.
     foreach ($types as $type_key => &$type) {
       foreach ($type as $field_key => &$field) {
-        // All fields must support key and weight.
+        // All fields must support weight.
         if (!in_array('weight', $field['properties'])) {
           $field['properties'][] = 'weight';
         }
-        if (!in_array('key', $types[$type_key][$field_key]['properties'])) {
-          $field['properties'][] = 'key';
-        }
 
         $field['unique'] = isset($field['unique']) && $field['unique'];
-        $field['default']['#form_builder']['configurable'] = isset($field['default']['#form_builder']['configurable']) ? $field['default']['#form_builder']['configurable'] : TRUE;
-        $field['default']['#form_builder']['removable'] = isset($field['default']['#form_builder']['removable']) ? $field['default']['#form_builder']['removable'] : TRUE;
+        if ($field['unique']) {
+          $field['default']['#form_builder']['element_id'] = $field_key;
+          $field['default']['#form_builder']['element_type'] = $field_key;
+        }
+        elseif (!isset($field['default']['#form_builder']['element_type'])) {
+          $field['default']['#form_builder']['element_type'] = $field['default']['#type'];
+        }
+
+        $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
+        $field['removable'] = isset($field['removable']) ? $field['removable'] : TRUE;
         $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
       }
     }
@@ -70,9 +79,9 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
  *   validate functions (if any).
  */
 function form_builder_get_element_properties($form_type, $element_type) {
-  // Get the list of all properties for all elements.
-  $properties = form_builder_get_properties();
-  // Get the list of supported properties in this form type.
+  // Get the list of all properties for this type.
+  $properties = form_builder_get_properties($form_type);
+  // Get the list of supported properties per field in this form type.
   $form_type = form_builder_get_form_type($form_type);
 
   $element_properties = array();
@@ -107,8 +116,8 @@ function form_builder_get_saveable_properties($form_type, $element) {
   $form_type = form_builder_get_form_type($form_type);
 
   $saveable = array();
-  if (isset($form_type[$element['#type']]['properties'])) {
-    $saveable = $form_type[$element['#type']]['properties'];
+  if (isset($form_type[$element['#form_builder']['element_type']]['properties'])) {
+    $saveable = $form_type[$element['#form_builder']['element_type']]['properties'];
   }
 
   return $saveable;
@@ -245,4 +254,76 @@ function form_builder_get_element_ids($form) {
   }
 
   return $element_ids;
+}
+
+/**
+ * Loader function to retrieve a form builder configuration array.
+ *
+ * @param $form_type
+ *   The type of form being edited. Usually the name of the providing module.
+ * @param $form_id
+ *   The unique identifier for the form being edited with the type.
+ */
+function form_builder_load_form($form_type, $form_id) {
+  $form = module_invoke_all('form_builder_load', $form_type, $form_id);
+  drupal_alter('form_builder_load', $form, $form_type, $form_id);
+
+  // Convert the form array keys to #key properties for editing.
+  return form_builder_add_default_properties($form, $form_type);
+}
+
+/**
+ * Execute the save methods for a form array.
+ */
+function form_builder_save_form(&$form, $form_type, $form_id) {
+  module_invoke_all('form_builder_save', $form, $form_type, $form_id);
+  form_builder_cache_delete($form_type, $form_id);
+}
+
+
+/**
+ * Helper function to add default #form_builder properties to a form.
+ */
+function form_builder_add_default_properties($form, $form_type, $key = NULL, $parent_id = FORM_BUILDER_ROOT) {
+  $form_type_fields = form_builder_get_form_type($form_type);
+
+  // Add properties to this element.
+  if (isset($form['#form_builder']['element_id'])) {
+    $element_id = $form['#form_builder']['element_id'];
+
+    // Add a #key property.
+    $form['#key'] = isset($form['#key']) ? $form['#key'] : $key;
+
+    // Add a #form_builder['parent_id'] property.
+    $form['#form_builder']['parent_id'] = $parent_id;
+    $parent_id = $element_id;
+
+    // Set defaults based on the form type.
+    if (isset($form_type_fields[$element_id]) && $form_type_fields[$element_id]['unique']) {
+      $form['#form_builder']['unique'] = TRUE;
+      $form['#form_builder']['element_type'] = isset($form['#form_builder']['element_type']) ? $form['#form_builder']['element_type'] : $element_id;
+      $settings = $form_type_fields[$element_id];
+    }
+    else {
+      $form['#form_builder']['element_type'] = isset($form['#form_builder']['element_type']) ? $form['#form_builder']['element_type'] : $form['#type'];
+      $settings = $form_type_fields[$form['#form_builder']['element_type']];
+    }
+
+    // Set defaults for configurable and removable.
+    if (!isset($form['#form_builder']['configurable'])) {
+      $form['#form_builder']['configurable'] = isset($settings['configurable']) ? $settings['configurable'] : TRUE;
+    }
+    if (!isset($form['#form_builder']['removable'])) {
+      $form['#form_builder']['removable'] = isset($settings['removable']) ? $settings['removable'] : TRUE;
+    }
+  }
+
+  // Recurse into sub-elements.
+  foreach (element_children($form) as $key) {
+    if (isset($form[$key]['#form_builder']['element_id'])) {
+      $form[$key] = form_builder_add_default_properties($form[$key], $form_type, $key, $parent_id);
+    }
+  }
+
+  return $form;
 }

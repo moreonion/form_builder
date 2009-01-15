@@ -6,6 +6,8 @@
  * Generic form building framework and user interface.
  */
 
+define('FORM_BUILDER_ROOT', 0);
+
 /**
  * Implementation of hook_menu().
  */
@@ -113,33 +115,6 @@ function form_builder_theme() {
 }
 
 /**
- * Loader function to retrieve a form builder configuration array.
- *
- * @param $form_type
- *   The type of form being edited. Usually the name of the providing module.
- * @param $form_id
- *   The unique identifier for the form being edited with the type.
- */
-function form_builder_load($form_type, $form_id) {
-  $form = module_invoke_all('form_builder_load', $form_type, $form_id);
-
-  // Convert the form array keys to #key properties for editing.
-  return form_builder_add_keys($form);
-}
-
-/**
- * Helper function to convert array keys to #key properties.
- */
-function form_builder_add_keys($form) {
-  foreach (element_children($form) as $key) {
-    $form[$key] = form_builder_add_keys($form[$key]);
-    $form[$key]['#key'] = $key;
-  }
-
-  return $form;
-}
-
-/**
  * Implementation of hook_block().
  */
 function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
@@ -160,7 +135,8 @@ function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
         if ($active = form_builder_active_form()) {
           $fields = form_builder_get_form_type($active['form_type']);
           $groups = module_invoke_all('form_builder_palette_groups');
-          $form = form_builder_cache_load($active['form_type'], $active['form_id']);
+          // TODO: We shouldn't have to clear the cache here.
+          $form = form_builder_cache_load($active['form_type'], $active['form_id'], NULL, TRUE);
           $active_fields = form_builder_get_element_ids($form);
           foreach ($fields as $key => $field) {
             if ($field['unique'] && in_array($key, $active_fields)) {
@@ -208,7 +184,7 @@ function form_builder_menu_field_access($op, $form_type, $form_id, $element_id) 
 /**
  * Implementation of hook_form_builder_properties().
  */
-function form_builder_form_builder_properties() {
+function form_builder_form_builder_properties($form_type) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.properties');
 
   return array(

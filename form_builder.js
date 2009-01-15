@@ -28,7 +28,7 @@ Drupal.behaviors.formBuilderElement = function(context) {
 
   // Add AJAX to entire field for easy editing.
   $elements.each(function() {
-    if ($(this).children('fieldset').size() == 0) {
+    if ($(this).children('fieldset.form-builder-fieldset').size() == 0) {
       var link = $(this).parents('div.form-builder-wrapper:first').find('a.configure').get(0);
       if (link) {
         $(this).click(Drupal.formBuilder.clickField).addClass('form-builder-clickable');
@@ -410,6 +410,10 @@ Drupal.formBuilder.updateElement = function(response) {
     var $exisiting = $('#form-builder-element-' + response.elementId);
     var $new = $(response.html).find('div.form-builder-element:first');
     $exisiting.replaceWith($new);
+
+    // Expand root level fieldsets after updating to prevent them from closing
+    // after every update.
+    $new.children('fieldset.collapsible').removeClass('collapsed');
     Drupal.attachBehaviors($new.parent().get(0));
   }
 
@@ -597,7 +601,7 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.checkFieldsets = function(e, ui) {
-  var $fieldsets = ui.element.find('div.form-builder-element > fieldset');
+  var $fieldsets = ui.element.find('div.form-builder-element > fieldset.form-builder-fieldset');
   var $placeholder = ui.placeholder;
   var emptyFieldsets = [];
 

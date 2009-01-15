@@ -13,23 +13,25 @@ function taxonomy_form_builder_types() {
   $fields = array();
 
   $vocabularies = taxonomy_get_vocabularies();
+  $terms = array();
 
   // If no taxonomies are specified, do not allow the field to be added.
   if (empty($vocabularies)) {
     return array();
   }
 
+  $first_vocab = reset($vocabularies);
+  $vocabularies = array($first_vocab->vid => $first_vocab);
+  $settings = taxonomy_node_form_settings();
+  $default_form = taxonomy_fieldset($vocabularies, $terms, $settings);
+  $default_form['#taxonomy_vocabularies'] = array_keys($vocabularies);
+
   $fields['taxonomy'] = array(
     'title' => t('Taxonomy'),
     'properties' => array(
       'taxonomy_vocabularies',
     ),
-    'default' => array(
-      '#key' => 'taxonomy',
-      // Pseudo-type, this is replaced in taxonomy_form_builder_preview_alter().
-      '#type' => 'taxonomy',
-      '#taxonomy_vocabularies' => array(array_shift(array_keys($vocabularies))),
-    ),
+    'default' => $default_form,
     'unique' => TRUE,
     'palette_group' => 'special',
   );
@@ -43,18 +45,20 @@ function taxonomy_form_builder_types() {
 /**
  * Implementation of hook_form_builder_properties().
  */
-function taxonomy_form_builder_properties() {
-  return array(
-    'taxonomy_vocabularies' => array(
-      'form' => 'taxonomy_form_builder_configuration',
-    ),
-  );
+function taxonomy_form_builder_properties($form_type) {
+  if ($form_type == 'node') {
+    return array(
+      'taxonomy_vocabularies' => array(
+        'form' => 'taxonomy_vocabularies_configuration',
+      ),
+    );
+  }
 }
 
 /**
  * Form builder property form callback.
  */
-function taxonomy_form_builder_configuration(&$form_state, $form_type, $element) {
+function taxonomy_vocabularies_configuration(&$form_state, $form_type, $element) {
   $form = array();
 
   $vocabularies = taxonomy_get_vocabularies();
@@ -78,15 +82,96 @@ function taxonomy_form_builder_configuration(&$form_state, $form_type, $element)
 /**
  * Implementation of hook_form_builder_preview_alter().
  *
- * Convert the #type => taxonomy pseudo-element into a real fieldset.
+ * Update the taxonomy element with the new vocabularies.
  */
 function taxonomy_form_builder_preview_alter(&$element, $form_type, $form_id) {
-  if ($element['#type'] == 'taxonomy') {
+  if ($element['#form_builder']['element_id'] == 'taxonomy') {
+    // Remove current taxonomies from the element.
+    foreach (element_children($element) as $key) {
+      if (is_numeric($key)) {
+        unset($element[$key]);
+      }
+    }
+
     $vocabularies = array_intersect_key(taxonomy_get_vocabularies(), array_flip($element['#taxonomy_vocabularies']));
     $terms = array();
-    $form = taxonomy_node_form($vocabularies, $terms);
-    unset($element['#type']);
-    $element = array_merge($element, $form['taxonomy']);
+    $settings = array(
+      'weight' => $element['#weight'],
+    );
+    $form = taxonomy_fieldset($vocabularies, $terms, $settings);
+    $element = array_merge($form, $element);
+  }
+}
+
+/**
+ * Implementation of hook_form_builder_load_alter().
+ */
+function taxonomy_form_builder_load_alter(&$form, $form_type, $form_id) {
+  if ($form_type == 'node') {
+    $settings = taxonomy_node_form_settings($form_id);
+    $vocabularies = taxonomy_get_vocabularies($form['#node']->type);
+    $terms = isset($form['#node']->terms) ? $form['#node']->terms : array();
+
+    if (count($vocabularies)) {
+      $form['taxonomy'] = taxonomy_fieldset($vocabularies, $terms, $settings);
+      $form['taxonomy']['#form_builder'] = array(
+        'element_id' => 'taxonomy',
+        'element_type' => 'taxonomy',
+      );
+      $form['taxonomy']['#taxonomy_vocabularies'] = array_keys($vocabularies);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * @todo Merge this into taxonomy_form_alter().
+ */
+function taxonomy_form_builder_form_alter(&$form, &$form_state, $form_id) {
+  // Set properties of the menu form item based on the menu node form settings.
+  if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
+    if (isset($form['taxonomy'])) {
+      $settings = taxonomy_node_form_settings($form['#node']->type);
+      $form['taxonomy']['#weight'] = $settings['weight'];
+    }
+  }
+}
+/**
+ * Implementation of hook_form_builder_save().
+ */
+function taxonomy_form_builder_save(&$form, $form_type, $form_id) {
+  if ($form_type == 'node') {
+    $element = form_builder_get_element($form, 'taxonomy');
+    $vocabularies = taxonomy_get_vocabularies();
+    $node_type = $form_id;
+
+    if ($element) {
+      $settings = array('weight' => $element['#weight']);
+      variable_set('taxonomy_settings_' . $node_type, $settings);
+      $enabled_vocabularies = drupal_map_assoc($element['#taxonomy_vocabularies']);
+      foreach ($vocabularies as $vid => $vocabulary) {
+        $vocabulary = (array) $vocabulary;
+        if (isset($enabled_vocabularies[$vid]) && !isset($vocabular['nodes'][$node_type])) {
+          $vocabulary['nodes'][$node_type] = $node_type;
+          taxonomy_save_vocabulary($vocabulary);
+        }
+        elseif (!isset($enabled_vocabularies[$vid]) && isset($vocabulary['nodes'][$node_type])) {
+          unset($vocabulary['nodes'][$node_type]);
+          taxonomy_save_vocabulary($vocabulary);
+        }
+      }
+    }
+    else {
+      variable_del('taxonomy_settings_' . $node_type);
+      foreach ($vocabularies as $vid => $vocabulary) {
+        $vocabulary = (array) $vocabulary;
+        if (isset($vocabulary['nodes'][$node_type])) {
+          unset($vocabulary['nodes'][$node_type]);
+          taxonomy_save_vocabulary($vocabulary);
+        }
+      }
+    }
   }
 }
 
@@ -96,7 +181,7 @@ function taxonomy_form_builder_preview_alter(&$element, $form_type, $form_id) {
  * @todo Put this function directly in taxonomy.module, abstracting it from
  * taxonomy_form_alter().
  */
-function taxonomy_node_form($vocabularies, $terms) {
+function taxonomy_fieldset($vocabularies, $terms, $settings) {
   $form = array();
 
   if (!variable_get('taxonomy_override_selector', FALSE)) {
@@ -116,7 +201,7 @@ function taxonomy_node_form($vocabularies, $terms) {
         else {
           $help = t('A comma-separated list of terms describing this content. Example: funny, bungee jumping, "Company, Inc.".');
         }
-        $form['taxonomy']['tags'][$vocabulary->vid] = array('#type' => 'textfield',
+        $form['tags'][$vocabulary->vid] = array('#type' => 'textfield',
           '#title' => $vocabulary->name,
           '#description' => $help,
           '#required' => $vocabulary->required,
@@ -135,25 +220,40 @@ function taxonomy_node_form($vocabularies, $terms) {
             $default_terms[$term->tid] = $term;
           }
         }
-        $form['taxonomy'][$vocabulary->vid] = taxonomy_form($vocabulary->vid, array_keys($default_terms), $vocabulary->help);
-        $form['taxonomy'][$vocabulary->vid]['#weight'] = $vocabulary->weight;
-        $form['taxonomy'][$vocabulary->vid]['#required'] = $vocabulary->required;
+        $form[$vocabulary->vid] = taxonomy_form($vocabulary->vid, array_keys($default_terms), $vocabulary->help);
+        $form[$vocabulary->vid]['#weight'] = $vocabulary->weight;
+        $form[$vocabulary->vid]['#required'] = $vocabulary->required;
       }
     }
-    if (!empty($form['taxonomy']) && is_array($form['taxonomy'])) {
-      if (count($form['taxonomy']) > 1) {
+    if (!empty($form) && is_array($form)) {
+      if (count($form) > 1) {
         // Add fieldset only if form has more than 1 element.
-        $form['taxonomy'] += array(
+        $form += array(
           '#type' => 'fieldset',
           '#title' => t('Vocabularies'),
           '#collapsible' => TRUE,
           '#collapsed' => FALSE,
         );
       }
-      $form['taxonomy']['#weight'] = -3;
-      $form['taxonomy']['#tree'] = TRUE;
+      $form['#weight'] = $settings['weight'];
+      $form['#tree'] = TRUE;
     }
   }
 
   return $form;
+}
+
+/**
+ * Get the settings for the taxonomy fieldset on the node form.
+ */
+function taxonomy_node_form_settings($type = NULL) {
+  $settings = array(
+    'weight' => -3,
+  );
+
+  if (!isset($type)) {
+    return $settings;
+  }
+
+  return variable_get('taxonomy_settings_' . $type, $settings);
 }
