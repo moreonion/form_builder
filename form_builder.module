@@ -58,31 +58,6 @@ function form_builder_menu() {
 }
 
 /**
- * Implementation of hook_init().
- *
- * @todo Each one of these .inc files should be merged into their respective
- * modules.
- */
-function form_builder_init() {
-  // Pull in all the module include files.
-  $files = file_scan_directory(drupal_get_path('module', 'form_builder') . '/modules', '^.*\.inc$');
-  foreach ($files as $path => $file) {
-    include_once($path);
-  }
-}
-
-/**
- * Implementation of hook_form_alter().
- *
- * @todo This is a purely utility form_alter() to let the .inc files each have
- * additional form altering. Each form_alter() should be merged into their
- * respective modules.
- */
-function form_builder_form_alter(&$form, &$form_state, $form_id) {
-  drupal_alter('form_builder_form', $form, $form_state, $form_id);
-}
-
-/**
  * Implementation of hook_theme().
  */
 function form_builder_theme() {
@@ -141,6 +116,9 @@ function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
           foreach ($fields as $key => $field) {
             if ($field['unique'] && in_array($key, $active_fields)) {
               $fields[$key]['in_use'] = TRUE;
+            }
+            if ($field['removable'] == FALSE) {
+              unset($fields[$key]);
             }
           }
           return array(

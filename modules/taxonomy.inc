@@ -22,8 +22,8 @@ function taxonomy_form_builder_types() {
 
   $first_vocab = reset($vocabularies);
   $vocabularies = array($first_vocab->vid => $first_vocab);
-  $settings = taxonomy_node_form_settings();
-  $default_form = taxonomy_fieldset($vocabularies, $terms, $settings);
+  $settings = module_invoke('taxonomy', 'node_form_default_settings');;
+  $default_form = taxonomy_fieldset($vocabularies, $terms, $settings['taxonomy']);
   $default_form['#taxonomy_vocabularies'] = array_keys($vocabularies);
 
   $fields['taxonomy'] = array(
@@ -108,7 +108,7 @@ function taxonomy_form_builder_preview_alter(&$element, $form_type, $form_id) {
  */
 function taxonomy_form_builder_load_alter(&$form, $form_type, $form_id) {
   if ($form_type == 'node') {
-    $settings = taxonomy_node_form_settings($form_id);
+    $settings = node_get_form_settings($form_id, 'taxonomy');
     $vocabularies = taxonomy_get_vocabularies($form['#node']->type);
     $terms = isset($form['#node']->terms) ? $form['#node']->terms : array();
 
@@ -128,11 +128,11 @@ function taxonomy_form_builder_load_alter(&$form, $form_type, $form_id) {
  *
  * @todo Merge this into taxonomy_form_alter().
  */
-function taxonomy_form_builder_form_alter(&$form, &$form_state, $form_id) {
+function taxonomy_node_form_alter(&$form, &$form_state, $form_id) {
   // Set properties of the menu form item based on the menu node form settings.
   if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
     if (isset($form['taxonomy'])) {
-      $settings = taxonomy_node_form_settings($form['#node']->type);
+      $settings = node_get_form_settings($form['#node']->type, 'taxonomy');
       $form['taxonomy']['#weight'] = $settings['weight'];
     }
   }
@@ -173,6 +173,19 @@ function taxonomy_form_builder_save(&$form, $form_type, $form_id) {
       }
     }
   }
+}
+
+/**
+ * Implementation of hook_node_form_default_settings().
+ *
+ * Get the settings for the taxonomy fieldset on the node form.
+ */
+function taxonomy_node_form_default_settings($type = NULL) {
+  $defaults = array();
+  $defaults['taxonomy'] = array(
+    'weight' => -3,
+  );
+  return $defaults;
 }
 
 /**
@@ -241,19 +254,4 @@ function taxonomy_fieldset($vocabularies, $terms, $settings) {
   }
 
   return $form;
-}
-
-/**
- * Get the settings for the taxonomy fieldset on the node form.
- */
-function taxonomy_node_form_settings($type = NULL) {
-  $settings = array(
-    'weight' => -3,
-  );
-
-  if (!isset($type)) {
-    return $settings;
-  }
-
-  return variable_get('taxonomy_settings_' . $type, $settings);
 }

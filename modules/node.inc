@@ -7,33 +7,6 @@
  */
 
 /**
- * Implementation of hook_menu().
- *
- * Note: This would be merged into node_menu().
- */
-function node_menu_alter(&$items) {
-  foreach (node_get_types('types', NULL, TRUE) as $type) {
-    $type_url_str = str_replace('_', '-', $type->type);
-    $items['admin/content/node-type/'. $type_url_str .'/fields'] = array(
-      'title' => 'Fields',
-      'page callback' => 'node_form_edit',
-      'page arguments' => array($type),
-      'access arguments' => array('administer content types'),
-      'file' => 'node.pages.inc',
-      'file path' => drupal_get_path('module', 'node'),
-      'type' => MENU_LOCAL_TASK,
-    );
-    $items['admin/content/node-type/'. $type_url_str .'/fields/confirm'] = array(
-      'title' => 'Confirm field changes',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('node_form_builder_save_form', $type, TRUE),
-      'access arguments' => array('administer content types'),
-      'type' => MENU_CALLBACK,
-    );
-  }
-}
-
-/**
  * Main page for editing a content type form.
  *
  * @param $type
@@ -166,8 +139,8 @@ function node_form_builder_save_form_submit(&$form, &$form_state) {
     variable_set('site_offline', '1');
   }
 
-  $form = form_builder_cache_load('node', $type->type);
-  form_builder_save_form($form, 'node', $type->type);
+  $node_form = form_builder_cache_load('node', $type->type);
+  form_builder_save_form($node_form, 'node', $type->type);
 
   // Re-enable access to the site.
   if ($form_state['values']['offline'] == '1') {
@@ -197,7 +170,7 @@ function node_form_builder_types() {
     'title' => NULL,
     'format' => NULL,
   );
-  $settings = node_form_settings();
+  $settings = module_invoke('node', 'node_form_default_settings');
 
   $node['status'] = $settings['options']['status'];
   $node['promote'] = $settings['options']['promote'];
@@ -205,23 +178,23 @@ function node_form_builder_types() {
 
   $node = (object) $node;
 
-
   $title_form = node_title_field($node, $settings['title']);
   $title_form['#weight'] = $settings['title']['weight'];
-  $fields['node_title'] = array(
+  $fields['title'] = array(
     'title' => t('Title'),
     'properties' => array(
       'title',
     ),
     'default' => $title_form,
     'unique' => TRUE,
+    'removable' => FALSE,
     'palette_group' => 'special',
   );
 
-  $body_form = node_body_field($node, $settings['body']['label'], $settings['body']['min_word_count']);
-  $body_form['#weight'] = $settings['body']['weight'];
-  $body_form['#body_settings'] = $settings['body'];
-  $fields['node_body'] = array(
+  $body_form = node_body_field($node, $settings['body_field']['label'], $settings['body_field']['min_word_count']);
+  $body_form['#weight'] = $settings['body_field']['weight'];
+  $body_form['#body_settings'] = $settings['body_field'];
+  $fields['body_field'] = array(
     'title' => t('Body'),
     'properties' => array(
       'body_settings',
@@ -231,10 +204,10 @@ function node_form_builder_types() {
     'palette_group' => 'special',
   );
 
-  $revision_fieldset = node_revision_fieldset($node, $settings['revision']);
-  $revision_fieldset['#weight'] = $settings['revision']['weight'];
-  $revision_fieldset['#revision_settings'] = $settings['revision'];
-  $fields['node_revision'] = array(
+  $revision_fieldset = node_revision_fieldset($node, $settings['revision_information']);
+  $revision_fieldset['#weight'] = $settings['revision_information']['weight'];
+  $revision_fieldset['#revision_settings'] = $settings['revision_information'];
+  $fields['revision_information'] = array(
     'title' => t('Revisions'),
     'properties' => array(
       'collapsible',
@@ -250,7 +223,7 @@ function node_form_builder_types() {
   $author_fieldset['#author_settings'] = $settings['author'];
   $author_fieldset['#weight'] = $settings['author']['weight'];
   $author_fieldset['#form_builder']['removable'] = FALSE;
-  $fields['node_author'] = array(
+  $fields['author'] = array(
     'title' => t('Authoring'),
     'properties' => array(
       'collapsible',
@@ -266,7 +239,7 @@ function node_form_builder_types() {
   $options_fieldset['#options_settings'] = $settings['options'];
   $options_fieldset['#weight'] = $settings['options']['weight'];
   $options_fieldset['#form_builder']['removable'] = FALSE;
-  $fields['node_options'] = array(
+  $fields['options'] = array(
     'title' => t('Options'),
     'properties' => array(
       'collapsible',
@@ -277,6 +250,14 @@ function node_form_builder_types() {
     'unique' => TRUE,
     'removable' => FALSE,
     'palette_group' => 'special',
+  );
+
+  // Generic field for handling weights.
+  $fields['generic_field'] = array(
+    'title' => t('Generic field'),
+    'properties' => array(),
+    'removable' => FALSE,
+    'configurable' => FALSE,
   );
 
   return array(
@@ -312,20 +293,20 @@ function node_form_builder_properties($form_type) {
 function node_form_builder_preview_alter(&$element, $form_type, $form_id) {
   if ($form_type == 'node') {
     switch ($element['#form_builder']['element_id']) {
-      case 'node_title':
+      case 'title':
         // No node title settings yet.
         break;
-      case 'node_body':
+      case 'body_field':
         $element['body']['#title'] = check_plain($element['#body_settings']['label']);
         $element['body']['#required'] = $element['#body_settings']['min_word_count'] > 0;
         break;
-      case 'node_revision':
+      case 'revision_information':
         $element['revision']['#default_value'] = $element['#revision_settings']['revision'];
         break;
-      case 'node_author':
+      case 'author':
         // No node author settings yet.
         break;
-      case 'node_options':
+      case 'options':
         $element['status']['#default_value'] = $element['#options_settings']['status'];
         $element['promote']['#default_value'] = $element['#options_settings']['promote'];
         $element['sticky']['#default_value'] = $element['#options_settings']['sticky'];
@@ -431,48 +412,67 @@ function node_form_builder_load($form_type, $form_id) {
     );
     $form = node_form($form_state, $node);
 
-    // Add Form Builder settings to configurable node fields.
-    $settings = node_form_settings($node_type);
+    // Setup generic weight handling.
+    drupal_prepare_form($form_id .'_node_form', $form, $form_state);
+    $form['#node_generic_fields'] = array();
+    foreach (element_children($form) as $key) {
+      $element = $form[$key];
+      if (!isset($element['#form_builder']) && (!empty($element['#tree']) || (isset($element['#type']) && !in_array($element['#type'], array('value', 'hidden', 'markup', 'token', 'button', 'submit'))))) {
+        $form[$key]['#form_builder'] = array(
+          'element_id' => $key,
+          'element_type' => 'generic_field',
+        );
+        $form['#node_generic_fields'][] = $key;
+      }
+    }
 
     if (isset($form['title'])) {
-      $form['title']['#title_settings'] = $settings['title'];
-      $form['title']['#weight'] = $settings['title']['weight'];
+      $title_settings = node_get_form_settings($node_type, 'title');
+      $form['title']['#title_settings'] = $title_settings;
+      $form['title']['#weight'] = $title_settings['weight'];
       $form['title']['#form_builder'] = array(
-        'element_id' => 'node_title',
-        'element_type' => 'node_title',
+        'element_id' => 'title',
+        'element_type' => 'title',
       );
     }
 
     if (isset($form['body_field'])) {
-      $form['body_field']['#body_settings'] = $settings['body'];
-      $form['body_field']['#weight'] = $settings['body']['weight'];
+      $body_settings = node_get_form_settings($node_type, 'body_field');
+      $form['body_field']['#body_settings'] = $body_settings;
+      $form['body_field']['#weight'] = $body_settings['weight'];
       $form['body_field']['#form_builder'] = array(
-        'element_id' => 'node_body',
-        'element_type' => 'node_body',
+        'element_id' => 'body_field',
+        'element_type' => 'body_field',
       );
     }
 
-    if (isset($settings['revision']['enabled'])) {
-      $form['revision_information'] = node_revision_fieldset($form['#node'], $settings['revision']);
-      $form['revision_information']['#revision_settings'] = $settings['revision'];
+    $revision_settings = node_get_form_settings($node_type, 'revision_information');
+    if ($revision_settings['enabled']) {
+      $form['revision_information'] = node_revision_fieldset($form['#node'], $revision_settings);
+      $form['revision_information']['#revision_settings'] = $revision_settings;
       $form['revision_information']['#form_builder'] = array(
-        'element_id' => 'node_revision',
-        'element_type' => 'node_revision',
+        'element_id' => 'revision_information',
+        'element_type' => 'revision_information',
       );
     }
+    else {
+      unset($form['revision_information']);
+    }
 
-    $form['options'] = node_options_fieldset($form['#node'], $settings['options']);
-    $form['options']['#options_settings'] = $settings['options'];
+    $options_settings = node_get_form_settings($node_type, 'options');
+    $form['options'] = node_options_fieldset($form['#node'], $options_settings);
+    $form['options']['#options_settings'] = $options_settings;
     $form['options']['#form_builder'] = array(
-      'element_id' => 'node_options',
-      'element_type' => 'node_options',
+      'element_id' => 'options',
+      'element_type' => 'options',
     );
 
-    $form['author'] = node_author_fieldset($form['#node'], $settings['author']);
-    $form['author']['#author_settings'] = $settings['author'];
+    $author_settings = node_get_form_settings($node_type, 'author');
+    $form['author'] = node_author_fieldset($form['#node'], $author_settings);
+    $form['author']['#author_settings'] = $author_settings;
     $form['author']['#form_builder'] = array(
-      'element_id' => 'node_author',
-      'element_type' => 'node_author',
+      'element_id' => 'author',
+      'element_type' => 'author',
     );
 
     unset($form['buttons']);
@@ -489,46 +489,53 @@ function node_form_builder_save(&$form, $form_type, $form_id) {
     $node_type = $form_id;
 
     $node_element_ids = array(
-      'node_title',
-      'node_body',
-      'node_revision',
-      'node_options',
-      'node_author',
+      'title' => 'title',
+      'body' => 'body_field',
+      'revision' => 'revision_information',
+      'options' => 'options',
+      'author' => 'author',
     );
     $node_elements = form_builder_get_elements($form, $node_element_ids);
-    $settings = node_form_settings($node_type);
 
-    foreach ($node_element_ids as $element_id) {
-      $settings_key = str_replace('node_', '', $element_id);
+    foreach ($node_element_ids as $key => $element_id) {
+      $settings = node_get_form_settings($node_type, $element_id);
       if (!isset($node_elements[$element_id])) {
-        $settings[$settings_key]['enabled'] = FALSE;
+        $settings['enabled'] = FALSE;
       }
       else {
         // Merge most settings from the #settings property.
-        $settings[$settings_key]['enabled'] = TRUE;
-        foreach ($node_elements[$element_id]['#' . $settings_key . '_settings'] as $key => $setting) {
-          $settings[$settings_key][$key] = $setting;
+        foreach ($node_elements[$element_id]['#' . $key . '_settings'] as $setting_key => $setting) {
+          $settings[$setting_key] = $setting;
         }
+        // If the field exists, it is enabled.
+        $settings['enabled'] = TRUE;
         // Set the weight from the #weight property.
-        $settings[$settings_key]['weight'] = $node_elements[$element_id]['#weight'];
+        $settings['weight'] = $node_elements[$element_id]['#weight'];
         // The title label is just the plain title attribute.
-        if ($settings_key == 'title') {
-          $settings['title']['label'] = $node_elements[$element_id]['#title'];
+        if ($element_id == 'title') {
+          $settings['label'] = $node_elements[$element_id]['#title'];
+        }
+        // Update settings if a fieldset.
+        if (isset($node_elements[$element_id]['#type']) && $node_elements[$element_id]['#type'] == 'fieldset') {
+          $settings['collapsible'] = !empty($node_elements[$element_id]['#collapsible']);
+          $settings['collapsed'] = !empty($node_elements[$element_id]['#collapsed']);
         }
       }
+
+      // Update the settings for this field.
+      node_set_form_settings($node_type, $element_id, 'node', $settings);
     }
 
-    // Update the settings.
-    variable_set('node_form_settings_' . $node_type, $settings);
-
-    // Special cases for node type settings.
-    $type = node_get_types('type', $node_type);
-    $type->has_title = $settings['title']['enabled'];
-    $type->title_label = $settings['title']['label'];
-    $type->has_body = $settings['body']['enabled'];
-    $type->body_label = $settings['body']['label'];
-    $type->min_word_count = $settings['body']['min_word_count'];
-    node_type_save($type);
+    $generic_field_ids = $form['#node_generic_fields'];
+    $generic_fields = form_builder_get_elements($form, $generic_field_ids);
+    foreach ($generic_fields as $key => $field) {
+      if ($field['#form_builder']['element_type'] == 'generic_field') {
+        $settings = array(
+          'weight' => $field['#weight'],
+        );
+        node_set_form_settings($node_type, $key, 'node', $settings);
+      }
+    }
   }
 }
 
@@ -537,34 +544,46 @@ function node_form_builder_save(&$form, $form_type, $form_id) {
  *
  * @todo Merge this into node_form().
  */
-function node_form_builder_form_alter(&$form, &$form_state, $form_id) {
+function node_node_form_alter(&$form, &$form_state, $form_id) {
   // Set properties of the node form based on the node form settings.
   if (preg_match('/_node_form$/', $form_id)) {
     $type = $form['#node']->type;
-    $node_form_settings = node_form_settings($type);
+    $settings = node_get_form_settings($type);
 
-    foreach ($node_form_settings as $key => $settings) {
-      if (isset($settings['enabled']) && !$settings['enabled']) {
+    $fields = array(
+      'title',
+      'body_field',
+      'revision_information',
+      'author',
+      'options',
+    );
+
+    foreach ($fields as $key) {
+      if (isset($settings[$key]['enabled']) && !$settings[$key]['enabled']) {
         $form[$key]['#access'] = FALSE;
       }
       else {
         switch ($key) {
           case 'title':
-            $form[$key] = node_title_field($form['#node'], $settings);
+            $form[$key] = node_title_field($form['#node'], $settings[$key]);
             break;
-          case 'body':
-            $form['body_field']['#weight'] = $settings['weight'];
-            break;
-          case 'revision':
-            $form['revision_information'] = node_revision_fieldset($form['#node'], $settings);
+          case 'revision_information':
+            $form['revision_information'] = node_revision_fieldset($form['#node'], $settings[$key]);
             break;
           case 'author':
-            $form[$key] = node_author_fieldset($form['#node'], $settings);
+            $form[$key] = node_author_fieldset($form['#node'], $settings[$key]);
             break;
           case 'options':
-            $form[$key] = node_options_fieldset($form['#node'], $settings);
+            $form[$key] = node_options_fieldset($form['#node'], $settings[$key]);
             break;
         }
+      }
+    }
+
+    // Set generic weights for any field controlled by node module.
+    foreach ($settings as $key => $field_settings) {
+      if (isset($form[$key]) && $field_settings['module'] == 'node') {
+        $form[$key]['#weight'] = $field_settings['weight'];
       }
     }
   }
@@ -703,56 +722,168 @@ function node_options_fieldset($node, $publishing_settings) {
 }
 
 /**
- * Retrieve the default node form settings.
+ * Retrieve node form settings for a particular field.
  */
-function node_form_settings($node_type = NULL) {
-  $defaults = array(
-    'title' => array(
-      'enabled' => TRUE,
-      'label' => t('Title'),
-      'weight' => -5,
-    ),
-    'body' => array(
-      'enabled' => TRUE,
-      'label' => t('Body'),
-      'min_word_count' => 0,
-      'weight' => 0,
-    ),
-    'revision' => array(
-      'enabled' => TRUE,
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
-      'weight' => 20,
-      'revision' => FALSE,
-    ),
-    'author' => array(
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
-      'weight' => 21,
-    ),
-    'options' => array(
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
-      'status' => 1,
-      'promote' => 0,
-      'sticky' => 0,
-      'weight' => 25,
-    ),
+function node_get_form_settings($node_type, $field = NULL, $reset = FALSE) {
+  static $form_settings = array();
+
+  if ($reset) {
+    $form_settings = array();
+    return;
+  }
+
+  if (!isset($form_settings[$node_type])) {
+    // Get settings from the node form settings table.
+    $form_settings[$node_type] = array();
+    $result = db_query("SELECT * FROM {node_form_settings} WHERE type = '%s'", $node_type);
+    while ($settings = db_fetch_object($result)) {
+      $form_settings[$node_type][$settings->field] = unserialize($settings->settings);
+      $form_settings[$node_type][$settings->field]['module'] = $settings->module;
+    }
+
+    // Get settings from the node type table.
+    $type = node_get_types('type', $node_type);
+    $form_settings[$node_type]['title']['enabled'] = $type->has_title ? TRUE : FALSE;
+    $form_settings[$node_type]['title']['label'] = isset($type->title_label) ? $type->title_label : '';
+    $form_settings[$node_type]['body_field']['enabled'] = $type->has_body ? TRUE : FALSE;
+    $form_settings[$node_type]['body_field']['label'] = isset($type->body_label) ? $type->body_label : '';
+    $form_settings[$node_type]['body_field']['min_word_count'] = $type->min_word_count;
+
+    // Merge default settings from modules.
+    foreach (module_implements('node_form_default_settings') as $module) {
+      $additional_settings = module_invoke($module, 'node_form_default_settings', $node_type);
+      if (!empty($additional_settings)) {
+        foreach ($additional_settings as $field_id => $field_settings) {
+          $form_settings[$node_type][$field_id]['module'] = $module;
+          if (isset($form_settings[$node_type][$field_id])) {
+            $form_settings[$node_type][$field_id] = array_merge($field_settings, $form_settings[$node_type][$field_id]);
+          }
+          else {
+            $form_settings[$node_type][$field_id] = $field_settings;
+          }
+        }
+      }
+    }
+  }
+
+  if (!isset($field)) {
+    return $form_settings[$node_type];
+  }
+  elseif (isset($form_settings[$node_type][$field])) {
+    return $form_settings[$node_type][$field];
+  }
+
+  return FALSE;
+}
+
+/**
+ * Set the node form settings for a particular field.
+ */
+function node_set_form_settings($node_type, $field, $module, $settings) {
+  $serialized_value = serialize($settings);
+  db_query("UPDATE {node_form_settings} SET settings = '%s' WHERE type = '%s' AND field = '%s'", $serialized_value, $node_type, $field);
+  if (!db_affected_rows()) {
+    db_query("INSERT INTO {node_form_settings} (type, field, module, settings) VALUES ('%s', '%s', '%s', '%s')", $node_type, $field, $module, $serialized_value);
+  }
+
+  // Special cases for node type settings.
+  if ($field == 'body_field') {
+    $type = node_get_types('type', $node_type);
+    $type->has_body = $settings['enabled'];
+    $type->body_label = $settings['label'];
+    $type->min_word_count = $settings['min_word_count'];
+    node_type_save($type);
+    node_types_rebuild();
+    menu_rebuild();
+  }
+  if ($field == 'title') {
+    $type = node_get_types('type', $node_type);
+    $type->has_title = $settings['enabled'];
+    $type->title_label = $settings['label'];
+    node_type_save($type);
+    node_types_rebuild();
+    menu_rebuild();
+  }
+
+  // Reset the static cache for the node form settings.
+  node_get_form_settings(NULL, NULL, TRUE);
+}
+
+/**
+ * Delete the node form settings for a node type, field, or module.
+ *
+ * All parameters all optional, but at least one must be specified to have any
+ * effect. Multiple parameters may be passed in to further narrow the settings
+ * that will be deleted.
+ *
+ * @param $node_type
+ *   Optional. String of the node type whose settings are to be deleted.
+ * @param $field
+ *   Optional. The key of the field whose setting will be deleted.
+ * @param $module
+ *   Options. Name of the module that provided the field settings to be deleted.
+ */
+function node_delete_form_settings($node_type = NULL, $field = NULL, $module = NULL) {
+  $where = array();
+  $args = array();
+  if (isset($node_type)) {
+    $where[] = "type = %s";
+    $args[] = $node_type;
+  }
+  if (isset($field)) {
+    $where[] = "field = '%s'";
+    $args[] = $field;
+  }
+  if (isset($field)) {
+    $where[] = "module = '%s'";
+    $args[] = $module;
+  }
+
+  if (!empty($args)) {
+    db_query('DELETE FROM {node_form_settings} WHERE ' . implode(' AND ', $where), $args);
+
+    // Reset the static cache for the node form settings.
+    node_get_form_settings(NULL, NULL, TRUE);
+  }
+}
+
+/**
+ * Implementation of hook_node_form_default_settings().
+ */
+function node_node_form_default_settings() {
+  $defaults = array();
+
+  $defaults['title'] = array(
+    'enabled' => TRUE,
+    'label' => t('Title'),
+    'weight' => -5,
+  );
+  $defaults['body_field'] = array(
+    'enabled' => TRUE,
+    'label' => t('Body'),
+    'min_word_count' => 0,
+    'weight' => 0,
+  );
+  $defaults['revision_information'] = array(
+    'enabled' => TRUE,
+    'collapsible' => TRUE,
+    'collapsed' => TRUE,
+    'weight' => 20,
+    'revision' => FALSE,
+  );
+  $defaults['author'] = array(
+    'collapsible' => TRUE,
+    'collapsed' => TRUE,
+    'weight' => 21,
+  );
+  $defaults['options'] = array(
+    'collapsible' => TRUE,
+    'collapsed' => TRUE,
+    'status' => 1,
+    'promote' => 0,
+    'sticky' => 0,
+    'weight' => 25,
   );
 
-  if (!isset($node_type)) {
-    return $defaults;
-  }
-
-  // Merge the variable settings with those from the node_type table.
-  $settings = variable_get('node_form_settings_' . $node_type, $defaults);
-  if ($type = node_get_types('type', $node_type)) {
-    $settings['title']['enabled'] = $type->has_title;
-    $settings['title']['label'] = $type->title_label;
-    $settings['body']['enabled'] = $type->has_body;
-    $settings['body']['label'] = $type->body_label;
-    $settings['body']['min_word_count'] = $type->min_word_count;
-  }
-
-  return $settings;
+  return $defaults;
 }

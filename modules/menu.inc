@@ -27,7 +27,7 @@ function menu_form_builder_types() {
     'parent_depth_limit' => NULL,
     'menu_name' => NULL,
   );
-  $default_settings = menu_node_form_settings();
+  $default_settings = module_invoke('menu', 'node_form_default_settings');
 
   $fields['menu_settings'] = array(
     'title' => t('Menu'),
@@ -35,7 +35,7 @@ function menu_form_builder_types() {
       'collapsible',
       'collapsed',
     ),
-    'default' => menu_fieldset($item, $default_settings),
+    'default' => menu_fieldset($item, $default_settings['menu']),
     'unique' => TRUE,
     'configurable' => TRUE,
     'removable' => TRUE,
@@ -53,7 +53,7 @@ function menu_form_builder_types() {
  */
 function menu_form_builder_load_alter(&$form, $form_type, $form_id) {
   if ($form_type == 'node') {
-    $menu_settings = menu_node_form_settings($form_id);
+    $menu_settings = node_get_form_settings($form_id, 'menu');
 
     if ($menu_settings['enabled']) {
       $form['menu'] = menu_fieldset($form['#node']->menu, $menu_settings);
@@ -70,6 +70,7 @@ function menu_form_builder_load_alter(&$form, $form_type, $form_id) {
  */
 function menu_form_builder_save(&$form, $form_type, $form_id) {
   if ($form_type == 'node') {
+    $node_type = $form_id;
     $element = form_builder_get_element($form, 'menu_settings');
     if ($element) {
       $settings = array(
@@ -84,7 +85,7 @@ function menu_form_builder_save(&$form, $form_type, $form_id) {
         'enabled' => FALSE,
       );
     }
-    variable_set('menu_settings_' . $form_id, $settings);
+    node_set_form_settings($node_type, 'menu', 'menu', $settings);
   }
 }
 
@@ -93,19 +94,35 @@ function menu_form_builder_save(&$form, $form_type, $form_id) {
  *
  * @todo Merge this into menu_form_alter().
  */
-function menu_form_builder_form_alter(&$form, &$form_state, $form_id) {
+function menu_node_form_alter(&$form, &$form_state, $form_id) {
   // Set properties of the menu form item based on the menu node form settings.
   if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
-    $menu_settings = menu_node_form_settings($form['#node']->type);
-    if ($menu_settings['enabled']) {
-      $form['menu']['#collapsible'] = $menu_settings['collapsible'];
-      $form['menu']['#collapsed'] = $menu_settings['collapsed'];
-      $form['menu']['#weight'] = $menu_settings['weight'];
+    $settings = node_get_form_settings($form['#node']->type, 'menu');
+    if ($settings['enabled']) {
+      $form['menu']['#collapsible'] = $settings['collapsible'];
+      $form['menu']['#collapsed'] = $settings['collapsed'];
+      $form['menu']['#weight'] = $settings['weight'];
     }
     else {
       $form['menu']['#access'] = FALSE;
     }
   }
+}
+
+/**
+ * Implementation of hook_node_form_default_settings().
+ *
+ * Get the default settings for the menu modifications to the node form.
+ */
+function menu_node_form_default_settings($node_type = NULL) {
+  $defaults = array();
+  $defaults['menu'] = array(
+    'enabled' => TRUE,
+    'collapsible' => TRUE,
+    'collapsed' => TRUE,
+    'weight' => -2,
+  );
+  return $defaults;
 }
 
 /**
@@ -178,22 +195,4 @@ function menu_fieldset($item, $menu_settings = array()) {
   );
 
   return $form;
-}
-
-/**
- * Get the default settings for the menu modifications to the node form.
- */
-function menu_node_form_settings($node_type = NULL) {
-  $defaults = array(
-    'enabled' => TRUE,
-    'collapsible' => TRUE,
-    'collapsed' => TRUE,
-    'weight' => -2,
-  );
-
-  if (!isset($node_type)) {
-    return $defaults;
-  }
-
-  return variable_get('menu_settings_' . $node_type, $defaults);
 }
