@@ -46,17 +46,22 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
         }
 
         $field['unique'] = isset($field['unique']) && $field['unique'];
-        if ($field['unique']) {
-          $field['default']['#form_builder']['element_id'] = $field_key;
-          $field['default']['#form_builder']['element_type'] = $field_key;
-        }
-        elseif (!isset($field['default']['#form_builder']['element_type'])) {
-          $field['default']['#form_builder']['element_type'] = $field['default']['#type'];
-        }
-
         $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
         $field['removable'] = isset($field['removable']) ? $field['removable'] : TRUE;
         $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
+
+        // Update the default elements with some defaults.
+        // Note that if a field is not removable, it doesn't have a default.
+        if ($field['removable']) {
+          if ($field['unique']) {
+            $field['default']['#form_builder']['element_id'] = $field_key;
+            $field['default']['#form_builder']['element_type'] = $field_key;
+          }
+          elseif (!isset($field['default']['#form_builder']['element_type'])) {
+            $field['default']['#form_builder']['element_type'] = $field['default']['#type'];
+          }
+        }
+
       }
     }
 
