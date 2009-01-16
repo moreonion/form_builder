@@ -248,6 +248,8 @@ function form_builder_positions_submit(&$form, &$form_state) {
 }
 
 function theme_form_builder_preview($form) {
+  global $theme;
+
   jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
   drupal_add_js('misc/jquery.form.js');
   drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
@@ -257,6 +259,10 @@ function theme_form_builder_preview($form) {
   drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
   drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
   drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
+
+  if ($theme == 'garland' || $theme == 'minnelli') {
+    drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.garland.css', 'theme');
+  }
 
   $output = '';
   $output .= '<div id="form-builder">';
