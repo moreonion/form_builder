@@ -34,6 +34,9 @@ Drupal.behaviors.formBuilderElement = function(context) {
         $(this).click(Drupal.formBuilder.clickField).addClass('form-builder-clickable');
         $(this).find('div.form-builder-element label').click(Drupal.formBuilder.clickField);
       }
+      else {
+        $(this).addClass('form-builder-draggable');
+      }
     }
   });
 

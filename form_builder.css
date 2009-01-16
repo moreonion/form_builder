@@ -41,6 +41,14 @@ div.form-builder-element {
   position: relative;
 }
 
+div.form-builder-draggable,
+div.form-builder-draggable input,
+div.form-builder-draggable textarea,
+div.form-builder-draggable label,
+div.form-builder-draggable .grippie {
+  cursor: move;
+}
+
 div.form-builder-clickable,
 div.form-builder-clickable input,
 div.form-builder-clickable textarea,
@@ -276,4 +284,13 @@ div.form-builder-new-field span.progress {
 }
 #form-builder-field-palette ul li.field-path_settings {
   background-image: url(images/fields/path.png);
+}
+#form-builder-field-palette ul li.field-title {
+  background-image: url(images/fields/title.png);
+}
+#form-builder-field-palette ul li.field-body_field {
+  background-image: url(images/fields/body.png);
+}
+#form-builder-field-palette ul li.field-revision_information {
+  background-image: url(images/fields/revisions.png);
 }
