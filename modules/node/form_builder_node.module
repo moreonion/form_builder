@@ -67,7 +67,9 @@ function form_builder_node_form_alter(&$form, &$form_state, $form_id) {
   }
 
   // Node must go last to set any necessary weights.
-  node_node_form_alter($form, $form_state, $form_id);
+  if (function_exists('node_node_form_alter')) {
+    node_node_form_alter($form, $form_state, $form_id);
+  }
 }
 
 /**

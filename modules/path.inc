@@ -13,11 +13,7 @@ function path_form_builder_types() {
   $fields = array();
 
   // Make a default path settings to pass into the path form.
-  $settings = array(
-    'weight' => 30,
-    'collapsible' => TRUE,
-    'collapsed' => TRUE,
-  );
+  $settings = module_invoke('path', 'node_form_default_settings');
 
   $fields['path_settings'] = array(
     'title' => t('Path'),
@@ -25,7 +21,7 @@ function path_form_builder_types() {
       'collapsible',
       'collapsed',
     ),
-    'default' => path_fieldset('', $settings),
+    'default' => path_fieldset('', $settings['path']),
     'unique' => TRUE,
     'removable' => TRUE,
     'configurable' => TRUE,

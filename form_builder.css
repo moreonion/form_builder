@@ -270,7 +270,8 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-fieldset {
   background-image: url(images/fields/fieldset.png);
 }
-#form-builder-field-palette ul li.field-file {
+#form-builder-field-palette ul li.field-file,
+#form-builder-field-palette ul li.field-upload_settings {
   background-image: url(images/fields/file.png);
 }
 #form-builder-field-palette ul li.field-image {

@@ -23,6 +23,7 @@ function form_builder_node_schema() {
         'type' => 'varchar',
         'length' => '255',
         'not null' => TRUE,
+        'default' => '',
       ),
       'module' => array(
         'type' => 'varchar',
@@ -33,7 +34,6 @@ function form_builder_node_schema() {
       'settings' => array(
         'type' => 'text',
         'not null' => TRUE,
-        'default' => '',
       ),
     ),
     'primary key' => array('type', 'field'),
