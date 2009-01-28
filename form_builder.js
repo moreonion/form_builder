@@ -604,7 +604,7 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.checkFieldsets = function(e, ui) {
-  var $fieldsets = ui.element.find('div.form-builder-element > fieldset.form-builder-fieldset');
+  var $fieldsets = ui.item.find('div.form-builder-element > fieldset.form-builder-fieldset');
   var $placeholder = ui.placeholder;
   var emptyFieldsets = [];
 
@@ -632,7 +632,7 @@ Drupal.formBuilder.checkFieldsets = function(e, ui) {
   });
 
 
-  $(ui.element).sortable('refresh');
+  $(ui.item).sortable('refresh');
 }
 
 Drupal.formBuilder.setActive = function(element, link) {
