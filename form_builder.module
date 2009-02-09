@@ -117,7 +117,7 @@ function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
             if ($field['unique'] && in_array($key, $active_fields)) {
               $fields[$key]['in_use'] = TRUE;
             }
-            if ($field['removable'] == FALSE) {
+            if ($field['addable'] == FALSE) {
               unset($fields[$key]);
             }
           }

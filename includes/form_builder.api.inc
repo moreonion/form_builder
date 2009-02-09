@@ -40,19 +40,21 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     // Add default values for undefined properties.
     foreach ($types as $type_key => &$type) {
       foreach ($type as $field_key => &$field) {
+        $field['unique'] = isset($field['unique']) && $field['unique'];
+        $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
+        $field['removable'] = isset($field['removable']) ? $field['removable'] : TRUE;
+        $field['addable'] = isset($field['addable']) ? $field['addable'] : $field['removable'] && isset($field['default']);
+        $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
+        $field['properties'] = isset($field['properties']) ? $field['properties'] : array();
+
         // All fields must support weight.
         if (!in_array('weight', $field['properties'])) {
           $field['properties'][] = 'weight';
         }
 
-        $field['unique'] = isset($field['unique']) && $field['unique'];
-        $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
-        $field['removable'] = isset($field['removable']) ? $field['removable'] : TRUE;
-        $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
-
         // Update the default elements with some defaults.
         // Note that if a field is not removable, it doesn't have a default.
-        if ($field['removable']) {
+        if ($field['addable']) {
           if ($field['unique']) {
             $field['default']['#form_builder']['element_id'] = $field_key;
             $field['default']['#form_builder']['element_type'] = $field_key;
