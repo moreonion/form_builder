@@ -1,6 +1,6 @@
 ; $Id$
 name = Form builder
 description = Form building framework.
-core = 6.x
 dependencies[] = jquery_ui
 dependencies[] = options_element
+core = 6.x
