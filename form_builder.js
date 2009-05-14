@@ -188,7 +188,7 @@ Drupal.behaviors.formBuilderNewField = function(context) {
       scroll: true,
       scrollSensitivity: 50,
       containment: 'body',
-      connectToSortable: $('#form-builder'),
+      connectToSortable: ['#form-builder'],
       start: Drupal.formBuilder.startPaletteDrag,
       stop: Drupal.formBuilder.stopPaletteDrag,
     });
