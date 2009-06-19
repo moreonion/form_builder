@@ -196,7 +196,7 @@ function form_builder_property_size_form(&$form_state, $form_type, $element) {
 }
 
 /**
- * Configuration form for the "size" property.
+ * Configuration form for the "rows" property.
  */
 function form_builder_property_rows_form(&$form_state, $form_type, $element) {
   $form = array();

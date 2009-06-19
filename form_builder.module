@@ -215,7 +215,7 @@ function form_builder_form_builder_properties($form_type) {
 /**
  * Implementation of hook_form_builder_property_groups().
  */
-function form_builder_form_builder_property_groups() {
+function form_builder_form_builder_property_groups($form_type) {
   return array(
     'default' => array(
       'weight' => 0,
@@ -258,11 +258,10 @@ function form_builder_form_builder_palette_groups() {
   );
 }
 
-
 /**
  * Implementation of hook_form_builder_validators().
  */
-function form_builder_form_builder_validators() {
+function form_builder_form_builder_validators($form_type) {
   return array(
     'form_validate_integer' => array(
       'form' => 'form_builder_validate_integer',

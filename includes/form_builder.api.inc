@@ -26,7 +26,7 @@ function form_builder_get_properties($form_type, $reset = FALSE) {
 }
 
 /**
- * Get a list of all properties that are supported by a particular field type.
+ * Get a list of all properties that are supported by a particular form type.
  */
 function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
   static $types;
@@ -35,10 +35,11 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
     $types = array();
     // Get the list of all properties for all elements.
     $types = module_invoke_all('form_builder_types');
-    $groups = module_invoke_all('form_builder_palette_groups');
 
     // Add default values for undefined properties.
     foreach ($types as $type_key => &$type) {
+      $groups = module_invoke_all('form_builder_palette_groups', $type_key);
+
       foreach ($type as $field_key => &$field) {
         $field['unique'] = isset($field['unique']) && $field['unique'];
         $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
@@ -146,7 +147,7 @@ function form_builder_get_saveable_properties($form_type, $element) {
  * @see form_builder_get_elements().
  */
 function form_builder_get_element(&$form, $element_id) {
-  $elements = form_builder_get_elements(&$form, array($element_id));
+  $elements = form_builder_get_elements($form, array($element_id));
   return isset($elements[$element_id]) ? $elements[$element_id] : FALSE;
 }
 
@@ -313,7 +314,14 @@ function form_builder_add_default_properties($form, $form_type, $key = NULL, $pa
     }
     else {
       $form['#form_builder']['element_type'] = isset($form['#form_builder']['element_type']) ? $form['#form_builder']['element_type'] : $form['#type'];
-      $settings = $form_type_fields[$form['#form_builder']['element_type']];
+      if (isset($form_type_fields[$form['#form_builder']['element_type']])) {
+        $settings = $form_type_fields[$form['#form_builder']['element_type']];
+      }
+      else {
+        // If the type cannot be found, prevent editing of this field.
+        unset($form['#form_builder']);
+        return;
+      }
     }
 
     // Set defaults for configurable and removable.

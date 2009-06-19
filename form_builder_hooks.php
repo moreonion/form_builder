@@ -107,8 +107,13 @@ function hook_form_builder_properties($form_type) {
 
 /**
  * Define globally available #element_validate functions.
+ *
+ * @param $form_type
+ *   The form type for which this validator will be available. You may
+ *   optionally check this value if you'd like to limit this validator to only
+ *   certain form types.
  */
-function hook_form_builder_validators() {
+function hook_form_builder_validators($form_type) {
   return array(
     'form_validate_integer' => array(
       'form' => 'form_builder_validate_integer',
@@ -141,6 +146,11 @@ function hook_form_builder_validators() {
  *  - validation: The "Validation" tab. Use for properties or configuration
  *    that enables validation functions on the element.
  *
+ * @param $form_type
+ *   The form type for which this group will be available. You may optionally
+ *   check this value if you'd like to limit this group to only certain form
+ *   types.
+ *
  * @return
  *   An array of property groups, keyed by the value used in the
  *   #form_builder['property_group'] property.
@@ -149,7 +159,7 @@ function hook_form_builder_validators() {
  *
  * @ingroup form_builder
  */
-function hook_form_builder_property_groups() {
+function hook_form_builder_property_groups($form_type) {
   return array(
     'my_group' => array(
       // Low weight values will appear as first tabs.

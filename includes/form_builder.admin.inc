@@ -61,6 +61,9 @@ function form_builder_add_page($form_type, $form_id, $element_type) {
 
     drupal_alter('form_builder_add_element', $element, $form_type, $form_id);
 
+    // Save any element ID set by the hook_form_builder_add_element_alter().
+    $element_id = $element['#form_builder']['element_id'];
+
     form_builder_cache_field_save($form_type, $form_id, $element);
 
     if (isset($_REQUEST['js'])) {
@@ -371,6 +374,9 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
  * Take a form structure and add a prebuild function to every element.
  */
 function form_builder_pre_render($element) {
+  // Allow modules to make modifications to this element.
+  drupal_alter('form_builder_preview', $element, $element['#form_builder']['form_type'], $element['#form_builder']['form_id']);
+
   $element['#prefix'] = isset($element['#prefix']) ? theme('form_builder_element_prefix', $element) . $element['#prefix'] : theme('form_builder_element_prefix', $element);
   $element['#suffix'] = isset($element['#suffix']) ? $element['#suffix'] . theme('form_builder_element_suffix', $element) : theme('form_builder_element_suffix', $element);
 
@@ -429,10 +435,6 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
       $form[$key]['#form_builder']['form_id'] = $form_id;
       $form[$key]['#form_builder']['parent_id'] = $parent_id;
       $parent_id = $form[$key]['#form_builder']['element_id'];
-
-      // Allow modules to make modifications to this element.
-      drupal_alter('form_builder_preview', $form[$key], $form_type, $form_id);
-
     }
 
     // Search within this element for further form elements.
@@ -485,7 +487,7 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
 function theme_form_builder_field_configure($form) {
   // Group the properties into separate fieldsets (converted to tabs later).
 
-  $groups = module_invoke_all('form_builder_property_groups');
+  $groups = module_invoke_all('form_builder_property_groups', $form['#form_type']);
 
   foreach (element_children($form) as $key) {
     // If no group is specified, put the element into the default group.
