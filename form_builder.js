@@ -195,6 +195,7 @@ Drupal.behaviors.formBuilderNewField = function(context) {
       connectToSortable: ['#form-builder'],
       start: Drupal.formBuilder.startPaletteDrag,
       stop: Drupal.formBuilder.stopPaletteDrag,
+      change: Drupal.formBuilder.checkFieldsets
     });
   }
 }
@@ -305,6 +306,8 @@ Drupal.formBuilder.deleteField = function() {
     $('ul.form-builder-fields').find('li.' + elementId).show('slow');
     // Remove the field from the form.
     $(this).remove();
+    // Check for empty fieldsets.
+    Drupal.formBuilder.checkFieldsets(null, null, true);
   });
 }
 
@@ -607,25 +610,25 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
  *   The event object containing status information about the event.
  * @param ui
  *   The jQuery Sortables object containing information about the sortable.
+ * @param
  */
-Drupal.formBuilder.checkFieldsets = function(e, ui) {
-  var $fieldsets = ui.item.find('div.form-builder-element > fieldset.form-builder-fieldset');
-  var $placeholder = ui.placeholder;
+Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
+  var $fieldsets = $('#form-builder').find('div.form-builder-element > fieldset.form-builder-fieldset');
   var emptyFieldsets = [];
 
   // Remove all current fieldset placeholders.
-  $fieldsets.find('div.form-builder-empty-placeholder').remove();
+  $fieldsets.find('.ui-sortable-placeholder').siblings('div.form-builder-empty-placeholder').remove();
 
   // Find all empty fieldsets.
   $fieldsets.each(function() {
     // Check for empty collapsible fieldsets.
     if ($(this).children('div.fieldset-wrapper').size()) {
-      if ($(this).children('div.fieldset-wrapper').children().size() == 0) {
+      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').filter().size() == 0) {
         emptyFieldsets.push(this);
       }
     }
     // Check for empty normal fieldsets.
-    if ($(this).children(':not(legend)').size() == 0) {
+    if ($(this).children(':not(legend, .description):visible, .ui-sortable-placeholder').size() == 0) {
       emptyFieldsets.push(this);
     }
   });
@@ -633,11 +636,16 @@ Drupal.formBuilder.checkFieldsets = function(e, ui) {
   // Add a placeholder DIV in the empty fieldsets.
   $(emptyFieldsets).each(function() {
     var wrapper = $(this).children('div.fieldset-wrapper').get(0) || this;
-    $(Drupal.settings.formBuilder.emptyFieldset).appendTo(wrapper);
+    var $placeholder = $(Drupal.settings.formBuilder.emptyFieldset).css('display', 'none').appendTo(wrapper);
+    if (expand) {
+      $placeholder.slideDown();
+    }
+    else {
+      $placeholder.css('display', 'block');
+    }
   });
 
-
-  $(ui.item).sortable('refresh');
+  $('#form-builder').sortable('refresh');
 }
 
 Drupal.formBuilder.setActive = function(element, link) {
