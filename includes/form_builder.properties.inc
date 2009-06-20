@@ -178,6 +178,35 @@ function form_builder_property_default_value_form(&$form_state, $form_type, $ele
 }
 
 /**
+ * Configuration form for the "markup" property.
+ */
+function form_builder_property_markup_form(&$form_state, $form_type, $element) {
+  $form = array();
+
+  // TODO: This is a placeholder until "#markup" becomes available in D7.
+  $form['markup'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Markup'),
+    '#default_value' => $element['#markup'],
+    '#weight' => 1,
+  );
+
+  return $form;
+}
+
+/**
+ * Configuration form for the "input_format" property.
+ */
+function form_builder_property_input_format_form(&$form_state, $form_type, $element) {
+  $form = array();
+
+  // TODO: This is a placeholder until "#input_format" becomes available in D7.
+  $form['input_format'] = filter_form(FILTER_FORMAT_DEFAULT, 2, array('input_format'));
+
+  return $form;
+}
+
+/**
  * Configuration form for the "size" property.
  */
 function form_builder_property_size_form(&$form_state, $form_type, $element) {

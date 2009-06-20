@@ -178,6 +178,12 @@ function form_builder_form_builder_properties($form_type) {
     'default_value' => array(
       'form' => 'form_builder_property_default_value_form',
     ),
+    'markup' => array(
+      'form' => 'form_builder_property_markup_form',
+    ),
+    'input_format' => array(
+      'form' => 'form_builder_property_input_format_form',
+    ),
     'required' => array(
       'form' => 'form_builder_property_required_form',
     ),

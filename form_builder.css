@@ -8,6 +8,7 @@
   padding-left: 10px;
   width: 260px;
   float: right;
+  height: 1px; /* CSS quirk in Firefox seems to push down configuration form. */
 }
 
 #form-builder-wrapper.with-palette #form-builder {
@@ -278,6 +279,9 @@ div.form-builder-new-field span.progress {
 }
 #form-builder-field-palette ul li.field-image {
   background-image: url(images/fields/image.png);
+}
+#form-builder-field-palette ul li.field-markup {
+  background-image: url(images/fields/markup.png);
 }
 #form-builder-field-palette ul li.field-menu_settings {
   background-image: url(images/fields/menu.png);
