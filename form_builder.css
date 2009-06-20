@@ -267,6 +267,9 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-checkboxes {
   background-image: url(images/fields/checkboxes.png);
 }
+#form-builder-field-palette ul li.field-email {
+  background-image: url(images/fields/email.png);
+}
 #form-builder-field-palette ul li.field-fieldset {
   background-image: url(images/fields/fieldset.png);
 }
