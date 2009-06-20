@@ -151,6 +151,8 @@ function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
 
   // Record all the element IDs within the entire form.
   $form['#form_builder']['element_ids'] = $element_ids;
+  $form['#form_builder']['form_type'] = $form_type;
+  $form['#form_builder']['form_id'] = $form_id;
 
   // Add a pre_render to the entire form itself.
   $form['#pre_render'][] = 'form_builder_pre_render_form';
@@ -263,15 +265,30 @@ function theme_form_builder_preview($form) {
   drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
   drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
 
-  if ($theme == 'garland' || $theme == 'minnelli') {
+  // Check if the Form Builder block is enabled.
+  // Otherwise make our own columns.
+  $block_enabled = db_result(db_query("SELECT status FROM {blocks} WHERE module = 'form_builder' AND theme = '%s'", $theme));
+
+  if ($block_enabled && ($theme == 'garland' || $theme == 'minnelli')) {
     drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.garland.css', 'theme');
   }
 
   $output = '';
+  $output .= '<div id="form-builder-wrapper" class="' . ($block_enabled ? 'no-palette' : 'with-palette') . '">';
+  if (!$block_enabled) {
+    $fields = form_builder_get_form_type($form['#form_builder']['form_type']);
+    $groups = module_invoke_all('form_builder_palette_groups');
+    $output .= '<div id="form-builder-fields">';
+    $output .= '<div class="block">';
+    $output .= theme('form_builder_field_palette', $fields, $groups, $form['#form_builder']['form_type'], $form['#form_builder']['form_id']);
+    $output .= '</div>';
+    $output .= '</div>';
+  }
   $output .= '<div id="form-builder">';
+  $output .= '<h3>' . t('Form preview') . '</h3>';
   $output .= drupal_render($form);
   $output .= '</div>';
-
+  $output .= '</div>';
   return $output;
 }
 
@@ -348,7 +365,7 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
         $style = 'display: none;';
       }
     }
-    
+
     $lists[$field['palette_group']]['#weight'] = $groups[$field['palette_group']]['weight'];
     $lists[$field['palette_group']][] = array(
       'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
@@ -363,7 +380,7 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
   $output .= '<div id="form-builder-field-palette">';
   foreach ($lists as $group => $list) {
     unset($list['#weight']);
-    $output .= theme('item_list', $list, (count($lists) > 1) ? $groups[$group]['title'] : '', 'ul', array('class' => 'form-builder-fields clear-block'));
+    $output .= theme('item_list', $list, (count($lists) > 1) ? $groups[$group]['title'] : t('Add a field'), 'ul', array('class' => 'form-builder-fields clear-block'));
   }
   $output .= '</div>';
 

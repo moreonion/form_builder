@@ -1,7 +1,20 @@
 /* $Id$ */
 
-#form-builder {
-  padding: 20px 0;
+#form-builder-wrapper {
+  padding: 10px 0;
+}
+
+#form-builder-wrapper.with-palette #form-builder-fields {
+  padding-left: 10px;
+  width: 260px;
+  float: right;
+}
+
+#form-builder-wrapper.with-palette #form-builder {
+  float: none;
+  margin-right: 270px;
+  padding-right: 9px;
+  border-right: 1px solid #CCC;
 }
 
 #center #form-builder form,
@@ -219,8 +232,6 @@ div.form-builder-new-field span.progress {
 
 #form-builder-field-palette h3 {
   margin: 0;
-  font-weight: bold;
-  font-size: 1.2em;
 }
 
 #form-builder-field-palette ul.form-builder-fields {

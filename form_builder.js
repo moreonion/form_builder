@@ -147,14 +147,18 @@ Drupal.behaviors.formBuilderBlockScroll = function(context) {
     var blockScrollStart = $block.offset().top;
 
     function blockScroll() {
-      // Do not move the palette while draggin a field.
+      // Do not move the palette while dragging a field.
       if (Drupal.formBuilder.activeDragUi) {
         return;
       }
 
       var windowOffset = $(window).scrollTop();
+      var blockHeight = $block.height();
+      var formBuilderHeight = $('#form-builder').height();
       if (windowOffset - blockScrollStart > 0) {
-        $block.animate({ top: (windowOffset - blockScrollStart + 20) + 'px' }, 'fast');
+        // Do not scroll beyond the bottom of the editing area.
+        var newTop = Math.min(windowOffset - blockScrollStart + 20, formBuilderHeight - blockHeight);
+        $block.animate({ top: (newTop + 'px') }, 'fast');
       }
       else {
         $block.animate({ top: '0px' }, 'fast');
@@ -548,6 +552,7 @@ Drupal.formBuilder.startPaletteDrag = function(e, ui) {
 Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
   // If the activeDragUi is still set, we did not drop onto the form.
   if (Drupal.formBuilder.activeDragUi) {
+    ui.helper.remove();
     Drupal.formBuilder.activeDragUi = false;
     $(this).css('visibility', '');
     $(window).scroll();
