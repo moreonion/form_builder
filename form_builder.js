@@ -44,16 +44,19 @@ Drupal.behaviors.formBuilderElement = function(context) {
   $elements.find('input, textarea').bind('mousedown', Drupal.formBuilder.disableField);
 };
 
+/**
+ * Behavior to disable preview fields and instead open up the configuration.
+ */
 Drupal.behaviors.formBuilderFields = function(context) {
   // Bind a function to all elements to update the preview on change.
-  var $configure_form = $('#form-builder-field-configure');
+  var $configureForm = $('#form-builder-field-configure');
 
-  $configure_form.find('input, textarea, select')
+  $configureForm.find('input, textarea, select')
     .filter(':not(.form-builder-field-change)')
     .addClass('form-builder-field-change')
     .bind('change', Drupal.formBuilder.elementPendingChange);
 
-  $configure_form.find('input.form-text, textarea')
+  $configureForm.find('input.form-text, textarea')
     .filter(':not(.form-builder-field-keyup)')
     .addClass('form-builder-field-keyup')
     .bind('keyup', Drupal.formBuilder.elementPendingChange);
@@ -86,6 +89,9 @@ Drupal.behaviors.formBuilder = function(context) {
   }
 };
 
+/**
+ * Behavior that renders fieldsets as tabs within the field configuration form.
+ */
 Drupal.behaviors.formBuilderTabs = function(context) {
   var $fieldsets = $('fieldset.form-builder-group:not(.form-builer-tabs-processed)', context);
   var $close = $('<a class="close" href="#">' + Drupal.t('Close') + '</a>');
@@ -133,6 +139,16 @@ Drupal.behaviors.formBuilderDeleteConfirmation = function(context) {
   if ($confirmForm.size()) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
+  }
+}
+
+/**
+ * Keeps record of if a mouse button is pressed.
+ */
+Drupal.behaviors.formBuilderMousePress = function(context) {
+  if (context == document) {
+    $('body').mousedown(function() { Drupal.formBuilder.mousePressed = 1; });
+    $('body').mouseup(function() { Drupal.formBuilder.mousePressed = 0; });
   }
 }
 
@@ -212,21 +228,29 @@ Drupal.formBuilder = {
   activeDragUi: false,
   // Variable of the time of the last update, used to prevent old data from
   // replacing newer updates.
-  lastUpdateTime: 0
+  lastUpdateTime: 0,
+  // Status of mouse click.
+  mousePressed: 0
 };
 
+/**
+ * Event callback for mouseover of fields. Adds hover class.
+ */
 Drupal.formBuilder.addHover = function() {
   // Do not add hover effect while dragging over other fields.
-  if (!Drupal.formBuilder.activeDragUi) {
+  if (!Drupal.formBuilder.activeDragUi && !Drupal.formBuilder.mousePressed) {
     if ($(this).find('div.form-builder-hover').size() == 0) {
-      $('#form-builder div.form-builder-hover').removeClass('form-builder-hover');
       $(this).addClass('form-builder-hover');
     }
   }
 }
 
+/**
+ * Event callback for mouseout of fields. Removes hover class.
+ */
 Drupal.formBuilder.removeHover = function() {
-  if (!Drupal.formBuilder.activeDragUi) {
+  // Do not add hover effect while dragging over other fields.
+  if (!Drupal.formBuilder.activeDragUi && !Drupal.formBuilder.mousePressed) {
     $(this).removeClass('form-builder-hover');
   }
 }
