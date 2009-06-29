@@ -354,7 +354,9 @@ Drupal.formBuilder.displayForm = function(response) {
     .ajaxForm()
     // Using the 'data' $.ajaxForm property doesn't seem to work.
     // Manually add a hidden element to pass additional data on submit.
-    .prepend('<input type="hidden" name="return" value="field" />');
+    .prepend('<input type="hidden" name="return" value="field" />')
+    // Add in any messages from the server.
+    .find('fieldset:visible:first').prepend(response.messages);
 
   $form.slideDown(function() {
     $form.parents('div.form-builder-wrapper:first').find('a.progress').removeClass('progress');
