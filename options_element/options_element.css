@@ -61,20 +61,10 @@ div.options-widget table td.option-default-cell {
 
 div.options-widget table td.option-key-cell {
   width: 20%;
-  padding-left: 20px;
-}
-
-div.options-widget table td.option-value-cell {
-  padding-left: 20px;
 }
 
 div.options-widget table td.option-actions-cell {
   width: 40px;
-}
-
-div.options-widget table tr input.form-text,
-div.options-widget table tr a.add {
-  margin-left: -20px;
 }
 
 div.options-widget table tr.indented input.form-text,
