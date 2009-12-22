@@ -39,7 +39,7 @@ Drupal.optionsElement = function(element) {
   this.optionsToggleElement = $(Drupal.theme('optionsElementToggle')).get(0);
 
   // Add the options widget and toggle elements to the page.
-  $(this.manualElement).hide().before(this.optionsElement).after(this.optionsToggleElement);
+  $(this.manualElement).css('display', 'none').before(this.optionsElement).after(this.optionsToggleElement);
 
   // Add a toggle action for manual entry of options.
   $(this.optionsToggleElement).find('a').click(function() {
@@ -49,7 +49,7 @@ Drupal.optionsElement = function(element) {
 
   // Add a handler for key type changes.
   if (this.keyTypeToggle) {
-    $(this.keyTypeToggle).change(function(){
+    $(this.keyTypeToggle).change(function() {
       var checked = $(this).attr('checked');
       // Before switching to associative keys, ensure we're not destorying
       // any custom specified keys.
@@ -91,12 +91,12 @@ Drupal.optionsElement = function(element) {
 /**
  * Update the widget element based on the current values of the manual elements.
  */
-Drupal.optionsElement.prototype.updateWidgetElements = function () {
+Drupal.optionsElement.prototype.updateWidgetElements = function() {
   var self = this;
 
   // Create a new options element and replace the existing one.
   var newElement = $(Drupal.theme('optionsElement', this)).get(0);
-  if ($(this.optionsElement).is(':not(:visible)')) {
+  if ($(this.optionsElement).css('display') == 'none') {
     $(newElement).css('display', 'none');
   }
   $(this.optionsElement).replaceWith(newElement);
@@ -259,20 +259,20 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
 
     if (depth == 1) {
       $(previousElement).attr('disabled', true).attr('checked', false);
-      $(previousElement).parents('tr:first').find('a.add, a.remove').hide();
-      $(defaultInput).parents('tr:first').find('a.add, a.remove').show();
+      $(previousElement).parents('tr:first').find('a.add, a.remove').css('display', 'none');
+      $(defaultInput).parents('tr:first').find('a.add, a.remove').css('display', '');
       $(defaultInput).attr('disabled', false);
     }
     else {
       $(defaultInput).attr('disabled', false);
-      $(defaultInput).parents('tr:first').find('a.add, a.remove').show();
+      $(defaultInput).parents('tr:first').find('a.add, a.remove').css('display', '');
       previousElement = defaultInput;
     }
   });
 
   // Do not allow the last item to be removed.
   if ($rows.size() == 1) {
-    $rows.find('a.remove').hide();
+    $rows.find('a.remove').css('display', 'none')
   }
 }
 
@@ -336,14 +336,14 @@ Drupal.optionsElement.prototype.removeOption = function(currentOption) {
 Drupal.optionsElement.prototype.toggleMode = function() {
   if ($(this.optionsElement).is(':visible')) {
     var height = $(this.optionsElement).height();
-    $(this.optionsElement).hide();
-    $(this.manualElement).show().find('textarea').height(height);
+    $(this.optionsElement).css('display', 'none');
+    $(this.manualElement).css('display', '').find('textarea').height(height);
     $(this.optionsToggleElement).find('a').html(Drupal.t('Normal entry'));
   }
   else {
     this.updateWidgetElements();
-    $(this.optionsElement).show();
-    $(this.manualElement).hide();
+    $(this.optionsElement).css('display', '');
+    $(this.manualElement).css('display', 'none');
     $(this.optionsToggleElement).find('a').html(Drupal.t('Manual entry'));
   }
 }
