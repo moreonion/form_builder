@@ -1,4 +1,0 @@
-; $Id$
-name = Options element
-description = A custom form element for entering the options in select lists, radios, or checkboxes.
-core = 6.x
