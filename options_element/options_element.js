@@ -29,6 +29,7 @@ Drupal.optionsElement = function(element) {
   this.optgroups = $(element).is('.options-optgroups');
   this.multiple = $(element).is('.options-multiple');
   this.keyType = element.className.replace(/^.*?options-key-type-([a-z]+).*?$/, '$1');
+  this.customKeys = Boolean(element.className.match(/options-key-custom/));
   this.identifier = this.manualOptionsElement.id + '-widget';
 
   // Warning messages.
@@ -51,28 +52,29 @@ Drupal.optionsElement = function(element) {
   if (this.keyTypeToggle) {
     $(this.keyTypeToggle).change(function() {
       var checked = $(this).attr('checked');
-      // Before switching to associative keys, ensure we're not destorying
-      // any custom specified keys.
+      // Before switching the key type, ensure we're not destroying user keys.
       if (!checked) {
         var options = self.optionsFromText();
         var confirm = false;
-        for (var n in options) {
-          if (options[n].key != options[n].value) {
-            confirm = true;
-            break;
+        if (self.keyType == 'associative') {
+          for (var n in options) {
+            if (options[n].key != options[n].value) {
+              confirm = true;
+              break;
+            }
           }
         }
         if (confirm) {
           if (window.confirm(self.keyChangeWarning)) {
-            self.setKeyType('associative');
+            self.setCustomKeys(false);
           }
         }
         else {
-          self.setKeyType('associative');
+          self.setCustomKeys(false);
         }
       }
       else {
-        self.setKeyType('custom');
+        self.setCustomKeys(true);
       }
     });
   }
@@ -84,8 +86,18 @@ Drupal.optionsElement = function(element) {
     });
   }
 
+  // Be sure to show the custom keys if we have any errors.
+  if (Drupal.settings.optionsElement && Drupal.settings.optionsElement.errors) {
+    this.customKeys = true;
+  }
+
   // Update the options widget with the current state of the textarea.
   this.updateWidgetElements();
+
+  // Highlight errors that may have occured during Drupal validation.
+  if (Drupal.settings.optionsElement && Drupal.settings.optionsElement.errors) {
+    this.checkKeys(Drupal.settings.optionsElement.errors, 'error');
+  }
 }
 
 /**
@@ -182,7 +194,7 @@ Drupal.optionsElement.prototype.updateWidgetElements = function() {
 }
 
 /**
- * Update the original form elment based on the current state of the widget.
+ * Update the original form element based on the current state of the widget.
  */
 Drupal.optionsElement.prototype.updateManualElements = function() {
   var options = {};
@@ -209,7 +221,7 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
   var defaultValue = this.multiple ? [] : '';
   var multiple = this.multiple;
   $(this.optionsElement).find('input.option-default').each(function() {
-    if (this.checked) {
+    if (this.checked && this.value) {
       if (multiple) {
         defaultValue.push(this.value);
       }
@@ -222,6 +234,8 @@ Drupal.optionsElement.prototype.updateManualElements = function() {
 
   // Update with the new text and trigger the change action on the field.
   this.optionsToText();
+  this.manualDefaultValueElement.value = multiple ? defaultValue.join(', ') : defaultValue;
+
   $(this.manualOptionsElement).change();
 }
 
@@ -239,18 +253,16 @@ Drupal.optionsElement.prototype.updateOptionElements = function() {
   var $rows = $(this.optionsElement).find('tr');
 
   $rows.each(function(index) {
+    var optionValue = $(this).find('input.option-value').val();
+    var optionKey = $(this).find('input.option-key').val();
+
     // Update the elements key if matching the key and value.
     if (self.keyType == 'associative') {
-      var optionValue = $(this).find('input.option-value').val();
       $(this).find('input.option-key').val(optionValue);
     }
 
     // Match the default value checkbox/radio button to the option's key.
-    var optionKey = $(this).find('input.option-key').val();
-    $(this).find('input.option-default').val(optionKey);
-
-    // Set the tab order.
-    $(this).find('input.form-text').attr('tabindex', index + 1);
+    $(this).find('input.option-default').val(optionKey ? optionKey : optionValue);
 
     // Hide the add/remove links the row if indented.
     var depth = $(this).find('input.option-depth').val();
@@ -349,6 +361,23 @@ Drupal.optionsElement.prototype.toggleMode = function() {
 }
 
 /**
+ * Enable entering of custom key values.
+ */
+Drupal.optionsElement.prototype.setCustomKeys = function(enabled) {
+  if (enabled) {
+    $(this.element).addClass('options-key-custom');
+  }
+  else {
+    $(this.element).removeClass('options-key-custom');
+  }
+
+  this.customKeys = enabled;
+  // Rebuild the options widget.
+  this.updateManualElements();
+  this.updateWidgetElements();
+}
+
+/**
  * Change the current key type (associative, custom, numeric, none).
  */
 Drupal.optionsElement.prototype.setKeyType = function(type) {
@@ -377,7 +406,18 @@ Drupal.optionsElement.prototype.setMultiple = function(multiple) {
   this.multiple = multiple;
   // Rebuild the options widget.
   this.updateWidgetElements();
-}
+};
+
+/**
+ * Highlight duplicate keys.
+ */
+Drupal.optionsElement.prototype.checkKeys = function(duplicateKeys, cssClass){
+  $(this.optionsElement).find('input.option-key').each(function() {
+    if (duplicateKeys[this.value]) {
+      $(this).addClass(cssClass);
+    }
+  });
+};
 
 /**
  * Update a field after a delay.
@@ -429,13 +469,8 @@ Drupal.optionsElement.prototype.optionsToText = function() {
     var parent = $rows.eq(rowIndex).find('input.option-parent').val();
     var checked = $rows.eq(rowIndex).find('input.option-default').attr('checked');
 
-    // Add to default values.
-    if (checked) {
-      defaultValues.push(key);
-    }
-
     // Handle groups.
-    if (this.optgroups && key == previousParent) {
+    if (this.optgroups && key !== '' && key == previousParent) {
       output = '<' + key + '>' + "\n" + output;
       previousParent = '';
     }
@@ -449,18 +484,17 @@ Drupal.optionsElement.prototype.optionsToText = function() {
         output = value + "\n" + output;
         previousParent = parent;
       }
-      else if (key == '' && value == '') {
+      else if (value == '') {
         output = "\n" + output;
       }
       else {
-        output = key + '|' + value + "\n" + output;
+        output = ((key !== '') ? (key + '|') : '') + value + "\n" + output;
         previousParent = parent;
       }
     }
   }
 
   this.manualOptionsElement.value = output;
-  this.manualDefaultValueElement.value = defaultValues.join(', ');
 };
 
 /**
@@ -510,14 +544,21 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
       }
     }
     // Row is a key|value pair.
-    else if ((this.keyType == 'numeric' || this.keyType == 'custom') && (matches = row.match(/^([^|]+)\|(.*)$/))) {
+    else if ((this.keyType == 'mixed' || this.keyType == 'numeric' || this.keyType == 'custom') && (matches = row.match(/^([^|]+)\|(.*)$/))) {
       key = matches[1];
       value = matches[2];
+      checked = defaultValues[key];
     }
     // Row is a straight value.
     else {
-      key = this.keyType == 'numeric' ? '' : row;
+      key = (this.keyType == 'mixed' || this.keyType == 'numeric') ? '' : row;
       value = row;
+      if (!key && this.keyType == 'mixed') {
+        checked = defaultValues[value];
+      }
+      else {
+        checked = defaultValues[key];
+      }
     }
 
     if (!groupClear) {
@@ -526,7 +567,7 @@ Drupal.optionsElement.prototype.optionsFromText = function() {
         value: value,
         parent: (key !== parentKey ? parentKey : ''),
         hasChildren: hasChildren,
-        checked: (defaultValues[key] ? 'checked' : false)
+        checked: (checked ? 'checked' : false)
       });
     }
   }
@@ -572,7 +613,7 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
   var output = '';
   var options = optionsElement.optionsFromText();
   var defaultType = optionsElement.multiple ? 'checkbox' : 'radio';
-  var keyType = optionsElement.keyType == 'custom' ? 'textfield' : 'hidden';
+  var keyType = optionsElement.customKeys ? 'textfield' : 'hidden';
 
   // Helper function to print out a single draggable option row.
   function tableDragRow(key, value, parentKey, indent, status) {
@@ -608,6 +649,20 @@ Drupal.theme.prototype.optionsElement = function(optionsElement) {
   output += '</tr></thead>';
 
   output += '<tbody>';
+
+  // Make sure that at least a few options exist if empty.
+  if (!options.length) {
+    var newOption = {
+      key: '',
+      value: '',
+      parent: '',
+      hasChildren: false,
+      checked: false
+    }
+    options.push(newOption);
+    options.push(newOption);
+    options.push(newOption);
+  }
 
   for (var n in options) {
     var option = options[n];
