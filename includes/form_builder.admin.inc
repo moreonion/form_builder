@@ -636,7 +636,6 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
 
   // Load the current state of the form and prepare it for rendering.
   $form = form_builder_cache_load($form_type, $form_id);
-  dsm($form);
   $form_state = array('submitted' => FALSE);
   $form = drupal_retrieve_form('form_builder_preview', $form_state, $form, $form_type, $form_id);
   drupal_prepare_form('form_builder_preview', $form, $form_state);
