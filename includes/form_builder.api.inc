@@ -209,7 +209,7 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
         unset($form[$key]);
         // Recurse again through the entire form to insert into the new position.
         $element['#form_builder']['is_new'] = TRUE;
-        form_builder_set_element($entire_form, $element);
+        return form_builder_set_element($entire_form, $element);
       }
       // Handle key changes and replace the existing element in place.
       elseif (isset($element['#key']) && $key != $element['#key']) {
@@ -225,12 +225,12 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
         $form[$key] = $element;
       }
 
-      break;
+      return TRUE;
     }
 
     // Recurse into this element to look for the target element.
     if (isset($form[$key]['#form_builder'])) {
-      form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
+      return form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
     }
   }
 }
