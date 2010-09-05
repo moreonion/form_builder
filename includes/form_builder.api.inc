@@ -184,8 +184,13 @@ function form_builder_get_elements(&$form, $element_ids) {
 
 /**
  * Recursive function to set an element within a form structure.
+ *
+ * @return
+ *   TRUE if an element was updated, FALSE if it was not found.
  */
 function form_builder_set_element(&$form, $element, &$entire_form = NULL, $parent_id = FORM_BUILDER_ROOT) {
+  $return = FALSE;
+
   if (!isset($entire_form)) {
     $entire_form = &$form;
   }
@@ -196,7 +201,7 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
     unset($element['#form_builder']['parent_id']);
     $new_key = $element['#key'];
     $form[$new_key] = $element;
-    return;
+    return TRUE;
   }
 
   foreach (element_children($form) as $key) {
@@ -209,7 +214,7 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
         unset($form[$key]);
         // Recurse again through the entire form to insert into the new position.
         $element['#form_builder']['is_new'] = TRUE;
-        return form_builder_set_element($entire_form, $element);
+        $return = form_builder_set_element($entire_form, $element);
       }
       // Handle key changes and replace the existing element in place.
       elseif (isset($element['#key']) && $key != $element['#key']) {
@@ -219,20 +224,26 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
         $after = array_slice($form, $index + 2, NULL, TRUE);
         $form = $before + array($new_key => $element) + $after;
         unset($form[$key]);
+        $return = TRUE;
       }
       // Or, most common case scenario, just update the element, no key changes.
       else {
         $form[$key] = $element;
+        $return = TRUE;
       }
-
-      return TRUE;
     }
 
     // Recurse into this element to look for the target element.
-    if (isset($form[$key]['#form_builder'])) {
-      return form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
+    if (!$return && isset($form[$key]['#form_builder'])) {
+      $return = form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
+    }
+
+    if ($return) {
+      return $return;
     }
   }
+
+  return $return;
 }
 
 /**
