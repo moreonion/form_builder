@@ -132,9 +132,9 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
     '#multiple_toggle' => isset($element['#multiple_toggle']) ? $element['#multiple_toggle'] : FALSE,
     '#optgroups' => $element['#type'] == 'select' ? TRUE : FALSE,
     '#limit' => 10,
-    // Uncomment to test numeric fields.
-    '#key_type' => isset($element['#key_type']) ? $element['#key_type'] : 'associative',
-    '#key_type_toggle' => isset($element['#key_type_toggle']) ? $element['#key_type'] : TRUE,
+    '#key_type' => isset($element['#key_type']) ? $element['#key_type'] : 'mixed',
+    '#key_type_toggle' => isset($element['#key_type_toggle']) ? $element['#key_type_toggle'] : TRUE,
+    '#key_type_toggled' => isset($element['#key_type_toggled']) ? $element['#key_type_toggled'] : FALSE,
   );
 
   // Remove the default value field, since it's handled by the options field.
@@ -152,9 +152,8 @@ function form_builder_property_options_form_submit(&$form, &$form_state) {
     $form_state['values']['multiple'] = $multiple;
   }
 
-  if (isset($form_state['values']['options']['key_type'])) {
-    $key_type = $form_state['values']['options']['key_type'] ? $form_state['values']['options']['key_type'] : 'associative';
-    $form_state['values']['key_type'] = $key_type;
+  if (isset($form_state['values']['options']['custom_keys'])) {
+    $form_state['values']['key_type_toggled'] = $form_state['values']['options']['custom_keys'];
   }
 
   $form_state['values']['options'] = $options;
