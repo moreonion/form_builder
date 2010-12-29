@@ -1,5 +1,7 @@
 // $Id$
 
+(function($) {
+
 /**
  * @file form_builder.js
  * Provide enhancements to the form building user interface.
@@ -60,7 +62,7 @@ Drupal.behaviors.formBuilderFields = function(context) {
     .filter(':not(.form-builder-field-keyup)')
     .addClass('form-builder-field-keyup')
     .bind('keyup', Drupal.formBuilder.elementPendingChange);
-}
+};
 
 /**
  * Behavior for the entire form builder. Add drag and drop to elements.
@@ -140,7 +142,7 @@ Drupal.behaviors.formBuilderDeleteConfirmation = function(context) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
   }
-}
+};
 
 /**
  * Keeps record of if a mouse button is pressed.
@@ -150,7 +152,7 @@ Drupal.behaviors.formBuilderMousePress = function(context) {
     $('body').mousedown(function() { Drupal.formBuilder.mousePressed = 1; });
     $('body').mouseup(function() { Drupal.formBuilder.mousePressed = 0; });
   }
-}
+};
 
 /**
  * Scrolls the add new field block with the window.
@@ -191,7 +193,7 @@ Drupal.behaviors.formBuilderBlockScroll = function(context) {
 
     $(window).scroll(scrollTimeout);
   }
-}
+};
 
 /**
  * Behavior for the Add a field block.
@@ -214,7 +216,7 @@ Drupal.behaviors.formBuilderNewField = function(context) {
       change: Drupal.formBuilder.checkFieldsets
     });
   }
-}
+};
 
 Drupal.formBuilder = {
   // Variable to prevent multiple requests.
@@ -243,7 +245,7 @@ Drupal.formBuilder.addHover = function() {
       $(this).addClass('form-builder-hover');
     }
   }
-}
+};
 
 /**
  * Event callback for mouseout of fields. Removes hover class.
@@ -253,11 +255,11 @@ Drupal.formBuilder.removeHover = function() {
   if (!Drupal.formBuilder.activeDragUi && !Drupal.formBuilder.mousePressed) {
     $(this).removeClass('form-builder-hover');
   }
-}
+};
 
 /**
  * Click handler for fields.
- * 
+ *
  * Note this is applied to both the entire field and to the labels within the
  * field, as they have special browser behavior that needs to be overridden.
  */
@@ -271,14 +273,14 @@ Drupal.formBuilder.clickField = function(e) {
   Drupal.formBuilder.editField.apply(link);
 
   return false;
-}
+};
 
 /**
  * Mousedown event on element previews.
  */
 Drupal.formBuilder.disableField = function(e) {
   return false;
-}
+};
 
 /**
  * Load the edit form from the server.
@@ -308,7 +310,7 @@ Drupal.formBuilder.editField = function() {
       type: 'GET',
       dataType: 'json',
       data: 'js=1',
-      success: Drupal.formBuilder.displayForm,
+      success: Drupal.formBuilder.displayForm
     });
   };
 
@@ -333,13 +335,13 @@ Drupal.formBuilder.deleteField = function() {
     // Check for empty fieldsets.
     Drupal.formBuilder.checkFieldsets(null, null, true);
   });
-}
+};
 
 Drupal.formBuilder.clickCancel = function() {
   Drupal.formBuilder.closeActive();
   Drupal.formBuilder.unsetActive();
   return false;
-}
+};
 
 /**
  * Display the edit form from the server.
@@ -373,7 +375,7 @@ Drupal.formBuilder.elementChange = function() {
   if (!Drupal.formBuilder.updatingElement) {
     $(this).parents('form:first').ajaxSubmit({
       success: Drupal.formBuilder.updateElement,
-      dataType: 'json',
+      dataType: 'json'
     });
   }
 
@@ -496,7 +498,7 @@ Drupal.formBuilder.updateElementPosition = function(element) {
 
   // Submit the position form via AJAX to save the new weights and parents.
   $('#form-builder-positions').ajaxSubmit();
-}
+};
 
 /**
  * Called when a field is about to be moved via Sortables.
@@ -508,7 +510,7 @@ Drupal.formBuilder.updateElementPosition = function(element) {
  */
 Drupal.formBuilder.startDrag = function(e, ui) {
   Drupal.formBuilder.activeDragUi = ui;
-}
+};
 
 /**
  * Called when a field has been moved via Sortables.
@@ -518,7 +520,7 @@ Drupal.formBuilder.startDrag = function(e, ui) {
  * @param ui
  *   The jQuery Sortables object containing information about the sortable.
  */
-Drupal.formBuilder.stopDrag = function(e, ui){
+Drupal.formBuilder.stopDrag = function(e, ui) {
   var element = ui.item.get(0);
 
   // If the element is a new field from the palette, update it with a real field.
@@ -536,7 +538,7 @@ Drupal.formBuilder.stopDrag = function(e, ui){
       type: 'GET',
       dataType: 'json',
       data: 'js=1&element_id=' + name,
-      success: Drupal.formBuilder.addElement,
+      success: Drupal.formBuilder.addElement
     });
 
     $(element).replaceWith($ajaxPlaceholder);
@@ -552,7 +554,7 @@ Drupal.formBuilder.stopDrag = function(e, ui){
 
   // Scroll the palette into view.
   $(window).scroll();
-}
+};
 
 /**
  * Called when a field is about to be moved from the new field palette.
@@ -568,7 +570,7 @@ Drupal.formBuilder.startPaletteDrag = function(e, ui) {
   }
 
   Drupal.formBuilder.activeDragUi = ui;
-}
+};
 
 /**
  * Called after a field has been moved from the new field palette.
@@ -592,7 +594,7 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
       $(this).css({ visibility: '', height: '', width: '', display: 'none' });
     });
   }
-}
+};
 
 /**
  * Update the indentation and width of elements as they move over fieldsets.
@@ -624,7 +626,7 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
   var newWidth = $(helper).width() - difference;
   $(helper).css('width', newWidth + 'px');
   $(helper).css('left', offset + 'px');
-}
+};
 
 /**
  * Insert DIVs into empty fieldsets so that items can be dropped within them.
@@ -672,7 +674,7 @@ Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
   });
 
   $('#form-builder').sortable('refresh');
-}
+};
 
 Drupal.formBuilder.setActive = function(element, link) {
   Drupal.formBuilder.unsetActive();
@@ -687,7 +689,7 @@ Drupal.formBuilder.unsetActive = function() {
     Drupal.formBuilder.activeElement = false;
     Drupal.formBuilder.activeLink = false;
   }
-}
+};
 
 Drupal.formBuilder.closeActive = function(callback) {
   if (Drupal.formBuilder.activeElement) {
@@ -728,4 +730,6 @@ Drupal.formBuilder.fixTableDragTabs = function(context) {
       }
     }
   }
-}
+};
+
+})(jQuery);
