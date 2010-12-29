@@ -23,8 +23,9 @@ function node_form_edit($type) {
 
   drupal_set_message(t('This is a form preview. Click on a field to edit its properties.'), 'warning');
 
-  $output = form_builder_interface('node', $type->type);
-  $output .= drupal_get_form('node_form_builder_save_form', $type);
+  $output = array();
+  $output[] = form_builder_interface('node', $type->type);
+  $output[] = drupal_get_form('node_form_builder_save_form', $type);
   return $output;
 }
 
@@ -91,7 +92,7 @@ function node_form_builder_save_form($form_state, $type, $review = FALSE) {
 
       $form['buttons']['cancel'] = array(
         '#type' => 'markup',
-        '#value' => l('Cancel', 'admin/content/node-type/' . str_replace('_', '-', $type->type) . '/fields'),
+        '#value' => l('Cancel', 'admin/build/node-type/' . str_replace('_', '-', $type->type) . '/fields'),
       );
 
       $form['reviewed'] = array(
@@ -130,7 +131,7 @@ function node_form_builder_save_form_submit(&$form, &$form_state) {
   $type = $form_state['values']['type'];
 
   if (!isset($form_state['values']['reviewed'])) {
-    $form_state['redirect'] = 'admin/content/node-type/' . str_replace('_', '-', $type->type) .'/fields/confirm';
+    $form_state['redirect'] = 'admin/build/node-type/' . str_replace('_', '-', $type->type) .'/fields/confirm';
     return;
   }
 
@@ -148,7 +149,7 @@ function node_form_builder_save_form_submit(&$form, &$form_state) {
   }
 
   drupal_set_message(t('The changes to the %type content type form have been saved.', array('%type' => $type->name)));
-  $form_state['redirect'] = 'admin/content/node-type/' . str_replace('_', '-', $type->type);
+  $form_state['redirect'] = 'admin/build/node-type/' . str_replace('_', '-', $type->type);
 
 }
 
@@ -191,7 +192,7 @@ function node_form_builder_types() {
     'palette_group' => 'special',
   );
 
-  $body_form = node_body_field($node, $settings['body_field']['label'], $settings['body_field']['min_word_count']);
+  /*$body_form = node_body_field($node, $settings['body_field']['label'], $settings['body_field']['min_word_count']);
   $body_form['#weight'] = $settings['body_field']['weight'];
   $body_form['#body_settings'] = $settings['body_field'];
   $fields['body_field'] = array(
@@ -202,7 +203,7 @@ function node_form_builder_types() {
     'default' => $body_form,
     'unique' => TRUE,
     'palette_group' => 'special',
-  );
+  );*/
 
   $revision_fieldset = node_revision_fieldset($node, $settings['revision_information']);
   $revision_fieldset['#weight'] = $settings['revision_information']['weight'];
@@ -417,7 +418,7 @@ function node_form_builder_load($form_type, $form_id) {
     $form['#node_generic_fields'] = array();
     foreach (element_children($form) as $key) {
       $element = $form[$key];
-      if (!isset($element['#form_builder']) && (!empty($element['#tree']) || (isset($element['#type']) && !in_array($element['#type'], array('value', 'hidden', 'markup', 'token', 'button', 'submit'))))) {
+      if (!isset($element['#form_builder']) && (!empty($element['#tree']) || (isset($element['#type']) && !in_array($element['#type'], array('value', 'hidden', 'markup', 'token', 'button', 'submit', 'vertical_tabs', 'horizontal_tabs'))))) {
         $form[$key]['#form_builder'] = array(
           'element_id' => $key,
           'element_type' => 'generic_field',
@@ -735,19 +736,21 @@ function node_get_form_settings($node_type, $field = NULL, $reset = FALSE) {
   if (!isset($form_settings[$node_type])) {
     // Get settings from the node form settings table.
     $form_settings[$node_type] = array();
-    $result = db_query("SELECT * FROM {node_form_settings} WHERE type = '%s'", $node_type);
-    while ($settings = db_fetch_object($result)) {
+    $result = db_select('node_form_settings', 'nfs', array('fetch' => PDO::FETCH_ASSOC))
+      ->fields('nfs')
+      ->condition('nfs.type', $node_type)
+      ->execute();
+    foreach ($result as $settings) {
       $form_settings[$node_type][$settings->field] = unserialize($settings->settings);
       $form_settings[$node_type][$settings->field]['module'] = $settings->module;
     }
 
     // Get settings from the node type table.
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $form_settings[$node_type]['title']['enabled'] = $type->has_title ? TRUE : FALSE;
     $form_settings[$node_type]['title']['label'] = isset($type->title_label) ? $type->title_label : '';
     $form_settings[$node_type]['body_field']['enabled'] = $type->has_body ? TRUE : FALSE;
     $form_settings[$node_type]['body_field']['label'] = isset($type->body_label) ? $type->body_label : '';
-    $form_settings[$node_type]['body_field']['min_word_count'] = $type->min_word_count;
 
     // Merge default settings from modules.
     foreach (module_implements('node_form_default_settings') as $module) {
@@ -781,14 +784,17 @@ function node_get_form_settings($node_type, $field = NULL, $reset = FALSE) {
  */
 function node_set_form_settings($node_type, $field, $module, $settings) {
   $serialized_value = serialize($settings);
-  db_query("UPDATE {node_form_settings} SET settings = '%s' WHERE type = '%s' AND field = '%s'", $serialized_value, $node_type, $field);
-  if (!db_affected_rows()) {
-    db_query("INSERT INTO {node_form_settings} (type, field, module, settings) VALUES ('%s', '%s', '%s', '%s')", $node_type, $field, $module, $serialized_value);
-  }
+  db_merge('node_form_settings')
+    ->key(array('type' => $node_type, 'field' => $field))
+    ->fields(array(
+      'settings' => $serialized_value,
+      'module' => $module
+    ))
+    ->execute();
 
   // Special cases for node type settings.
   if ($field == 'body_field') {
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $type->has_body = $settings['enabled'];
     $type->body_label = $settings['label'];
     $type->min_word_count = $settings['min_word_count'];
@@ -797,7 +803,7 @@ function node_set_form_settings($node_type, $field, $module, $settings) {
     menu_rebuild();
   }
   if ($field == 'title') {
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $type->has_title = $settings['enabled'];
     $type->title_label = $settings['label'];
     node_type_save($type);
@@ -824,23 +830,21 @@ function node_set_form_settings($node_type, $field, $module, $settings) {
  *   Options. Name of the module that provided the field settings to be deleted.
  */
 function node_delete_form_settings($node_type = NULL, $field = NULL, $module = NULL) {
-  $where = array();
-  $args = array();
+  $delete = db_delete('node_form_settings');
   if (isset($node_type)) {
-    $where[] = "type = %s";
-    $args[] = $node_type;
+    $delete->condition('type', $node_type);
   }
   if (isset($field)) {
-    $where[] = "field = '%s'";
-    $args[] = $field;
+    $delete->condition('field', $field);
   }
   if (isset($field)) {
-    $where[] = "module = '%s'";
-    $args[] = $module;
+    // @todo: bogus conditional?
+    $delete->condition('module', $module);
   }
 
-  if (!empty($args)) {
-    db_query('DELETE FROM {node_form_settings} WHERE ' . implode(' AND ', $where), $args);
+  if (isset($node_type) || isset($field)) {
+    // @todo: bogus conditional?
+    $delete->execute();
 
     // Reset the static cache for the node form settings.
     node_get_form_settings(NULL, NULL, TRUE);

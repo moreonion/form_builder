@@ -27,7 +27,7 @@ function form_builder_cache_load($form_type, $form_id, $sid = NULL, $reset = FAL
   }
 
   if (!isset($data) && isset($form_type) && isset($form_id)) {
-    $data = db_result(db_query("SELECT data FROM {form_builder_cache} WHERE type = '%s' AND form_id = '%s' AND sid = '%s'", $form_type, $form_id, $sid));
+    $data = db_query("SELECT data FROM {form_builder_cache} WHERE type = :type AND form_id = :form_id AND sid = :sid", array(':type' => $form_type, ':form_id' => $form_id, ':sid' => $sid))->fetchField();
 
     if ($data) {
       $data = unserialize($data);
@@ -44,10 +44,26 @@ function form_builder_cache_save($form_type, $form_id, $form, $sid = NULL) {
   $sid = isset($sid) ? $sid : session_id();
 
   if (form_builder_cache_load($form_type, $form_id, $sid) === FALSE) {
-    $result = db_query("INSERT INTO {form_builder_cache} (sid, type, form_id, updated, data) VALUES ('%s', '%s', '%s', %d, '%s')", $sid, $form_type, $form_id, time(), serialize($form));
+    $result = db_insert('form_builder_cache')
+      ->fields(array(
+        'sid' => $sid,
+        'type' => $form_type,
+        'form_id' => $form_id,
+        'updated' => REQUEST_TIME,
+        'data' => serialize($form),
+      ))
+      ->execute();
   }
   else {
-    $result = db_query("UPDATE {form_builder_cache} SET data = '%s', updated = %d WHERE type = '%s' AND form_id = '%s' AND sid = '%s'", serialize($form), time(), $form_type, $form_id, $sid);
+    $result = db_update('form_builder_cache')
+      ->fields(array(
+        'updated' => REQUEST_TIME,
+        'data' => serialize($form),
+      ))
+      ->condition('sid', $sid)
+      ->condition('type', $form_type)
+      ->condition('form_id', $form_id)
+      ->execute();
   }
 
   // Ensure caches are fresh for any retrievals made this request.
@@ -59,7 +75,11 @@ function form_builder_cache_save($form_type, $form_id, $form, $sid = NULL) {
 function form_builder_cache_delete($form_type, $form_id, $sid = NULL) {
   $sid = isset($sid) ? $sid : session_id();
 
-  return db_query("DELETE FROM {form_builder_cache} WHERE type = '%s' AND form_id = '%s' AND sid = '%s'", $form_type, $form_id, $sid);
+  return db_delete('form_builder_cache')
+    ->condition('sid', $sid)
+    ->condition('type', $form_type)
+    ->condition('form_id', $form_id)
+    ->execute();
 }
 
 /**
@@ -71,7 +91,11 @@ function form_builder_cache_delete($form_type, $form_id, $sid = NULL) {
 function form_builder_cache_purge($expire_threshold = NULL) {
   $expire_threshold = isset($expire_threshold) ? $expire_threshold : ini_get('session.cache_expire');
 
-  return db_query("DELETE FROM {form_builder_cache} WHERE updated < %d", time() - $expire_threshold);
+  return db_delete('form_builder_cache')
+    ->condition('updated', REQUEST_TIME - $expire_threshold, '<')
+    ->condition('type', $form_type)
+    ->condition('form_id', $form_id)
+    ->execute();
 }
 
 /**

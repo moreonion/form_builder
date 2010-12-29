@@ -162,7 +162,7 @@ function upload_fieldset($node, $upload_settings) {
       $form['#description'] .= ' '. t('Please contact the site administrator.');
     }
   }
-  else {
+  elseif (drupal_function_exists('_upload_form')) {
     $form['wrapper'] += _upload_form($node);
   }
 

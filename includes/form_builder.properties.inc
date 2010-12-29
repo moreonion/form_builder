@@ -194,18 +194,6 @@ function form_builder_property_markup_form(&$form_state, $form_type, $element) {
 }
 
 /**
- * Configuration form for the "input_format" property.
- */
-function form_builder_property_input_format_form(&$form_state, $form_type, $element) {
-  $form = array();
-
-  // TODO: This is a placeholder until "#input_format" becomes available in D7.
-  $form['input_format'] = filter_form(FILTER_FORMAT_DEFAULT, 2, array('input_format'));
-
-  return $form;
-}
-
-/**
  * Configuration form for the "size" property.
  */
 function form_builder_property_size_form(&$form_state, $form_type, $element) {

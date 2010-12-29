@@ -16,18 +16,16 @@ function form_builder_examples_menu() {
     'title' => 'Form builder example',
     'page callback' => 'form_builder_interface',
     'page arguments' => array('example', 'sample'),
-    'file' => 'includes/form_builder.admin.inc',
-    'file path' => drupal_get_path('module', 'form_builder'),
     'access arguments' => array('access content'),
     'type' => MENU_NORMAL_ITEM,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
   $items['form-builder-example/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'form_builder_interface',
     'page arguments' => array('example', 'sample'),
-    'file' => 'includes/form_builder.admin.inc',
-    'file path' => drupal_get_path('module', 'form_builder'),
     'access arguments' => array('access content'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
@@ -288,7 +286,6 @@ function form_builder_examples_form_builder_types() {
       'required',
       'rows',
       'cols',
-      'input_format',
     ),
     'default' => array(
       '#title' => t('New textarea'),

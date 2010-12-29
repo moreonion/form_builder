@@ -1,5 +1,6 @@
 ; $Id$
 name = Form builder examples
 description = Form builder support for CCK, Webform, and Profile modules.
-core = 6.x
+core = 7.x
 dependencies[] = form_builder
+files[] = form_builder_examples.module

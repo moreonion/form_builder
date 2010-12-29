@@ -20,8 +20,9 @@ function form_builder_menu() {
     'page callback' => 'form_builder_add_page',
     'access callback' => 'form_builder_menu_field_access',
     'access arguments' => array('add', 4, 5, 6),
-    'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
   $items['admin/build/form-builder/configure'] = array(
@@ -30,8 +31,9 @@ function form_builder_menu() {
     'page callback' => 'form_builder_configure_page',
     'access callback' => 'form_builder_menu_field_access',
     'access arguments' => array('configure', 4, 5, 6),
-    'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
   $items['admin/build/form-builder/remove'] = array(
@@ -40,8 +42,9 @@ function form_builder_menu() {
     'page callback' => 'form_builder_remove_page',
     'access callback' => 'form_builder_menu_field_access',
     'access arguments' => array('remove', 4, 5, 6),
-    'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
   $items['admin/build/form-builder/json'] = array(
@@ -50,8 +53,9 @@ function form_builder_menu() {
     'page callback' => 'form_builder_field_json',
     'access callback' => 'form_builder_menu_field_access',
     'access arguments' => array('view', 4, 5, 6),
-    'file' => 'includes/form_builder.admin.inc',
     'type' => MENU_CALLBACK,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
   return $items;
@@ -132,6 +136,12 @@ function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
  * Access callback for field configuration, viewing, addition, and deletion.
  */
 function form_builder_menu_field_access($op, $form_type, $form_id, $element_id) {
+  if (empty($form_type) || empty($form_id) || empty($element_id)) {
+    // If called by menu API to check access, we should not try and check
+    // with fake data, which ends up in PHP errors.
+    return;
+  }
+
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
   $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
@@ -180,9 +190,6 @@ function form_builder_form_builder_properties($form_type) {
     ),
     'markup' => array(
       'form' => 'form_builder_property_markup_form',
-    ),
-    'input_format' => array(
-      'form' => 'form_builder_property_input_format_form',
     ),
     'required' => array(
       'form' => 'form_builder_property_required_form',
@@ -354,5 +361,18 @@ function form_validate_email(&$element, &$form_state) {
 function form_validate_url(&$element, &$form_state) {
   if (valid_url($element['#value'], isset($element['#absolute_url']) ? $element['#absolute_url'] : TRUE)) {
     form_error($element, t('The %title field value must be a valid URL.', array('%title' => $element['#title'])));
+  }
+}
+
+/**
+ * Implementation of hook_registry_files_alter().
+ *
+ * Reassign formbuilder include files to their respective modules.
+ * Required to make module_invoke() type of calls working.
+ */
+function form_builder_registry_files_alter(&$files, $module_cache) {
+  $module_files = file_scan_directory(drupal_get_path('module', 'form_builder') . '/modules', '!^.*\.inc$!');
+  foreach ($module_files as $path => $file) {
+    $files[$file->uri]['module'] = $file->name;
   }
 }

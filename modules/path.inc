@@ -144,7 +144,7 @@ function path_fieldset($path, $path_settings) {
   if ($path) {
     $form['pid'] = array(
       '#type' => 'value',
-      '#value' => db_result(db_query("SELECT pid FROM {url_alias} WHERE dst = '%s' AND language = '%s'", $path, $form['#node']->language))
+      '#value' => db_query("SELECT pid FROM {url_alias} WHERE dst = :dst AND language = :language", array('path' => $path, 'language' => $form['#node']->language))->fetchField()
     );
   }
 

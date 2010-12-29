@@ -46,13 +46,8 @@ function form_builder_node_schema() {
  * Implementation of hook_install().
  */
 function form_builder_node_install() {
-  drupal_install_schema('form_builder_node');
-  db_query("UPDATE {system} SET weight = 101 WHERE name = 'form_builder_node'");
-}
-
-/**
- * Implementation of hook_uninstall().
- */
-function form_builder_node_uninstall() {
-  drupal_uninstall_schema('form_builder_node');
+  db_update('system')
+    ->fields(array('weight' => 101))
+    ->condition('name', 'form_builder_node')
+    ->execute();
 }
