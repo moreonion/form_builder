@@ -13,6 +13,10 @@
  *   The type of form being edited.
  * @param $form_id
  *   The unique identifier for the form type.
+ * @return
+ *   A FAPI array if a cache entry was found. Boolean FALSE if an entry does not
+ *   yet exist. Note that an empty FAPI array may exist, so be sure to use
+ *   strict comparison (===) when checking return values.
  */
 function form_builder_cache_load($form_type, $form_id, $sid = NULL, $reset = FALSE) {
   static $data;
@@ -39,11 +43,11 @@ function form_builder_cache_load($form_type, $form_id, $sid = NULL, $reset = FAL
 function form_builder_cache_save($form_type, $form_id, $form, $sid = NULL) {
   $sid = isset($sid) ? $sid : session_id();
 
-  if (form_builder_cache_load($form_type, $form_id, $sid)) {
-    $result = db_query("UPDATE {form_builder_cache} SET data = '%s', updated = %d WHERE type = '%s' AND form_id = '%s' AND sid = '%s'", serialize($form), time(), $form_type, $form_id, $sid);
+  if (form_builder_cache_load($form_type, $form_id, $sid) === FALSE) {
+    $result = db_query("INSERT INTO {form_builder_cache} (sid, type, form_id, updated, data) VALUES ('%s', '%s', '%s', %d, '%s')", $sid, $form_type, $form_id, time(), serialize($form));
   }
   else {
-    $result = db_query("INSERT INTO {form_builder_cache} (sid, type, form_id, updated, data) VALUES ('%s', '%s', '%s', %d, '%s')", $sid, $form_type, $form_id, time(), serialize($form));
+    $result = db_query("UPDATE {form_builder_cache} SET data = '%s', updated = %d WHERE type = '%s' AND form_id = '%s' AND sid = '%s'", serialize($form), time(), $form_type, $form_id, $sid);
   }
 
   // Ensure caches are fresh for any retrievals made this request.
@@ -78,7 +82,7 @@ function form_builder_cache_purge($expire_threshold = NULL) {
  *   value contains an array of the 'original' and 'modified' elements.
  */
 function form_builder_cache_difference($form_type, $form_id, $exclude_weight = TRUE) {
-  if ($modified_form = form_builder_cache_load($form_type, $form_id)) {
+  if (($modified_form = form_builder_cache_load($form_type, $form_id)) && $modified_form !== FALSE) {
     $original_form = form_builder_load_form($form_type, $form_id);
     $original_ids = form_builder_get_element_ids($original_form);
     $modified_ids = form_builder_get_element_ids($modified_form);

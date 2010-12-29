@@ -194,13 +194,14 @@ function form_builder_examples_form_builder_types() {
       'options',
       'multiple', // Handled by options element.
       'key_type', // Handled by options element.
+      'key_type_toggle', // Handled by options element.
+      'key_type_toggled', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New select list'),
       '#type' => 'select',
       '#options' => array('1' => 'one', '2' => 'two', '3' => 'three'),
       '#multiple_toggle' => TRUE,
-      '#key_type' => 'associative',
     ),
   );
 
@@ -232,6 +233,8 @@ function form_builder_examples_form_builder_types() {
       'options',
       'multiple',
       'key_type', // Handled by options element.
+      'key_type_toggle', // Handled by options element.
+      'key_type_toggled', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New checkboxes'),
@@ -249,6 +252,8 @@ function form_builder_examples_form_builder_types() {
       'required',
       'options',
       'key_type', // Handled by options element.
+      'key_type_toggle', // Handled by options element.
+      'key_type_toggled', // Handled by options element.
     ),
     'default' => array(
       '#title' => t('New radios'),

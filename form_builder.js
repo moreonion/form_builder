@@ -587,7 +587,7 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
     $(window).scroll();
   }
   // If dropped onto the form and a unique field, remove it from the palette.
-  else if ($(this).is('.form-builder-unique')){
+  else if ($(this).is('.form-builder-unique')) {
     $(this).animate({ height: '0', width: '0' }, function() {
       $(this).css({ visibility: '', height: '', width: '', display: 'none' });
     });
