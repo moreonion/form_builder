@@ -1,14 +1,14 @@
 /* $Id$ */
 
 #form-builder-wrapper {
+  overflow: hidden;
   padding: 10px 0;
 }
 
 #form-builder-wrapper.with-palette #form-builder-fields {
+  float: right;
   padding-left: 10px;
   width: 260px;
-  float: right;
-  height: 1px; /* CSS quirk in Firefox seems to push down configuration form. */
 }
 
 #form-builder-wrapper.with-palette #form-builder {

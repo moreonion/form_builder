@@ -71,7 +71,8 @@ Drupal.behaviors.formBuilderFields.attach = function(context) {
  */
 Drupal.behaviors.formBuilder = {};
 Drupal.behaviors.formBuilder.attach = function(context) {
-  $('#form-builder', context).sortable({
+  var formbuilder = $('#form-builder', context);
+  formbuilder.sortable({
     items: 'div.form-builder-wrapper',
     handle: 'div.form-builder-title-bar, div.form-builder-element',
     axis: 'y',
@@ -87,6 +88,14 @@ Drupal.behaviors.formBuilder.attach = function(context) {
     stop: Drupal.formBuilder.stopDrag,
     change: Drupal.formBuilder.checkFieldsets
   });
+
+  // This sets the height of the drag target to be at least as hight as the field
+  // palette so that field can be more easily dropped into an empty form.  IE6
+  // does not respect min-height but does treat height in the same manner that
+  // min-height would be expected.  So a check for browser and version is needed
+  // here.
+  var property = $.browser.msie && $.browser.version < 7 ? 'height' : 'min-height';
+  formbuilder.css(property, $('#form-builder-fields').height());
 
   // This helper function is needed to make the appendTo option take effect.
   function createHelper(e, $el) {
