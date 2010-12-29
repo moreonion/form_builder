@@ -31,7 +31,7 @@ Drupal.behaviors.formBuilderElement.attach = function(context) {
 
   // Add AJAX to entire field for easy editing.
   $elements.each(function() {
-    if ($(this).children('fieldset.form-builder-fieldset').size() == 0) {
+    if ($(this).children('fieldset.form-builder-fieldset').length == 0) {
       var link = $(this).parents('div.form-builder-wrapper:first').find('a.configure').get(0);
       if (link) {
         $(this).click(Drupal.formBuilder.clickField).addClass('form-builder-clickable');
@@ -152,7 +152,7 @@ Drupal.behaviors.formBuilderTabs.attach = function(context) {
 Drupal.behaviors.formBuilderDeleteConfirmation = {};
 Drupal.behaviors.formBuilderDeleteConfirmation.attach = function(context) {
   $confirmForm = $('form.confirmation');
-  if ($confirmForm.size()) {
+  if ($confirmForm.length) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
   }
@@ -176,7 +176,7 @@ Drupal.behaviors.formBuilderBlockScroll = {};
 Drupal.behaviors.formBuilderBlockScroll.attach = function(context) {
   var $list = $('ul.form-builder-fields', context);
 
-  if ($list.size()) {
+  if ($list.length) {
     var $block = $list.parents('div.block:first').css('position', 'relative');
     var blockScrollStart = $block.offset().top;
 
@@ -219,7 +219,7 @@ Drupal.behaviors.formBuilderNewField = {};
 Drupal.behaviors.formBuilderNewField.attach = function(context) {
   var $list = $('ul.form-builder-fields', context);
 
-  if ($list.size()) {
+  if ($list.length) {
     // Allow items to be copied from the list of new fields.
     $list.children('li:not(.ui-draggable)').draggable({
       opacity: 0.8,
@@ -258,7 +258,7 @@ Drupal.formBuilder = {
 Drupal.formBuilder.addHover = function() {
   // Do not add hover effect while dragging over other fields.
   if (!Drupal.formBuilder.activeDragUi && !Drupal.formBuilder.mousePressed) {
-    if ($(this).find('div.form-builder-hover').size() == 0) {
+    if ($(this).find('div.form-builder-hover').length == 0) {
       $(this).addClass('form-builder-hover');
     }
   }
@@ -509,7 +509,7 @@ Drupal.formBuilder.updateElementPosition = function(element) {
 
   // Update this element's parent.
   var $parent = $(element).parents('div.form-builder-element:first');
-  var parent_id = $parent.size() ? $parent.attr('id').replace(/form-builder-element-(.*)/, '$1') : 0;
+  var parent_id = $parent.length ? $parent.attr('id').replace(/form-builder-element-(.*)/, '$1') : 0;
   var child_id = $(element).children('div.form-builder-element:first').attr('id');
   $('#form-builder-positions input.form-builder-parent').filter('.' + child_id).val(parent_id);
 
@@ -667,13 +667,13 @@ Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
   // Find all empty fieldsets.
   $fieldsets.each(function() {
     // Check for empty collapsible fieldsets.
-    if ($(this).children('div.fieldset-wrapper').size()) {
-      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').filter().size() == 0) {
+    if ($(this).children('div.fieldset-wrapper').length) {
+      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').filter().length == 0) {
         emptyFieldsets.push(this);
       }
     }
     // Check for empty normal fieldsets.
-    if ($(this).children(':not(legend, .description):visible, .ui-sortable-placeholder').size() == 0) {
+    if ($(this).children(':not(legend, .description):visible, .ui-sortable-placeholder').length == 0) {
       emptyFieldsets.push(this);
     }
   });
@@ -712,7 +712,7 @@ Drupal.formBuilder.closeActive = function(callback) {
   if (Drupal.formBuilder.activeElement) {
     var $activeForm = $(Drupal.formBuilder.activeElement).find('form');
 
-    if ($activeForm.size()) {
+    if ($activeForm.length) {
       Drupal.freezeHeight();
       $activeForm.slideUp(function(){
         $(this).remove();
