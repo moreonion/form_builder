@@ -2,19 +2,11 @@
 // $Id$
 
 /**
- * Implementation of hook_install().
- */
-function form_builder_install() {
-  drupal_install_schema('form_builder');
-}
-
-/**
  * Implementation of hook_uninstall().
  */
 function form_builder_uninstall() {
-  drupal_uninstall_schema('form_builder');
   $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'form_builder_%'");
-  while ($row = db_fetch_object($result)) {
+  foreach ($result as $row) {
     variable_del($row->name);
   }
 }

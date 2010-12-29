@@ -1,6 +1,16 @@
 ; $Id$
 name = Form builder
 description = Form building framework.
-dependencies[] = jquery_ui
 dependencies[] = options_element
-core = 6.x
+core = 7.x
+files[] = form_builder.module
+files[] = includes/form_builder.cache.inc
+files[] = includes/form_builder.admin.inc
+files[] = includes/form_builder.properties.inc
+files[] = includes/form_builder.api.inc
+files[] = modules/node.inc
+files[] = modules/menu.inc
+files[] = modules/path.inc
+files[] = modules/poll.inc
+files[] = modules/taxonomy.inc
+files[] = modules/upload.inc

@@ -198,6 +198,10 @@ span.form-builder-links a.progress:hover {
   background: #ebf4fa;
 }
 
+#form-builder-field-configure .form-submit {
+  display: none;
+}
+
 #form-builder-field-configure a.close {
   border: none;
   margin: 0;
@@ -316,3 +320,4 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-title {
   background-image: url(images/fields/title.png);
 }
+
