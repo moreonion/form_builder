@@ -201,7 +201,8 @@ function form_builder_property_input_format_form(&$form_state, $form_type, $elem
   $form = array();
 
   // TODO: This is a placeholder until "#input_format" becomes available in D7.
-  $form['input_format'] = filter_form(FILTER_FORMAT_DEFAULT, 2, array('input_format'));
+  $format = isset($element['#input_format']) ? $element['#input_format'] : FILTER_FORMAT_DEFAULT;
+  $form['input_format'] = filter_form($format, 2, array('input_format'));
 
   return $form;
 }
