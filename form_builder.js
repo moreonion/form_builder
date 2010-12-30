@@ -54,12 +54,12 @@ Drupal.behaviors.formBuilderFields = function(context) {
   var $configureForm = $('#form-builder-field-configure');
 
   $configureForm.find('input, textarea, select')
-    .filter(':not(.form-builder-field-change)')
+    .not('.form-builder-field-change)')
     .addClass('form-builder-field-change')
     .bind('change', Drupal.formBuilder.elementPendingChange);
 
   $configureForm.find('input.form-text, textarea')
-    .filter(':not(.form-builder-field-keyup)')
+    .not('.form-builder-field-keyup)')
     .addClass('form-builder-field-keyup')
     .bind('keyup', Drupal.formBuilder.elementPendingChange);
 };
@@ -122,7 +122,7 @@ Drupal.behaviors.formBuilderTabs = function(context) {
   $fieldsets.filter(':first').before($close).before($tabs);
 
   // Hide all the fieldsets except the first.
-  $fieldsets.filter(':not(:first)').css('display', 'none');
+  $fieldsets.not(':first)').css('display', 'none');
   $tabs.find('li:first').addClass('active').click(Drupal.formBuilder.clickCancel);
 
   // Enable tab switching by clicking on each tab.
@@ -660,7 +660,7 @@ Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
   $fieldsets.each(function() {
     // Check for empty collapsible fieldsets.
     if ($(this).children('div.fieldset-wrapper').length) {
-      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').filter().length == 0) {
+      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').length == 0) {
         emptyFieldsets.push(this);
       }
     }
