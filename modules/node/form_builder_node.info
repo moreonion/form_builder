@@ -3,5 +3,3 @@ name = Form builder Node UI
 description = Form builder enhancements for node module.
 core = 7.x
 dependencies[] = form_builder
-files[] = form_builder_node.install
-files[] = form_builder_node.module
