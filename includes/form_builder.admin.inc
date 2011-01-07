@@ -75,7 +75,7 @@ function form_builder_add_page($form_type, $form_id, $element_type) {
         'formId' => $form_id,
         'elementId' => $element_id,
         'html' => form_builder_field_render($form_type, $form_id, $element_id),
-        'positionForm' => drupal_get_form('form_builder_positions', $preview_form, $form_type, $form_id),
+        'positionForm' => drupal_render(drupal_get_form('form_builder_positions', $preview_form, $form_type, $form_id)),
         'messages' => theme('status_messages'),
       );
 
