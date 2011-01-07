@@ -603,12 +603,12 @@ function form_builder_field_remove($form_state, $form_type, $form_id, $element_i
   $form['#form_id'] = $form_id;
   $form['#element_id'] = $element_id;
 
-  $quesion = t('Remove the field %title?', array('%title' => $element['#title']));
+  $question = t('Remove the field %title?', array('%title' => $element['#title']));
   $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
   $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => isset($element['#title']) ? $element['#title'] : $element['#form_builder']['element_id']));
   $yes = t('Remove');
 
-  return confirm_form($form, $quesion, $path, $description, $yes);
+  return confirm_form($form, $question, $path, $description, $yes);
 }
 
 function form_builder_field_remove_submit(&$form, &$form_state) {
