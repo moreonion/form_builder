@@ -167,7 +167,10 @@ function form_builder_property_default_value_form(&$form_state, $form_type, $ele
   $form = array();
 
   $form['default_value'] = array(
-    '#type' => 'textfield',
+    // Most fields have default values that can be stored on one line, so we
+    // use a textfield to configure their default value. Textareas are an
+    // exception, though.
+    '#type' => $element['#type'] == 'textarea' ? 'textarea' : 'textfield',
     '#title' => t('Default value'),
     '#default_value' => $element['#default_value'],
     '#weight' => 1,
