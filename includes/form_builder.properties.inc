@@ -131,7 +131,7 @@ function form_builder_property_options_form(&$form_state, $form_type, $element) 
     '#multiple' => isset($element['#multiple']) ? $element['#multiple'] : FALSE,
     '#multiple_toggle' => isset($element['#multiple_toggle']) ? $element['#multiple_toggle'] : FALSE,
     '#optgroups' => $element['#type'] == 'select' ? TRUE : FALSE,
-    '#limit' => 10,
+    '#limit' => 100,
     '#key_type' => isset($element['#key_type']) ? $element['#key_type'] : 'mixed',
     '#key_type_toggle' => isset($element['#key_type_toggle']) ? $element['#key_type_toggle'] : TRUE,
     '#key_type_toggled' => isset($element['#key_type_toggled']) ? $element['#key_type_toggled'] : FALSE,
