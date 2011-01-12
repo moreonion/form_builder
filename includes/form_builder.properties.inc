@@ -187,13 +187,26 @@ function form_builder_property_markup_form(&$form_state, $form_type, $element) {
 
   // TODO: This is a placeholder until "#markup" becomes available in D7.
   $form['markup'] = array(
-    '#type' => 'textarea',
+    '#type' => 'text_format',
     '#title' => t('Markup'),
     '#default_value' => $element['#markup'],
+    '#format' => isset($element['#format']) ? $element['#format'] : NULL,
     '#weight' => 1,
   );
 
   return $form;
+}
+
+/**
+ * Submit handler for the "markup" property.
+ */
+function form_builder_property_markup_form_submit(&$form, &$form_state) {
+  // The submitted data from an element of type 'text_format' is an array that
+  // contains the text and its format in separate keys. We want these to wind
+  // up in #markup and #format, respectively.
+  $markup_array = $form_state['values']['markup'];
+  $form_state['values']['markup'] = $markup_array['value'];
+  $form_state['values']['format'] = $markup_array['format'];
 }
 
 /**
