@@ -54,6 +54,29 @@ function form_builder_property_title_form(&$form_state, $form_type, $element) {
   return $form;
 }
 
+/**
+ * Configuration form for the "title_display" property.
+ */
+function form_builder_property_title_display_form(&$form_state, $form_type, $element) {
+  $form = array();
+
+  $form['title_display'] = array(
+    '#title' => t('Title display'),
+    '#type' => 'select',
+    '#default_value' => $element['#title_display'],
+    '#options' => array(
+      'before' => t('Before'),
+      'after' => t('After'),
+      'invisible' => t('Invisible'),
+      'attribute' => t('Attribute'),
+    ),
+    '#required' => TRUE,
+    '#weight' => -10,
+  );
+
+  return $form;
+}
+
 
 /**
  * Configuration form for the "weight" property.
