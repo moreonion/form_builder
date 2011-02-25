@@ -1,4 +1,3 @@
-; $Id$
 name = Form builder
 description = Form building framework.
 dependencies[] = jquery_ui
