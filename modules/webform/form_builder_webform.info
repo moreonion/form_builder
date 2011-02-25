@@ -1,4 +1,3 @@
-; $Id$
 name = Form builder Webform UI
 description = Form builder integration for the Webform module.
 core = 7.x

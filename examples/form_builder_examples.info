@@ -1,4 +1,3 @@
-; $Id$
 name = Form builder examples
 description = Form builder support for CCK, Webform, and Profile modules.
 core = 7.x
