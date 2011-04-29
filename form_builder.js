@@ -55,12 +55,12 @@ Drupal.behaviors.formBuilderFields.attach = function(context) {
   var $configureForm = $('#form-builder-field-configure');
 
   $configureForm.find('input, textarea, select')
-    .not('.form-builder-field-change)')
+    .not('.form-builder-field-change')
     .addClass('form-builder-field-change')
     .bind('change', Drupal.formBuilder.elementPendingChange);
 
   $configureForm.find('input.form-text, textarea')
-    .not('.form-builder-field-keyup)')
+    .not('.form-builder-field-keyup')
     .addClass('form-builder-field-keyup')
     .bind('keyup', Drupal.formBuilder.elementPendingChange);
 };
@@ -125,7 +125,7 @@ Drupal.behaviors.formBuilderTabs.attach = function(context) {
   $fieldsets.filter(':first').before($close).before($tabs);
 
   // Hide all the fieldsets except the first.
-  $fieldsets.not(':first)').css('display', 'none');
+  $fieldsets.not(':first').css('display', 'none');
   $tabs.find('li:first').addClass('active').click(Drupal.formBuilder.clickCancel);
 
   // Enable tab switching by clicking on each tab.
