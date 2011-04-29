@@ -157,34 +157,26 @@ function _form_builder_webform_form_builder_properties_file() {
  * Implements _form_builder_webform_form_builder_load_component().
  */
 function _form_builder_webform_form_builder_load_file($form_element) {
-  // If we are loading a file element, the actual element we want to render is
-  // stored in one of its children (indicated by the #webform_form_key
-  // property), so we inherit data from that and then remove the children we
-  // don't want. See _webform_render_file().
-  if (isset($form_element['#webform_form_key'])) {
-    $key = $form_element['#webform_form_key'];
-    if (!empty($form_element[$key]['#type']) && $form_element[$key]['#type'] == 'file') {
-      $form_element['#type'] = $form_element[$key]['#type'];
-      unset($form_element['#theme']);
-      foreach (element_children($form_element) as $key) {
-        unset($form_element[$key]);
-      }
-      // Webform stores the #required property for files in a custom key, so
-      // copy that value into the actual #required property here.
-      if (isset($form_element['#webform_required'])) {
-        $form_element['#required'] = $form_element['#webform_required'];
-      }
-      // Set the custom webform file properties based on the values stored with
-      // the webform component.
-      if (isset($form_element['#webform_component']['extra']['filtering'])) {
-        $form_element['#webform_file_filtering'] = $form_element['#webform_component']['extra']['filtering'];
-      }
-      if (isset($form_element['#webform_component']['extra']['savelocation'])) {
-        $form_element['#webform_file_savelocation'] = $form_element['#webform_component']['extra']['savelocation'];
-      }
-      if (isset($form_element['#webform_component']['extra']['width'])) {
-        $form_element['#webform_file_width'] = $form_element['#webform_component']['extra']['width'];
-      }
+  // If we are loading a file element, _webform_render_file() adds some extra
+  // structure (including several element children) that we don't want here.
+  // Instead, we need the element itself to represent the file component
+  // directly.
+  if (isset($form_element['#webform_component']['type']) && $form_element['#webform_component']['type'] == 'file') {
+    $form_element['#type'] = 'file';
+    unset($form_element['#theme']);
+    foreach (element_children($form_element) as $key) {
+      unset($form_element[$key]);
+    }
+    // Set the custom webform file properties based on the values stored with
+    // the webform component.
+    if (isset($form_element['#webform_component']['extra']['filtering'])) {
+      $form_element['#webform_file_filtering'] = $form_element['#webform_component']['extra']['filtering'];
+    }
+    if (isset($form_element['#webform_component']['extra']['savelocation'])) {
+      $form_element['#webform_file_savelocation'] = $form_element['#webform_component']['extra']['savelocation'];
+    }
+    if (isset($form_element['#webform_component']['extra']['width'])) {
+      $form_element['#webform_file_width'] = $form_element['#webform_component']['extra']['width'];
     }
   }
 
