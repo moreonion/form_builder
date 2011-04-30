@@ -61,6 +61,7 @@ function form_builder_schema() {
       'data' => array(
         'type' => 'blob',
         'not null' => FALSE,
+        'size' => 'big',
       ),
     ),
     'indexes' => array(
@@ -69,6 +70,17 @@ function form_builder_schema() {
     ),
   );
 
-
   return $schema;
+}
+
+/**
+ * Change the {form_builder_cache} table to use a 'longblob' data column.
+ */
+function form_builder_update_7000() {
+  $spec = array(
+    'type' => 'blob',
+    'not null' => FALSE,
+    'size' => 'big',
+  );
+  db_change_field('form_builder_cache', 'data', 'data', $spec);
 }
