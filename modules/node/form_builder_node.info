@@ -1,4 +1,4 @@
 name = Form builder Node UI
 description = Form builder enhancements for node module.
-core = 7.x
+core = 6.x
 dependencies[] = form_builder
