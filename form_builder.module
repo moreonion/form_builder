@@ -61,32 +61,24 @@ function form_builder_menu() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function form_builder_theme() {
   return array(
-    'form_builder_preview' => array(
-      'arguments' => array('form' => NULL),
+    'form_builder_element_wrapper' => array(
+      'render element' => 'element',
       'file' => 'includes/form_builder.admin.inc',
     ),
-    'form_builder_element_prefix' => array(
-      'arguments' => array('element' => NULL),
-      'file' => 'includes/form_builder.admin.inc',
-    ),
-    'form_builder_element_suffix' => array(
-      'arguments' => array('element' => NULL),
+    'form_builder_wrapper' => array(
+      'render element' => 'element',
       'file' => 'includes/form_builder.admin.inc',
     ),
     'form_builder_empty_fieldset' => array(
-      'arguments' => array(),
-      'file' => 'includes/form_builder.admin.inc',
-    ),
-    'form_builder_field_configure' => array(
-      'arguments' => array('form' => NULL),
+      'variables' => array(),
       'file' => 'includes/form_builder.admin.inc',
     ),
     'form_builder_field_palette' => array(
-      'arguments' => array('fields' => NULL, 'groups' => NULL, 'form_type' => NULL, 'form_id' => NULL),
+      'variables' => array('fields' => NULL, 'groups' => NULL, 'form_type' => NULL, 'form_id' => NULL),
       'file' => 'includes/form_builder.admin.inc',
     ),
   );
