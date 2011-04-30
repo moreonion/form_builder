@@ -743,7 +743,7 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'formType' => $form_type,
     'formId' => $form_id,
     'elementId' => $element_id,
-    'html' => form_builder_field_render($form_type, $form_id, $element_id),
+    'html' => !empty($element) ? form_builder_field_render($form_type, $form_id, $element_id) : '',
     'errors' => form_get_errors(),
     'messages' => theme('status_messages'),
     'time' => time(),
