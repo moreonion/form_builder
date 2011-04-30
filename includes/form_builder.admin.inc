@@ -75,10 +75,9 @@ function form_builder_add_page($form_type, $form_id, $element_type) {
         'elementId' => $element_id,
         'html' => form_builder_field_render($form_type, $form_id, $element_id),
         'positionForm' => drupal_get_form('form_builder_positions', $preview_form, $form_type, $form_id),
-        'messages' => theme('status_messages'),
       );
 
-      drupal_json($data);
+      form_builder_json_output($data);
       exit();
     }
   }
@@ -106,10 +105,9 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
         'elementId' => $element_id,
         'html' => $output,
         'errors' => form_get_errors(),
-        'messages' => theme('status_messages'),
       );
   
-      drupal_json($data);
+      form_builder_json_output($data);
       exit();
     }
   }
@@ -130,10 +128,9 @@ function form_builder_remove_page($form_type, $form_id, $element_id) {
       'formId' => $form_id,
       'elementId' => $element_id,
       'html' => $output,
-      'messages' => theme('status_messages'),
     );
 
-    drupal_json($data);
+    form_builder_json_output($data);
     exit();
   }
 
@@ -714,10 +711,30 @@ function form_builder_field_json($form_type, $form_id, $element_id) {
     'elementId' => $element_id,
     'html' => !empty($element) ? form_builder_field_render($form_type, $form_id, $element_id) : '',
     'errors' => form_get_errors(),
-    'messages' => theme('status_messages'),
-    'time' => time(),
   );
 
-  drupal_json($data);
+  form_builder_json_output($data);
   exit();
+}
+
+/**
+ * Generic function for outputing Form Builder JSON return responses.
+ *
+ * Adds status messages, settings, and timestamp to a form builder JSON response
+ * and outputs it.
+ */
+function form_builder_json_output($data) {
+  if (!isset($data['messages'])) {
+    $data['messages'] = theme('status_messages');
+  }
+  if (!isset($data['settings'])) {
+    $scripts = drupal_add_js();
+    if (!empty($scripts['setting'])) {
+      $data['settings'] = call_user_func_array('array_merge_recursive', $scripts['setting']);
+    }
+  }
+  if (!isset($data['time'])) {
+    $data['time'] = time();
+  }
+  drupal_json($data);
 }
