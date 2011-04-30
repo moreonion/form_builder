@@ -7,13 +7,17 @@
  */
 
 Drupal.behaviors.formBuilderElement = function(context) {
-  var $wrappers = $('div.form-builder-wrapper', context);
-  var $elements = $('div.form-builder-element', context);
+  var $wrappers = $('div.form-builder-wrapper:not(.form-builder-processed)', context);
+  var $elements = $('div.form-builder-element:not(.form-builder-processed)', context);
 
   // If the context itself is a wrapper, add it to the list.
-  if ($(context).is('div.form-builder-wrapper')) {
+  if ($(context).is('div.form-builder-wrapper:not(.form-builder-processed)')) {
     $wrappers = $wrappers.add(context);
   }
+
+  // Add a guard class.
+  $wrappers.addClass('form-builder-processed');
+  $elements.addClass('form-builder-processed');
 
   // Add over effect on rollover.
   // The .hover() method is not used to avoid issues with nested hovers.
@@ -357,7 +361,7 @@ Drupal.formBuilder.clickCancel = function() {
 Drupal.formBuilder.displayForm = function(response) {
   var $preview = $('#form-builder-element-' + response.elementId);
   var $form = $(response.html).insertAfter($preview).css('display', 'none');
-  Drupal.attachBehaviors($form.parent().get(0));
+  Drupal.attachBehaviors($form.get(0));
 
   $form
     // Add the ajaxForm behavior to the new form.
