@@ -180,7 +180,8 @@ function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
 
   // Add a pre_render to the entire form itself.
   $form['#pre_render'][] = 'form_builder_pre_render_form';
-  $form['#theme'] = 'form_builder_preview';
+  $form['#form_builder_wrappers'] = array('form_builder_wrapper');
+  $form['#post_render'][] = 'form_builder_wrappers';
 
   return $form;
 }
@@ -276,31 +277,17 @@ function form_builder_positions_submit(&$form, &$form_state) {
   form_builder_cache_save($form_type, $form_id, $preview_form);
 }
 
-function theme_form_builder_preview($form) {
-  global $theme;
-
-  jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
-  drupal_add_js('misc/jquery.form.js');
-  drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
-  // TODO: This JS file should be loaded dynamically as needed.
-  drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
-  drupal_add_js('misc/tabledrag.js');
-  drupal_add_js('misc/collapse.js');
-  drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
-  drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
-  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
-
-  // Check if the Form Builder block is enabled.
-  // Otherwise make our own columns.
-  $block_enabled = db_result(db_query("SELECT status FROM {blocks} WHERE module = 'form_builder' AND theme = '%s'", $theme));
-
-  if ($block_enabled && ($theme == 'garland' || $theme == 'minnelli')) {
-    drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.garland.css', 'theme');
-  }
+/**
+ * Output the wrapper around the form_builder preview.
+ *
+ * Optionally outputs the field palette if it is not already available as a
+ * block.
+ */
+function theme_form_builder_wrapper($element, $content) {
 
   $output = '';
-  $output .= '<div id="form-builder-wrapper" class="' . ($block_enabled ? 'no-palette' : 'with-palette') . '">';
-  if (!$block_enabled) {
+  $output .= '<div id="form-builder-wrapper" class="' . ($element['#block_enabled'] ? 'no-palette' : 'with-palette') . '">';
+  if (!$element['#block_enabled']) {
     $output .= '<div id="form-builder-fields">';
     $output .= '<div class="block">';
     $output .= form_builder_field_palette();
@@ -308,21 +295,29 @@ function theme_form_builder_preview($form) {
     $output .= '</div>';
   }
   $output .= '<div id="form-builder">';
-  $output .= '<h3>' . t('Form preview') . '</h3>';
-  $output .= drupal_render($form);
-  $output .= '</div>';
-  $output .= '</div>';
+  if (isset($element['#title'])) {
+    $output .= '<h3>' . $element['#title'] . '</h3>';
+  }
+
+  // Add the contents of the form and close the wrappers.
+  $output .= $content;
+  $output .= '</div>'; // #form-builder.
+  $output .= '</div>'; // #form-builder-wrapper.
   return $output;
 }
 
-function theme_form_builder_element_prefix($element) {
+/**
+ * Output the wrapper around a form_builder element with configure/remove links.
+ */
+function theme_form_builder_element_wrapper($element, $content) {
+
   $removable = isset($element['#form_builder']['removable']) ? $element['#form_builder']['removable'] : TRUE;
   $configurable  = isset($element['#form_builder']['configurable']) ? $element['#form_builder']['configurable'] : TRUE;
 
   $output = '';
   $output .= '<div class="form-builder-wrapper">';
-  $output .= '<div class="form-builder-title-bar">';
   if ($removable || $configurable) {
+    $output .= '<div class="form-builder-title-bar">';
     $output .= '<span class="form-builder-links">';
     if ($removable) {
       $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'remove', 'title' => t('Remove')), 'query' => drupal_get_destination()));
@@ -334,17 +329,18 @@ function theme_form_builder_element_prefix($element) {
       $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => 'configure', 'title' => t('Configure')), 'query' => drupal_get_destination()));
     }
     $output .= '</span>';
+    $output .= '</div>';
   }
-  $output .= '</div>';
-  $output .= '<div class="form-builder-element" id="form-builder-element-' . $element['#form_builder']['element_id'] . '">';
+  $output .= '<div class="form-builder-element form-builder-element-' . $element['#type'] . '" id="form-builder-element-' . $element['#form_builder']['element_id'] . '">';
   // TODO: Overlay image: good idea or bad idea? Prevents any interaction with
   // form elements in the preview.
   //$output .= theme('image', drupal_get_path('module', 'form_builder') .'/images/blank.gif', '', '', array('width' => '1', 'height' => '1', 'class' => 'form-builder-disable'));
-  return $output;
-}
 
-function theme_form_builder_element_suffix($element) {
-  return '</div></div>';
+  $output .= $content;
+
+  $output .= '</div></div>';
+
+  return $output;
 }
 
 /**
@@ -414,11 +410,8 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
  * Take a form structure and add a prebuild function to every element.
  */
 function form_builder_pre_render($element) {
-  // Allow modules to make modifications to this element.
-  drupal_alter('form_builder_preview', $element, $element['#form_builder']['form_type'], $element['#form_builder']['form_id']);
-
-  $element['#prefix'] = isset($element['#prefix']) ? theme('form_builder_element_prefix', $element) . $element['#prefix'] : theme('form_builder_element_prefix', $element);
-  $element['#suffix'] = isset($element['#suffix']) ? $element['#suffix'] . theme('form_builder_element_suffix', $element) : theme('form_builder_element_suffix', $element);
+  $element['#form_builder_wrappers'][] = 'form_builder_element_wrapper';
+  $element['#post_render'][] = 'form_builder_wrappers';
 
   if ($element['#form_builder']['element_type'] == 'fieldset') {
     $element['#attributes']['class'] = isset($element['#attributes']['class']) ? $element['#attributes']['class'] . ' form-builder-fieldset' : 'form-builder-fieldset';
@@ -428,20 +421,51 @@ function form_builder_pre_render($element) {
     $element['#children'] = theme('form_builder_empty_fieldset');
   }
 
+  // Allow modules to make modifications to this element.
+  drupal_alter('form_builder_preview', $element, $element['#form_builder']['form_type'], $element['#form_builder']['form_id']);
+
   return $element;
 }
 
 /**
- * Change the type of the entire form to "markup" before rendering.
+ * Pre-render function to alter the form being edited by Form builder.
+ *
+ * This function modifies the form element itself and sets a #title to label the
+ * form preview and an #block_enabled property to indicate to the theme wrapper
+ * whether the field palette should be added.
  */
 function form_builder_pre_render_form($form) {
+  global $theme;
+
+  jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
+  drupal_add_js('misc/jquery.form.js');
+  drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
+  // TODO: This JS file should be loaded dynamically as needed.
+  drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
+  drupal_add_js('misc/tabledrag.js');
+  drupal_add_js('misc/collapse.js');
+  drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
+  drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
+  drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
+
   // We can't have forms inside of forms, so change this entire form a markup.
   $form['#type'] = 'markup';
+
+  // Set a title for the preview if none exists.
+  $form['#title'] = !isset($form['#title']) ? t('Form preview') : $form['#title'];
 
   // Remove unnecessary FAPI elements.
   unset($form['form_build_id']);
   unset($form['form_token']);
   unset($form['form_builder_preview']);
+
+  // Check if the Form Builder block is enabled.
+  // Otherwise make our own columns.
+  $form['#block_enabled'] = db_result(db_query("SELECT status FROM {blocks} WHERE module = 'form_builder' AND theme = '%s'", $theme));
+
+  if ($form['#block_enabled'] && ($theme == 'garland' || $theme == 'minnelli')) {
+    drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.garland.css', 'theme');
+  }
 
   return $form;
 }
@@ -510,6 +534,7 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
   $form['#form_id'] = $form_id;
   $form['#element_id'] = $element_id;
   $form['#element'] = $element;
+  $form['#pre_render'][] = 'form_builder_field_configure_pre_render';
 
   $form['form_builder_submit'] = array(
     '#type' => 'submit',
@@ -522,9 +547,9 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
 }
 
 /**
- * Theme function for the display of field configuration.
+ * Pre-render function for the field configuration form.
  */
-function theme_form_builder_field_configure($form) {
+function form_builder_field_configure_pre_render($form) {
   // Group the properties into separate fieldsets (converted to tabs later).
 
   $groups = module_invoke_all('form_builder_property_groups', $form['#form_type']);
@@ -558,7 +583,7 @@ function theme_form_builder_field_configure($form) {
     }
   }
 
-  return drupal_render($form);
+  return $form;
 }
 
 function form_builder_field_configure_submit(&$form, &$form_state) {
@@ -666,17 +691,13 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
 
   // Get only the element wanted and render it.
   $element = form_builder_get_element($form, $element_id);
-  $content = drupal_render($element);
-
-  $prefix = isset($element['#prefix']) ? $element['#prefix'] : '';
-  $suffix = isset($element['#suffix']) ? $element['#suffix'] : '';
 
   if ($wrapper) {
-    $prefix .= theme('form_builder_element_prefix', $element);
-    $suffix .= theme('form_builder_element_suffix', $element);
+    $element['#form_builder_wrappers'][] = 'form_builder_element_wrapper';
+    $element['#post_render'][] = 'form_builder_wrappers';
   }
 
-  return $suffix . $content . $suffix;
+  return drupal_render($element);
 }
 
 /**

@@ -57,28 +57,20 @@ function form_builder_menu() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function form_builder_theme() {
   return array(
-    'form_builder_preview' => array(
-      'arguments' => array('form' => NULL),
+    'form_builder_wrapper' => array(
+      'arguments' => array('element' => NULL, 'content' => NULL),
       'file' => 'includes/form_builder.admin.inc',
     ),
-    'form_builder_element_prefix' => array(
-      'arguments' => array('element' => NULL),
-      'file' => 'includes/form_builder.admin.inc',
-    ),
-    'form_builder_element_suffix' => array(
-      'arguments' => array('element' => NULL),
+    'form_builder_element_wrapper' => array(
+      'arguments' => array('element' => NULL, 'content' => NULL),
       'file' => 'includes/form_builder.admin.inc',
     ),
     'form_builder_empty_fieldset' => array(
       'arguments' => array(),
-      'file' => 'includes/form_builder.admin.inc',
-    ),
-    'form_builder_field_configure' => array(
-      'arguments' => array('form' => NULL),
       'file' => 'includes/form_builder.admin.inc',
     ),
     'form_builder_field_palette' => array(
@@ -303,6 +295,22 @@ function form_builder_active_form($new_type = NULL, $new_id = NULL) {
   }
 
   return $active_form;
+}
+
+/**
+ * A #post_render callback to backport Drupal 7's #theme_wrappers.
+ *
+ * This #after_build function can be added to any form element to make it
+ * process #form_builder_wrappers functions which act in the same way as
+ * Drupal 7's #theme_wrappers functions.
+ */
+function form_builder_wrappers($content, $elements) {
+  if (isset($elements['#form_builder_wrappers'])) {
+    foreach ($elements['#form_builder_wrappers'] as $theme_wrapper) {
+      $content = theme($theme_wrapper, $elements, $content);
+    }
+  }
+  return $content;
 }
 
 /**
