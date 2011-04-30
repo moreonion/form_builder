@@ -298,19 +298,20 @@ Drupal.formBuilder.disableField = function(e) {
  * Load the edit form from the server.
  */
 Drupal.formBuilder.editField = function() {
-  var element = $(this).parents('div.form-builder-wrapper').get(0);
-  var link = this;
+  var $element = $(this).parents('div.form-builder-wrapper');
+  var $link = $(this);
 
   // Prevent duplicate clicks from taking effect if already handling a click.
   if (Drupal.formBuilder.updatingElement) {
     return false;
   }
 
+  $link.addClass('progress');
+
   // If clicking on the link a second time, close the form instead of open.
-  if (element == Drupal.formBuilder.activeElement && link == Drupal.formBuilder.activeLink) {
-    $(link).addClass('progress');
+  if ($element.get(0) == Drupal.formBuilder.activeElement && $link.get(0) == Drupal.formBuilder.activeLink) {
     Drupal.formBuilder.closeActive(function() {
-      $(link).removeClass('progress');
+      $link.removeClass('progress');
     });
     Drupal.formBuilder.unsetActive();
     return false;
@@ -318,7 +319,7 @@ Drupal.formBuilder.editField = function() {
 
   var getForm = function() {
     $.ajax({
-      url: link.href,
+      url: $link.attr('href'),
       type: 'GET',
       dataType: 'json',
       data: 'js=1',
@@ -326,10 +327,9 @@ Drupal.formBuilder.editField = function() {
     });
   };
 
-  $(link).addClass('progress');
   Drupal.formBuilder.updatingElement = true;
   Drupal.formBuilder.closeActive(getForm);
-  Drupal.formBuilder.setActive(element, link);
+  Drupal.formBuilder.setActive($element.get(0), $link.get(0));
 
   return false;
 };
@@ -496,16 +496,18 @@ Drupal.formBuilder.addElement = function(response) {
  * Given an element, update it's position (weight and parent) on the server.
  */
 Drupal.formBuilder.updateElementPosition = function(element) {
+  var $element = $(element);
+
   // Update weights of all children within this element's parent.
-  $(element).parent().children('div.form-builder-wrapper').each(function(index) {
+  $element.parent().children('div.form-builder-wrapper').each(function(index) {
     var child_id = $(this).children('div.form-builder-element:first').attr('id');
     $('#form-builder-positions input.form-builder-weight').filter('.' + child_id).val(index);
   });
 
   // Update this element's parent.
-  var $parent = $(element).parents('div.form-builder-element:first');
+  var $parent = $element.parents('div.form-builder-element:first');
   var parent_id = $parent.length ? $parent.attr('id').replace(/form-builder-element-(.*)/, '$1') : 0;
-  var child_id = $(element).children('div.form-builder-element:first').attr('id');
+  var child_id = $element.children('div.form-builder-element:first').attr('id');
   $('#form-builder-positions input.form-builder-parent').filter('.' + child_id).val(parent_id);
 
   // Submit the position form via AJAX to save the new weights and parents.
@@ -533,33 +535,33 @@ Drupal.formBuilder.startDrag = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.stopDrag = function(e, ui) {
-  var element = ui.item.get(0);
+  var $element = ui.item;
 
   // If the element is a new field from the palette, update it with a real field.
-  if ($(element).is('.ui-draggable')) {
+  if ($element.is('.ui-draggable')) {
     var name = 'new_' + new Date().getTime();
     // If this is a "unique" element, its element ID is hard-coded.
-    if ($(element).is('.form-builder-unique')) {
-      name = element.className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
+    if ($element.is('.form-builder-unique')) {
+      name = $element.get(0).className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
     }
 
     var $ajaxPlaceholder = $('<div class="form-builder-wrapper form-builder-new-field"><div id="form-builder-element-' + name + '" class="form-builder-element"><span class="progress">' + Drupal.t('Please wait...') + '</span></div></div>');
 
     $.ajax({
-      url: $(element).find('a').get(0).href,
+      url: $element.find('a').attr('href'),
       type: 'GET',
       dataType: 'json',
       data: 'js=1&element_id=' + name,
       success: Drupal.formBuilder.addElement
     });
 
-    $(element).replaceWith($ajaxPlaceholder);
+    $element.replaceWith($ajaxPlaceholder);
 
     Drupal.formBuilder.updatingElement = true;
   }
   // Update the positions (weights and parents) in the form cache.
   else {
-    Drupal.formBuilder.updateElementPosition(element);
+    Drupal.formBuilder.updateElementPosition($element.get(0));
   }
 
   Drupal.formBuilder.activeDragUi = false;
@@ -577,8 +579,9 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.startPaletteDrag = function(e, ui) {
-  if ($(this).is('.form-builder-unique')) {
-    $(this).css('visibility', 'hidden');
+  var $this = $(this);
+  if ($this.is('.form-builder-unique')) {
+    $this.css('visibility', 'hidden');
   }
 
   Drupal.formBuilder.activeDragUi = ui;
@@ -593,17 +596,18 @@ Drupal.formBuilder.startPaletteDrag = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
+  var $this = $(this);
   // If the activeDragUi is still set, we did not drop onto the form.
   if (Drupal.formBuilder.activeDragUi) {
     ui.helper.remove();
     Drupal.formBuilder.activeDragUi = false;
-    $(this).css('visibility', '');
+    $this.css('visibility', '');
     $(window).scroll();
   }
   // If dropped onto the form and a unique field, remove it from the palette.
-  else if ($(this).is('.form-builder-unique')) {
-    $(this).animate({ height: '0', width: '0' }, function() {
-      $(this).css({ visibility: '', height: '', width: '', display: 'none' });
+  else if ($this.is('.form-builder-unique')) {
+    $this.animate({ height: '0', width: '0' }, function() {
+      $this.css({ visibility: '', height: '', width: '', display: 'none' });
     });
   }
 };
@@ -619,25 +623,25 @@ Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
  *   The jQuery Sortables object containing information about the sortable.
  */
 Drupal.formBuilder.elementIndent = function(e, ui) {
-  var placeholder = ui.placeholder.get(0);
-  var helper = ui.helper.get(0);
-  var item = ui.item.get(0);
+  var $placeholder = ui.placeholder;
+  var $helper = ui.helper;
+  var $item = ui.item;
 
   // Do not affect the elements being dragged from the pallette.
-  if ($(item).is('li')) {
+  if ($item.is('li')) {
     return;
   }
 
   // Turn on the placeholder item (which is in the final location) to take some stats.
-  $(placeholder).css('visibility', 'visible');
-  var difference = $(helper).width() - $(placeholder).width();
-  var offset = $(placeholder).offset().left;
-  $(placeholder).css('visibility', 'hidden');
+  $placeholder.css('visibility', 'visible');
+  var difference = $helper.width() - $placeholder.width();
+  var offset = $placeholder.offset().left;
+  $placeholder.css('visibility', 'hidden');
 
   // Adjust the helper to match the location and width of the real item.
-  var newWidth = $(helper).width() - difference;
-  $(helper).css('width', newWidth + 'px');
-  $(helper).css('left', offset + 'px');
+  var newWidth = $helper.width() - difference;
+  $helper.css('width', newWidth + 'px');
+  $helper.css('left', offset + 'px');
 };
 
 /**
@@ -653,7 +657,7 @@ Drupal.formBuilder.elementIndent = function(e, ui) {
  * @param
  */
 Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
-  var $fieldsets = $('#form-builder').find('div.form-builder-element > fieldset.form-builder-fieldset');
+  var $fieldsets = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset');
   var emptyFieldsets = [];
 
   // Remove all current fieldset placeholders.
@@ -661,14 +665,15 @@ Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
 
   // Find all empty fieldsets.
   $fieldsets.each(function() {
+    var $this = $(this);
     // Check for empty collapsible fieldsets.
-    if ($(this).children('div.fieldset-wrapper').length) {
-      if ($(this).children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').length == 0) {
+    if ($this.children('div.fieldset-wrapper').length) {
+      if ($this.children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').length == 0) {
         emptyFieldsets.push(this);
       }
     }
     // Check for empty normal fieldsets.
-    if ($(this).children(':not(legend, .description):visible, .ui-sortable-placeholder').length == 0) {
+    if ($this.children(':not(legend, .description):visible, .ui-sortable-placeholder').length == 0) {
       emptyFieldsets.push(this);
     }
   });
