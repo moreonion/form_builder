@@ -367,6 +367,11 @@ Drupal.formBuilder.clickCancel = function() {
  * Display the edit form from the server.
  */
 Drupal.formBuilder.displayForm = function(response) {
+  // Update Drupal settings.
+  if (response.settings) {
+    $.extend(true, Drupal.settings, response.settings);
+  }
+
   var $preview = $('#form-builder-element-' + response.elementId);
   var $form = $(response.html).insertAfter($preview).css('display', 'none');
   Drupal.attachBehaviors($form.get(0));
@@ -448,6 +453,11 @@ Drupal.formBuilder.updateElement = function(response) {
     Drupal.formBuilder.lastUpdateTime = response.time;
   }
 
+  // Update Drupal.settings.
+  if (response.settings) {
+    $.extend(true, Drupal.settings, response.settings);
+  }
+
   // Set the error class on fields.
   $configureForm.find('.error').removeClass('error');
   if (response.errors) {
@@ -483,6 +493,11 @@ Drupal.formBuilder.updateElement = function(response) {
  * When adding a new field, remove the placeholder and insert the new element.
  */
 Drupal.formBuilder.addElement = function(response) {
+  // Update Drupal settings.
+  if (response.settings) {
+    $.extend(true, Drupal.settings, response.settings);
+  }
+
   // This is very similar to the update element callback, only we replace the
   // entire wrapper instead of just the element.
   var $exisiting = $('#form-builder-element-' + response.elementId).parent();
