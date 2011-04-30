@@ -141,6 +141,31 @@ function form_builder_remove_page($form_type, $form_id, $element_id) {
 }
 
 /**
+ * Render the palette of fields to add to a form.
+ */
+function form_builder_field_palette() {
+  $active = form_builder_active_form();
+  $output = NULL;
+  if (isset($active)) {
+    $fields = form_builder_get_form_type($active['form_type']);
+    $groups = module_invoke_all('form_builder_palette_groups');
+    // TODO: We shouldn't have to clear the cache here.
+    $form = form_builder_cache_load($active['form_type'], $active['form_id'], NULL, TRUE);
+    $active_fields = form_builder_get_element_ids($form);
+    foreach ($fields as $key => $field) {
+      if ($field['unique'] && in_array($key, $active_fields)) {
+        $fields[$key]['in_use'] = TRUE;
+      }
+      if ($field['addable'] == FALSE) {
+        unset($fields[$key]);
+      }
+    }
+    $output = theme('form_builder_field_palette', $fields, $groups, $active['form_type'], $active['form_id']);
+  }
+  return $output;
+}
+
+/**
  * Form. Given a form array, present it for editing in a preview.
  */
 function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
