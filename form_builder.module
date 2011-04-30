@@ -93,42 +93,27 @@ function form_builder_theme() {
 }
 
 /**
- * Implementation of hook_block().
+ * Implements hook_block_info().
  */
-function form_builder_block($op = 'list', $delta = 0, $edit = array()) {
-  if ($op == 'list') {
-    $blocks['fields'] = array(
-      'info' => t('Form builder fields'),
-      'weight' => 0,
-    );
+function form_builder_block_info() {
+  $blocks = array();
+  $blocks['fields'] = array(
+    'info' => t('Form builder fields'),
+    'weight' => 0,
+  );
+  return $blocks;
+}
 
-    return $blocks;
+/**
+ * Implements hook_block_view().
+ */
+function form_builder_block_view($delta = '') {
+  $block = array();
+  if ($delta == 'fields') {
+    module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
+    $block['content'] = form_builder_field_palette();
   }
-
-  if ($op == 'view') {
-    switch($delta) {
-      case 'fields':
-        if ($active = form_builder_active_form()) {
-          $fields = form_builder_get_form_type($active['form_type']);
-          $groups = module_invoke_all('form_builder_palette_groups');
-          // TODO: We shouldn't have to clear the cache here.
-          $form = form_builder_cache_load($active['form_type'], $active['form_id'], NULL, TRUE);
-          $active_fields = form_builder_get_element_ids($form);
-          foreach ($fields as $key => $field) {
-            if ($field['unique'] && in_array($key, $active_fields)) {
-              $fields[$key]['in_use'] = TRUE;
-            }
-            if ($field['addable'] == FALSE) {
-              unset($fields[$key]);
-            }
-          }
-          return array(
-            'content' => theme('form_builder_field_palette', $fields, $groups, $active['form_type'], $active['form_id']),
-          );
-        }
-        break;
-    }
-  }
+  return $block;
 }
 
 /**
