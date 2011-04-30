@@ -196,13 +196,6 @@ function form_builder_positions(&$form_state, $preview_form, $form_type, $form_i
     ),
   );
 
-  // Because this form is updated via AJAX on the calling page, we need to
-  // manually set the action to be the same as the original page. We assume
-  // that the destination and the calling page are the same.
-  if (isset($_GET['destination'])) {
-    $form['#action'] = url($_GET['destination']);
-  }
-
   form_builder_positions_prepare($form, $preview_form);
 
   // Drupal MUST have a button to register submissions.
