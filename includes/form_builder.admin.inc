@@ -324,11 +324,9 @@ function theme_form_builder_preview($vars) {
   $output = '';
   $output .= '<div id="form-builder-wrapper" class="' . ($block_enabled ? 'no-palette' : 'with-palette') . '">';
   if (!$block_enabled) {
-    $fields = form_builder_get_form_type($form['#form_builder']['form_type']);
-    $groups = module_invoke_all('form_builder_palette_groups');
     $output .= '<div id="form-builder-fields">';
     $output .= '<div class="block">';
-    $output .= theme('form_builder_field_palette', array('fields' => $fields, 'groups' => $groups, 'form_type' => $form['#form_builder']['form_type'], 'form_id' => $form['#form_builder']['form_id']));
+    $output .= form_builder_field_palette();
     $output .= '</div>';
     $output .= '</div>';
   }
