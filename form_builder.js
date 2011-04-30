@@ -289,7 +289,10 @@ Drupal.formBuilder.clickField = function(e) {
     return;
   }
 
-  var link = $(this).parents('div.form-builder-wrapper:first').find('a.configure').get(0);
+  // Find the first configure link for this field, ensuring we don't get a link
+  // belonging to a nested form element within this element.
+  var $wrapper = $(this).parents('.form-builder-wrapper:first');
+  var link = $wrapper.find('a.configure').not($wrapper.find('.form-builder-element .form-builder-element a')).get(0);
   Drupal.formBuilder.editField.apply(link);
 
   return false;
