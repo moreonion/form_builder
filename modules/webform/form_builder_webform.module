@@ -19,7 +19,21 @@ function form_builder_webform_menu_alter(&$items) {
 function form_builder_webform_components_page($node) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
 
+  // Load all components.
+  $components = webform_components();
+  foreach ($components as $component_type => $component) {
+    webform_component_include($component_type);
+  }
+
   $build = array();
+
+  $path = drupal_get_path('module', 'webform');
+  $build['#attached']['css'][] = $path . '/css/webform.css';
+  $build['#attached']['css'][] = $path . '/css/webform-admin.css';
+  $build['#attached']['js'][] = $path . '/js/webform.js';
+  $build['#attached']['js'][] = $path . '/js/webform-admin.js';
+  $build['#attached']['js'][] = $path . '/js/select-admin.js';
+
   $build[] = form_builder_interface('webform', $node->nid);
   $build[] = drupal_get_form('form_builder_webform_save_form', $node->nid);
 
