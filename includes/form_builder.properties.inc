@@ -60,6 +60,7 @@ function form_builder_property_title_display_form(&$form_state, $form_type, $ele
   $form = array();
 
   $form['title_display'] = array(
+    '#form_builder' => array('property_group' => 'display'),
     '#title' => t('Title display'),
     '#type' => 'select',
     '#default_value' => $element['#title_display'],
