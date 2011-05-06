@@ -153,8 +153,8 @@ div.form-builder-active div.form-builder-title-bar {
   display: block;
 }
 
-div.ui-draggable div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
-div.ui-draggable div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar {
+div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
+div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar {
   display: none;
 }
 
