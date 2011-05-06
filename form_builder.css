@@ -322,6 +322,9 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-number {
   background-image: url(images/fields/number.png);
 }
+#form-builder-field-palette ul li.field-pagebreak {
+  background-image: url(images/fields/pagebreak.png);
+}
 #form-builder-field-palette ul li.field-path_settings {
   background-image: url(images/fields/path.png);
 }
