@@ -74,8 +74,8 @@ Drupal.behaviors.formBuilderFields.attach = function(context) {
  */
 Drupal.behaviors.formBuilder = {};
 Drupal.behaviors.formBuilder.attach = function(context) {
-  var formbuilder = $('#form-builder', context);
-  formbuilder.sortable({
+  var $formbuilder = $('#form-builder', context);
+  $formbuilder.sortable({
     items: 'div.form-builder-wrapper',
     handle: 'div.form-builder-title-bar, div.form-builder-element',
     axis: 'y',
@@ -98,7 +98,7 @@ Drupal.behaviors.formBuilder.attach = function(context) {
   // min-height would be expected.  So a check for browser and version is needed
   // here.
   var property = $.browser.msie && $.browser.version < 7 ? 'height' : 'min-height';
-  formbuilder.css(property, $('#form-builder-fields').height());
+  $formbuilder.css(property, $('#form-builder-fields').height());
 
   // This helper function is needed to make the appendTo option take effect.
   function createHelper(e, $el) {
@@ -154,7 +154,7 @@ Drupal.behaviors.formBuilderTabs.attach = function(context) {
  */
 Drupal.behaviors.formBuilderDeleteConfirmation = {};
 Drupal.behaviors.formBuilderDeleteConfirmation.attach = function(context) {
-  $confirmForm = $('form.confirmation');
+  var $confirmForm = $('form.confirmation');
   if ($confirmForm.length) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
@@ -748,7 +748,7 @@ Drupal.formBuilder.closeActive = function(callback) {
       });
     }
   }
-  else if (callback) {
+  else if (callback && $.isFunction(callback)) {
     callback.call();
   }
 
