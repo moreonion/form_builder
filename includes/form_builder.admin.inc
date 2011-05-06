@@ -361,7 +361,7 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
   $output = '';
   $lists = array();
   foreach ($fields as $field_name => $field) {
-    $class = array('field-' . $field_name);
+    $class = array('field-' . $field_name, 'form-builder-palette-element');
     $style = '';
 
     // If a field is unique, add a special class to identify it.

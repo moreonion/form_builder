@@ -15,6 +15,7 @@
   margin-right: 270px;
   padding-right: 9px;
   border-right: 1px solid #CCC;
+  position: relative;
 }
 
 #center #form-builder form,
@@ -99,6 +100,31 @@ div.form-builder-empty-placeholder span {
   margin: 40px;
 }
 
+/* Placeholders for drop position */
+div.form-builder-placeholder {
+  height: 60px;
+  margin-top: -30px;
+  position: absolute;
+  width: 100%;
+}
+
+div.form-builder-placeholder-hover {
+  margin: 0;
+  position: relative;
+  border: 1px dashed #999;
+}
+
+/* This affects the fieldset placeholder text on hover */
+div.form-builder-placeholder-hover span {
+  visibility: hidden;
+}
+
+/* The item being dragged */
+#form-builder .ui-draggable-dragging {
+  width: 100%;
+}
+
+/* Title bar for form builder items */
 div.form-builder-title-bar {
   position: relative;
   z-index: 10;
@@ -108,11 +134,11 @@ div.form-builder-title-bar {
   border-bottom: none;
 }
 
-div.ui-sortable div.form-builder-title-bar {
+div.ui-draggable div.form-builder-title-bar {
   display: none;
 }
 
-div.ui-sortable div.form-builder-title-bar {
+div.ui-draggable div.form-builder-title-bar {
   cursor: move;
 }
 
@@ -127,8 +153,8 @@ div.form-builder-active div.form-builder-title-bar {
   display: block;
 }
 
-div.ui-sortable div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
-div.ui-sortable div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar {
+div.ui-draggable div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
+div.ui-draggable div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar {
   display: none;
 }
 
