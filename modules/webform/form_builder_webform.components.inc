@@ -32,7 +32,7 @@ function _form_builder_webform_form_builder_types_email() {
       '#type' => 'textfield',
       '#theme_wrappers' => array('webform_element'),
       '#form_builder' => array('element_type' => 'email'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -126,7 +126,7 @@ function _form_builder_webform_form_builder_types_file() {
       '#title' => t('New file'),
       '#type' => 'file',
       '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
       '#webform_file_filtering' => $defaults['extra']['filtering'],
       '#webform_file_savelocation' => $defaults['extra']['savelocation'],
       '#webform_file_width' => $defaults['extra']['width'],
@@ -398,7 +398,7 @@ function _form_builder_webform_form_builder_types_markup() {
       '#theme_wrappers' => array('webform_element'),
       '#markup' => $default,
       '#input_format' => variable_get('filter_default_format', 1),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -523,7 +523,7 @@ function _form_builder_webform_form_builder_types_select() {
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
       '#default_value' => 'one',
       '#webform' => array('type' => 'select'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -547,7 +547,7 @@ function _form_builder_webform_form_builder_types_select() {
       '#default_value' => array('one', 'two'),
       '#multiple' => TRUE,
       '#webform' => array('type' => 'select'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -569,7 +569,7 @@ function _form_builder_webform_form_builder_types_select() {
       '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
       '#default_value' => 'one',
       '#webform' => array('type' => 'select'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -638,7 +638,7 @@ function _form_builder_webform_form_builder_types_textarea() {
       '#title' => t('New textarea'),
       '#type' => 'textarea',
       '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
@@ -689,7 +689,7 @@ function _form_builder_webform_form_builder_types_textfield() {
       '#title' => t('New textfield'),
       '#type' => 'textfield',
       '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'above',
+      '#title_display' => 'before',
     ),
   );
 
