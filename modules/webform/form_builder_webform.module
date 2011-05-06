@@ -415,11 +415,9 @@ function form_builder_webform_form_form_builder_field_configure_alter(&$form, &$
   // Change the list of options from the default Drupal values to the acceptable
   // webform values.
   $form['title_display']['#options'] = array(
-    'above' => 'Above',
-    'below' => 'Below',
-    'before' => 'Inline before',
-    'after' => 'Inline after',
-    'invisible' => 'Hidden',
+    'before' => t('Above'),
+    'inline' => t('Inline'),
+    'none' => t('Hidden'),
   );
-  $form['title_display']['#default_value'] = isset($form['title_display']['#default_value']) ? $form['title_display']['#default_value'] : 'above';
+  $form['title_display']['#default_value'] = isset($form['title_display']['#default_value']) ? $form['title_display']['#default_value'] : 'before';
 }
