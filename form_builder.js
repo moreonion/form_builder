@@ -74,22 +74,20 @@ Drupal.behaviors.formBuilderFields.attach = function(context) {
  */
 Drupal.behaviors.formBuilder = {};
 Drupal.behaviors.formBuilder.attach = function(context) {
-  var $formbuilder = $('#form-builder', context);
-  $formbuilder.sortable({
-    items: 'div.form-builder-wrapper',
+  var $formbuilder = $('#form-builder');
+  var $elements = $('.form-builder-wrapper').not('.form-builder-empty-placeholder').not('.ui-draggable');
+  $elements.draggable({
+    distance: 4, // Pixels before dragging starts.
     handle: 'div.form-builder-title-bar, div.form-builder-element',
-    axis: 'y',
+    helper: 'clone',
+    appendTo: $formbuilder,
     opacity: 0.8,
-    forcePlaceholderSize: true,
+    scope: 'form-builder',
     scroll: true,
     scrollSensitivity: 50,
-    distance: 4, // Pixels before dragging starts.
-    appendTo: 'body',
-    helper: createHelper,
-    sort: Drupal.formBuilder.elementIndent, // Called on drag.
+    zIndex: 100,
     start: Drupal.formBuilder.startDrag,
-    stop: Drupal.formBuilder.stopDrag,
-    change: Drupal.formBuilder.checkFieldsets
+    stop: Drupal.formBuilder.stopDrag
   });
 
   // This sets the height of the drag target to be at least as hight as the field
@@ -99,11 +97,6 @@ Drupal.behaviors.formBuilder.attach = function(context) {
   // here.
   var property = $.browser.msie && $.browser.version < 7 ? 'height' : 'min-height';
   $formbuilder.css(property, $('#form-builder-fields').height());
-
-  // This helper function is needed to make the appendTo option take effect.
-  function createHelper(e, $el) {
-    return $el.clone().get(0);
-  }
 };
 
 /**
@@ -227,13 +220,13 @@ Drupal.behaviors.formBuilderNewField.attach = function(context) {
     $list.children('li:not(.ui-draggable)').draggable({
       opacity: 0.8,
       helper: 'clone',
+      scope: 'form-builder',
       scroll: true,
       scrollSensitivity: 50,
-      containment: 'body',
-      connectToSortable: '#form-builder',
-      start: Drupal.formBuilder.startPaletteDrag,
-      stop: Drupal.formBuilder.stopPaletteDrag,
-      change: Drupal.formBuilder.checkFieldsets
+      tolerance: 'pointer',
+      zIndex: 100,
+      start: Drupal.formBuilder.startDrag,
+      stop: Drupal.formBuilder.stopDrag
     });
   }
 };
@@ -248,6 +241,10 @@ Drupal.formBuilder = {
   activeElement: false,
   // Variable holding the active drag object (if any).
   activeDragUi: false,
+  // Variables to keep trak of the current and previous drop target. Used to
+  // prevent overlapping targets from being shown as active at the same time.
+  activeDropzone: false,
+  previousDropzones: [],
   // Variable of the time of the last update, used to prevent old data from
   // replacing newer updates.
   lastUpdateTime: 0,
@@ -550,21 +547,65 @@ Drupal.formBuilder.updateElementPosition = function(element) {
  */
 Drupal.formBuilder.startDrag = function(e, ui) {
   Drupal.formBuilder.activeDragUi = ui;
+
+  var $this = $(this);
+  if ($this.hasClass('form-builder-unique') || $this.hasClass('form-builder-wrapper')) {
+    $this.hide();
+  }
+
+  // Check fieldsets and add placeholder text if needed.
+  Drupal.formBuilder.checkFieldsets([this, ui.helper]);
+
+  // Create the drop targets in between the form elements.
+  Drupal.formBuilder.createDropTargets(this, ui.helper);
 };
 
 /**
- * Called when a field has been moved via Sortables.
- *
- * @param e
- *   The event object containing status information about the event.
- * @param ui
- *   The jQuery Sortables object containing information about the sortable.
+ * Creates drop targets for the dragged element to be dropped into.
  */
-Drupal.formBuilder.stopDrag = function(e, ui) {
-  var $element = ui.item;
+Drupal.formBuilder.createDropTargets = function(draggable, helper) {
+  var $placeholder = $('<div class="form-builder-placeholder"></div>');
+  var $elements = $('#form-builder .form-builder-wrapper:not(.form-builder-empty-placeholder)').not(draggable).not(helper);
 
+  if ($elements.length == 0) {
+    // There are no form elements, insert a placeholder
+    var $formBuilder = $('#form-builder');
+    $placeholder.height($formBuilder.height());
+    $placeholder.appendTo($formBuilder);
+  }
+  else {
+    $elements.each(function(i) {
+      $placeholder.clone().insertAfter(this);
+      // If the element is the first in its container, add a drop target above it.
+      if (this == $(this).parent().children('.form-builder-wrapper:not(.ui-draggable-dragging)').not(draggable)[0]) {
+        $placeholder.clone().insertBefore(this);
+      }
+    });
+  }
+
+  // Enable the drop targets
+  $('#form-builder').find('.form-builder-placeholder, .form-builder-empty-placeholder').droppable({
+    greedy: true,
+    scope: 'form-builder',
+    tolerance: 'pointer',
+    drop: Drupal.formBuilder.dropElement,
+    over: Drupal.formBuilder.dropHover,
+    out: Drupal.formBuilder.dropHover
+  });
+};
+
+/**
+ * Handles form elements being dropped onto the form.
+ *
+ * Existing elements will trigger a reorder, while new elements will be added in
+ * place to the form.
+ */
+Drupal.formBuilder.dropElement = function (event, ui) {
+  var $element = ui.draggable;
+  var $placeholder = $(this);
+  
   // If the element is a new field from the palette, update it with a real field.
-  if ($element.is('.ui-draggable')) {
+  if ($element.is('.form-builder-palette-element')) {
     var name = 'new_' + new Date().getTime();
     // If this is a "unique" element, its element ID is hard-coded.
     if ($element.is('.form-builder-unique')) {
@@ -581,12 +622,15 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
       success: Drupal.formBuilder.addElement
     });
 
-    $element.replaceWith($ajaxPlaceholder);
+    $placeholder.replaceWith($ajaxPlaceholder);
 
     Drupal.formBuilder.updatingElement = true;
   }
   // Update the positions (weights and parents) in the form cache.
   else {
+    $element.removeAttr('style');
+    $placeholder.replaceWith($element);
+    ui.helper.remove();
     Drupal.formBuilder.updateElementPosition($element.get(0));
   }
 
@@ -597,126 +641,92 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
 };
 
 /**
- * Called when a field is about to be moved from the new field palette.
- *
- * @param e
- *   The event object containing status information about the event.
- * @param ui
- *   The jQuery Sortables object containing information about the sortable.
+ * Adjusts the placeholder height for drop targets as they are hovered-over.
  */
-Drupal.formBuilder.startPaletteDrag = function(e, ui) {
-  var $this = $(this);
-  if ($this.is('.form-builder-unique')) {
-    $this.css('visibility', 'hidden');
+Drupal.formBuilder.dropHover = function (event, ui) {
+  if (event.type == 'dropover') {
+    // In the event that two droppables overlap, the latest one acts as the drop
+    // target. If there is previous active droppable hide it temporarily.
+    if (Drupal.formBuilder.activeDropzone) {
+      $(Drupal.formBuilder.activeDropzone).css('display', 'none');
+      Drupal.formBuilder.previousDropzones.push(Drupal.formBuilder.activeDropzone);
+    }
+    $(this).css({ height: ui.helper.height() + 'px', display: ''}).addClass('form-builder-placeholder-hover');
+    Drupal.formBuilder.activeDropzone = this;
   }
+  else {
+    $(this).css({ height: '', display: '' }).removeClass('form-builder-placeholder-hover');
 
-  Drupal.formBuilder.activeDragUi = ui;
+    // If this was active drop target, we remove the active state.
+    if (Drupal.formBuilder.activeDropzone && Drupal.formBuilder.activeDropzone == this) {
+      Drupal.formBuilder.activeDropzone = false;
+    }
+    // If there is a previous drop target that was hidden, restore it.
+    if (Drupal.formBuilder.previousDropzones.length) {
+      $(Drupal.formBuilder.previousDropzones).css('display', '');
+      Drupal.formBuilder.activeDropzone = Drupal.formBuilder.previousDropzones.pop;
+    }
+  }
 };
 
 /**
- * Called after a field has been moved from the new field palette.
+ * Called when a field has stopped moving via draggable.
  *
  * @param e
  *   The event object containing status information about the event.
  * @param ui
  *   The jQuery Sortables object containing information about the sortable.
  */
-Drupal.formBuilder.stopPaletteDrag = function(e, ui) {
+Drupal.formBuilder.stopDrag = function(e, ui) {
   var $this = $(this);
   // If the activeDragUi is still set, we did not drop onto the form.
   if (Drupal.formBuilder.activeDragUi) {
-    ui.helper.remove();
-    Drupal.formBuilder.activeDragUi = false;
-    $this.css('visibility', '');
-    $(window).scroll();
-  }
-  // If dropped onto the form and a unique field, remove it from the palette.
-  else if ($this.is('.form-builder-unique')) {
-    $this.animate({ height: '0', width: '0' }, function() {
-      $this.css({ visibility: '', height: '', width: '', display: 'none' });
-    });
-  }
-};
-
-/**
- * Update the indentation and width of elements as they move over fieldsets.
- *
- * This function is called on every mouse movement during a Sortables drag.
- *
- * @param e
- *   The event object containing status information about the event.
- * @param ui
- *   The jQuery Sortables object containing information about the sortable.
- */
-Drupal.formBuilder.elementIndent = function(e, ui) {
-  var $placeholder = ui.placeholder;
-  var $helper = ui.helper;
-  var $item = ui.item;
-
-  // Do not affect the elements being dragged from the pallette.
-  if ($item.is('li')) {
-    return;
+    if ($this.hasClass('form-builder-unique') || $this.hasClass('form-builder-wrapper')) {
+      $this.show();
+    }
   }
 
-  // Turn on the placeholder item (which is in the final location) to take some stats.
-  $placeholder.css('visibility', 'visible');
-  var difference = $helper.width() - $placeholder.width();
-  var offset = $placeholder.offset().left;
-  $placeholder.css('visibility', 'hidden');
+  // Remove the placeholders and reset the hover state for all for elements
+  $('#form-builder .form-builder-placeholder').remove();
+  $('#form-builder .form-builder-hover').removeClass('form-builder-hover');
 
-  // Adjust the helper to match the location and width of the real item.
-  var newWidth = $helper.width() - difference;
-  $helper.css('width', newWidth + 'px');
-  $helper.css('left', offset + 'px');
+  Drupal.formBuilder.checkFieldsets();
+
+  // Scroll the palette into view.
+  $(window).scroll();
 };
 
 /**
  * Insert DIVs into empty fieldsets so that items can be dropped within them.
  *
  * This function is called every time an element changes positions during
- * a Sortables drag and drop operation.
+ * a drag and drop operation. Fieldsets are considered empty if they have no
+ * immediate children or they only contain exclusions.
  *
- * @param e
- *   The event object containing status information about the event.
- * @param ui
- *   The jQuery Sortables object containing information about the sortable.
- * @param
+ * @param exclusions
+ *   An array of DOM objects within a fieldset that should not be included when
+ *   checking if the fieldset is empty.
  */
-Drupal.formBuilder.checkFieldsets = function(e, ui, expand) {
-  var $fieldsets = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset');
-  var emptyFieldsets = [];
+Drupal.formBuilder.checkFieldsets = function(exclusions) {
+  var $wrappers = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset > div.fieldset-wrapper');
 
-  // Remove all current fieldset placeholders.
-  $fieldsets.find('.ui-sortable-placeholder').siblings('div.form-builder-empty-placeholder').remove();
+  // Insert a placeholder into all empty fieldset wrappers.
+  $wrappers.each(function() {
+    var children = $(this).children(':visible, :not(.ui-draggable-dragging)');
+    for (var i in exclusions) {
+      children = children.not(exclusions[i]);
+    }
 
-  // Find all empty fieldsets.
-  $fieldsets.each(function() {
-    var $this = $(this);
-    // Check for empty collapsible fieldsets.
-    if ($this.children('div.fieldset-wrapper').length) {
-      if ($this.children('div.fieldset-wrapper').children(':not(.description):visible, .ui-sortable-placeholder').length == 0) {
-        emptyFieldsets.push(this);
-      }
+    if (children.length == 0) {
+      // No children, add a placeholder.
+      $(this).prepend(Drupal.settings.formBuilder.emptyFieldset);
     }
-    // Check for empty normal fieldsets.
-    if ($this.children(':not(legend, .description):visible, .ui-sortable-placeholder').length == 0) {
-      emptyFieldsets.push(this);
-    }
-  });
-
-  // Add a placeholder DIV in the empty fieldsets.
-  $(emptyFieldsets).each(function() {
-    var wrapper = $(this).children('div.fieldset-wrapper').get(0) || this;
-    var $placeholder = $(Drupal.settings.formBuilder.emptyFieldset).css('display', 'none').appendTo(wrapper);
-    if (expand) {
-      $placeholder.slideDown();
-    }
-    else {
-      $placeholder.css('display', 'block');
+    else if (children.length > 1 && children.hasClass('form-builder-empty-placeholder')) {
+      // The fieldset has at least one element besides the placeholder, remove
+      // the placeholder.
+      $(this).find('.form-builder-empty-placeholder').remove();
     }
   });
-
-  $('#form-builder').sortable('refresh');
 };
 
 Drupal.formBuilder.setActive = function(element, link) {
