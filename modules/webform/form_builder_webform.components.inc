@@ -32,18 +32,9 @@ function _form_builder_webform_form_builder_types_date() {
       'year_textfield',
       'datepicker',
     ),
-    'default' => array(
-      '#title' => t('New date'),
-      '#type' => 'date',
-      '#theme_wrappers' => array('webform_element'),
-      '#form_builder' => array('element_type' => 'date'),
-      '#title_display' => 'before',
-      '#year_start' => '-2',
-      '#year_end' => '+2',
-      '#process' => array('webform_expand_date'),
-      '#theme' => 'webform_date',
-    ),
   );
+  $fields['date']['default'] = _form_builder_webform_default('date');
+  $fields['date']['default']['#title'] = t('New date');
 
   return $fields;
 }
@@ -147,14 +138,9 @@ function _form_builder_webform_form_builder_types_email() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New e-mail'),
-      '#type' => 'textfield',
-      '#theme_wrappers' => array('webform_element'),
-      '#form_builder' => array('element_type' => 'email'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['email']['default'] = _form_builder_webform_default('email');
+  $fields['email']['default']['#title'] = t('New e-mail');
 
   return $fields;
 }
@@ -194,13 +180,9 @@ function _form_builder_webform_form_builder_types_fieldset() {
       'collapsed',
       'key',
     ),
-    'default' => array(
-      '#title' => t('New fieldset'),
-      '#type' => 'fieldset',
-      '#collapsible' => FALSE,
-      '#collapsed' => FALSE,
-    ),
   );
+  $fields['fieldset']['default'] = _form_builder_webform_default('fieldset');
+  $fields['fieldset']['default']['#title'] = t('New fieldset');
 
   return $fields;
 }
@@ -228,7 +210,7 @@ function _form_builder_webform_form_builder_save_fieldset($component, $form_elem
  * Implements _form_builder_webform_form_builder_types_component().
  */
 function _form_builder_webform_form_builder_types_file() {
-  $defaults = _webform_defaults_file();
+  $fields = array();
 
   $fields['file'] = array(
     'title' => t('File'),
@@ -242,16 +224,10 @@ function _form_builder_webform_form_builder_types_file() {
       'webform_file_savelocation',
       'webform_file_width',
     ),
-    'default' => array(
-      '#title' => t('New file'),
-      '#type' => 'file',
-      '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'before',
-      '#webform_file_filtering' => $defaults['extra']['filtering'],
-      '#webform_file_savelocation' => $defaults['extra']['savelocation'],
-      '#webform_file_width' => $defaults['extra']['width'],
-    ),
   );
+  $file_element = _form_builder_webform_default('file');
+  $fields['file']['default'] = $file_element['default'];
+  $fields['file']['default']['#title'] = t('New file');
 
   return $fields;
 }
@@ -299,6 +275,17 @@ function _form_builder_webform_form_builder_load_file($form_element) {
       $form_element['#webform_file_width'] = $form_element['#webform_component']['extra']['width'];
     }
   }
+
+  return $form_element;
+}
+
+
+/**
+ * Implements _form_builder_webform_form_builder_preview_alter_component().
+ */
+function _form_builder_webform_form_builder_preview_alter_file($form_element) {
+  // Map our pseudo-property to the visible "size" property.
+  $form_element['#size'] = $form_element['#webform_file_width'];
 
   return $form_element;
 }
@@ -360,11 +347,9 @@ function _form_builder_webform_form_builder_types_hidden() {
       'default_value',
       'key',
     ),
-    'default' => array(
-      '#title' => t('Hidden field'),
-      '#type' => 'hidden',
-    ),
   );
+  $fields['hidden']['default'] = _form_builder_webform_default('hidden');
+  $fields['hidden']['default']['#title'] = t('New hidden');
 
   return $fields;
 }
@@ -410,17 +395,11 @@ function _form_builder_webform_form_builder_types_markup() {
       'markup',
       'input_format',
       'key',
-      'title_display',
-    ),
-    'default' => array(
-      '#title' => t('Markup'),
-      '#type' => 'markup',
-      '#theme_wrappers' => array('webform_element'),
-      '#markup' => $default,
-      '#input_format' => variable_get('filter_default_format', 1),
-      '#title_display' => 'before',
     ),
   );
+  $fields['markup']['default'] = _form_builder_webform_default('markup');
+  $fields['markup']['default']['#markup'] = $default;
+  $fields['markup']['default']['#title'] = t('New markup');
 
   return $fields;
 }
@@ -536,16 +515,12 @@ function _form_builder_webform_form_builder_types_select() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New select list'),
-      '#type' => 'select',
-      '#theme_wrappers' => array('webform_element'),
-      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
-      '#default_value' => 'one',
-      '#webform' => array('type' => 'select'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['select']['default'] = _form_builder_webform_default('select', array('aslist' => TRUE, 'multiple' => FALSE));
+  $fields['select']['default']['#options'] = array(t('one'), t('two'), t('three'));
+  $fields['select']['default']['#default_value'] = 0;
+  $fields['select']['default']['#title'] = t('New select');
+  $fields['select']['default']['#webform'] = array('type' => 'select');
 
   $fields['checkboxes'] = array(
     'title' => t('Checkboxes'),
@@ -559,17 +534,12 @@ function _form_builder_webform_form_builder_types_select() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New checkboxes'),
-      '#type' => 'checkboxes',
-      '#theme_wrappers' => array('checkboxes', 'webform_element'),
-      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
-      '#default_value' => array('one', 'two'),
-      '#multiple' => TRUE,
-      '#webform' => array('type' => 'select'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['checkboxes']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => TRUE));
+  $fields['checkboxes']['default']['#options'] = array(t('one'), t('two'), t('three'));
+  $fields['checkboxes']['default']['#default_value'] = array(0, 1);
+  $fields['checkboxes']['default']['#title'] = t('New checkboxes');
+  $fields['checkboxes']['default']['#webform'] = array('type' => 'select');
 
   $fields['radios'] = array(
     'title' => t('Radios'),
@@ -582,16 +552,12 @@ function _form_builder_webform_form_builder_types_select() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New radios'),
-      '#type' => 'radios',
-      '#theme_wrappers' => array('radios', 'webform_element'),
-      '#options' => array('one' => 'one', 'two' => 'two', 'three' => 'three'),
-      '#default_value' => 'one',
-      '#webform' => array('type' => 'select'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['radios']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => FALSE));
+  $fields['radios']['default']['#options'] = array(t('one'), t('two'), t('three'));
+  $fields['radios']['default']['#default_value'] = 0;
+  $fields['radios']['default']['#title'] = t('New radios');
+  $fields['radios']['default']['#webform'] = array('type' => 'select');
 
   return $fields;
 }
@@ -654,13 +620,9 @@ function _form_builder_webform_form_builder_types_textarea() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New textarea'),
-      '#type' => 'textarea',
-      '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['textarea']['default'] = _form_builder_webform_default('textarea');
+  $fields['textarea']['default']['#title'] = t('New textarea');
 
   return $fields;
 }
@@ -705,13 +667,9 @@ function _form_builder_webform_form_builder_types_textfield() {
       'key',
       'title_display',
     ),
-    'default' => array(
-      '#title' => t('New textfield'),
-      '#type' => 'textfield',
-      '#theme_wrappers' => array('webform_element'),
-      '#title_display' => 'before',
-    ),
   );
+  $fields['textfield']['default'] = _form_builder_webform_default('textfield');
+  $fields['textfield']['default']['#title'] = t('New textfield');
 
   return $fields;
 }
@@ -733,6 +691,16 @@ function _form_builder_webform_form_builder_save_textfield($component, $form_ele
 /**
  * @} End of "defgroup form-builder-webform-textfield-callbacks"
  */
+
+/**
+ * Helper function; Generate a default FAPI element for any component type.
+ */
+function _form_builder_webform_default($component_type, $merge_extras = array()) {
+  $default_component = webform_component_invoke($component_type, 'defaults');
+  $default_component['extra'] = isset($default_component['extra']) ? array_merge($default_component['extra'], $merge_extras) : $merge_extras;
+  $default_element = webform_component_invoke($component_type, 'render', $default_component, NULL, FALSE);
+  return $default_element;
+}
 
 /**
  * Helper function; builds a form for editing part of a webform component.
