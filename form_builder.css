@@ -340,6 +340,9 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-select {
   background-image: url(images/fields/select.png);
 }
+#form-builder-field-palette ul li.field-time {
+  background-image: url(images/fields/time.png);
+}
 #form-builder-field-palette ul li.field-taxonomy {
   background-image: url(images/fields/taxonomy.png);
 }
