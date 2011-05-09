@@ -192,11 +192,11 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
 
   // TODO: This JS file should be loaded dynamically as needed.
   $form['#attached']['js'][] = drupal_get_path('module', 'options_element') .'/options_element.js';
-  // @todo: no library for this? see http://drupal.org/node/954804
+  // TODO: Use libraries if available. see http://drupal.org/node/954804
   $form['#attached']['js'][] = 'misc/tabledrag.js';
   $form['#attached']['js'][] = 'misc/jquery.cookie.js';
   $form['#attached']['library'][] = array('system', 'form');
-  // @todo: no library for this?
+  $form['#attached']['js'][] = 'misc/form.js';
   $form['#attached']['js'][] = 'misc/collapse.js';
   $form['#attached']['js'][] = array('data' => array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'type' => 'setting');
 

@@ -330,6 +330,164 @@ function form_builder_webform_property_webform_file_width_form(&$form_state, $fo
  */
 
 /**
+ * @defgroup form-builder-webform-grid-callbacks Callbacks for the Grid component
+ * @{
+ */
+
+/**
+ * Implements _form_builder_webform_form_builder_types_component().
+ */
+function _form_builder_webform_form_builder_types_grid() {
+  $fields = array();
+
+  $fields['grid'] = array(
+    'title' => t('Grid'),
+    'properties' => array(
+      'title',
+      'description',
+      'required',
+      'key',
+      'title_display',
+      // Grid-specific properties.
+      'grid_options',
+      'grid_questions',
+      'custom_grid_option_keys',
+      'custom_grid_question_keys',
+      'optrand',
+      'qrand',
+    ),
+  );
+  $fields['grid']['default'] = _form_builder_webform_default('grid');
+  $fields['grid']['default']['#title'] = t('New grid');
+  $fields['grid']['default']['#grid_options'] = array(t('poor'), t('average'), t('good'), t('excellent'));
+  $fields['grid']['default']['#grid_questions'] = array(t('question one'), t('question two'), t('question three'));
+
+  return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_grid() {
+  return array(
+    'grid_options' => array(
+      'form' => 'form_builder_webform_property_grid_options_form',
+      'submit' => array('form_builder_webform_property_grid_form_submit'),
+    ),
+    'grid_questions' => array(
+      'form' => 'form_builder_webform_property_grid_questions_form',
+      'submit' => array('form_builder_webform_property_grid_form_submit'),
+    ),
+    'optrand' => array(
+      'form' => 'form_builder_webform_property_grid_optrand_form'
+    ),
+    'qrand' => array(
+      'form' => 'form_builder_webform_property_grid_qrand_form'
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_grid($element) {
+  if (isset($element['#type']) && $element['#type'] == 'webform_grid') {
+    // Elements of type "webform_grid" are known to Form Builder as simply a
+    // "grid" field. This makes it so that we use the generic grid icon.
+    $element['#form_builder']['element_type'] = 'grid';
+
+    // Convert properties used only in Form Builder.
+    $element['#custom_grid_option_keys'] = !empty($element['#webform_component']['extra']['custom_option_keys']);
+    $element['#custom_grid_question_keys'] = !empty($element['#webform_component']['extra']['custom_question_keys']);
+  }
+  return $element;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_save_component().
+ */
+function _form_builder_webform_form_builder_save_grid($component, $form_element) {
+  $options = '';
+
+  foreach ($form_element['#grid_options'] as $key => $option_value) {
+    $options .= $key . '|' . $option_value . "\n";
+  }
+
+  $questions = '';
+  foreach ($form_element['#grid_questions'] as $key => $question_value) {
+    $questions .= $key . '|' . $question_value . "\n";
+  }
+
+  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
+  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
+  $component['extra']['options'] = $options;
+  $component['extra']['questions'] = $questions;
+  $component['extra']['custom_option_keys'] = isset($form_element['#custom_grid_option_keys']) ? $form_element['#custom_grid_option_keys'] : FALSE;
+  $component['extra']['custom_question_keys'] =  isset($form_element['#custom_grid_question_keys']) ? $form_element['#custom_grid_question_keys'] : FALSE;
+  $component['extra']['optrand'] = !empty($form_element['#optrand']);
+  $component['extra']['qrand'] = !empty($form_element['#qrand']);
+
+  return $component;
+}
+
+/**
+ * Configuration form for the "grid_options" property.
+ */
+function form_builder_webform_property_grid_options_form(&$form_state, $form_type, $element) {
+  $element['#grid_options'] = _webform_select_options_to_text($element['#grid_options']);
+  $form = _form_builder_webform_build_edit_form('grid', $element, 'grid_options', 'options', array('options'), array('extra', 'options'));
+  // The _form_builder_webform_build_edit_form() function can only pull in one
+  // property at a time, so we have to set the key toggle manually.
+  $form['grid_options']['options']['#key_type_toggled'] = !empty($element['#custom_grid_option_keys']);
+  return $form;
+}
+
+/**
+ * Configuration form for the "grid_questions" property.
+ */
+function form_builder_webform_property_grid_questions_form(&$form_state, $form_type, $element) {
+  $element['#grid_questions'] = _webform_select_options_to_text($element['#grid_questions']);
+  $form = _form_builder_webform_build_edit_form('grid', $element, 'grid_questions', 'options', array('questions'), array('extra', 'questions'));
+  // The _form_builder_webform_build_edit_form() function can only pull in one
+  // property at a time, so we have to set the key toggle manually.
+  $form['grid_questions']['options']['#key_type_toggled'] = !empty($element['#custom_grid_question_keys']);
+  return $form;
+}
+
+/**
+ * Submit handler for the "grid_options" and "grid_questions" properties.
+ */
+function form_builder_webform_property_grid_form_submit(&$form, &$form_state) {
+  if (empty($form_state['values']['grid_options'])) {
+    $form_state['values']['grid_options'] = _webform_select_options_from_text($form_state['values']['extra']['grid_options']);
+    $form_state['values']['custom_grid_option_keys'] = $form_state['values']['extra']['custom_grid_option_keys'];
+  }
+
+  if (empty($form_state['values']['grid_questions'])) {
+    $form_state['values']['grid_questions'] = _webform_select_options_from_text($form_state['values']['extra']['grid_questions']);
+    $form_state['values']['custom_grid_question_keys'] = $form_state['values']['extra']['custom_grid_question_keys'];
+  }
+}
+
+/**
+ * Configuration form for the "optrand" property.
+ */
+function form_builder_webform_property_grid_optrand_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('grid', $element, 'optrand', 'display', array('display', 'optrand'), array('extra', 'optrand'));
+}
+
+/**
+ * Configuration form for the "qrand" property.
+ */
+function form_builder_webform_property_grid_qrand_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('grid', $element, 'qrand', 'display', array('display', 'qrand'), array('extra', 'qrand'));
+}
+
+/**
+ * @} End of "defgroup form-builder-webform-time-callbacks"
+ */
+
+/**
  * @defgroup form-builder-webform-hidden-callbacks Callbacks for the Hidden component
  * @{
  */
@@ -715,7 +873,6 @@ function _form_builder_webform_form_builder_save_textfield($component, $form_ele
 /**
  * @} End of "defgroup form-builder-webform-textfield-callbacks"
  */
-
 
 /**
  * @defgroup form-builder-webform-time-callbacks Callbacks for the Time component
