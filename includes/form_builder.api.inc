@@ -60,7 +60,7 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
             $field['default']['#form_builder']['element_type'] = $field_key;
           }
           elseif (!isset($field['default']['#form_builder']['element_type'])) {
-            $field['default']['#form_builder']['element_type'] = $field['default']['#type'];
+            $field['default']['#form_builder']['element_type'] = $field_key;
           }
         }
 
