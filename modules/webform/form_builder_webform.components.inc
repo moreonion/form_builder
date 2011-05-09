@@ -280,7 +280,6 @@ function _form_builder_webform_form_builder_load_file($form_element) {
   return $form_element;
 }
 
-
 /**
  * Implements _form_builder_webform_form_builder_preview_alter_component().
  */
@@ -715,6 +714,94 @@ function _form_builder_webform_form_builder_save_textfield($component, $form_ele
 
 /**
  * @} End of "defgroup form-builder-webform-textfield-callbacks"
+ */
+
+
+/**
+ * @defgroup form-builder-webform-time-callbacks Callbacks for the Time component
+ * @{
+ */
+
+/**
+ * Implements _form_builder_webform_form_builder_types_component().
+ */
+function _form_builder_webform_form_builder_types_time() {
+  $fields = array();
+
+  $fields['time'] = array(
+    'title' => t('Time'),
+    'properties' => array(
+      'title',
+      'description',
+      'default_value',
+      'required',
+      'key',
+      'title_display',
+      // Date-specific properties.
+      'timezone',
+      'hourformat',
+    ),
+  );
+  $fields['time']['default'] = _form_builder_webform_default('time');
+  $fields['time']['default']['#title'] = t('New time');
+
+  return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_time() {
+  return array(
+    'timezone' => array(
+      'form' => 'form_builder_webform_property_time_timezone_form',
+    ),
+    'hourformat' => array(
+      'form' => 'form_builder_webform_property_time_hourformat_form',
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_time($element) {
+  if (isset($element['#type']) && $element['#type'] == 'webform_time') {
+    // Elements of type "webform_time" are known to Form Builder as simply a
+    // "time" field. This makes it so that we use the generic time icon.
+    $element['#form_builder']['element_type'] = 'time';
+  }
+  return $element;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_save_component().
+ */
+function _form_builder_webform_form_builder_save_time($component, $form_element) {
+  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
+  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
+  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
+  $component['extra']['timezone'] = isset($form_element['#timezone']) ? $form_element['#timezone'] : 'user';
+  $component['extra']['hourformat'] = isset($form_element['#hourformat']) ? $form_element['#hourformat'] : '12-hour';
+  return $component;
+}
+
+/**
+ * Configuration form for the "timezone" property.
+ */
+function form_builder_webform_property_time_timezone_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('time', $element, 'timezone', NULL, array('extra', 'timezone'), array('extra', 'timezone'));
+}
+
+/**
+ * Configuration form for the "hourformat" property.
+ */
+function form_builder_webform_property_time_hourformat_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('time', $element, 'hourformat', 'display', array('display', 'hourformat'), array('extra', 'hourformat'));
+}
+
+/**
+ * @} End of "defgroup form-builder-webform-time-callbacks"
  */
 
 /**
