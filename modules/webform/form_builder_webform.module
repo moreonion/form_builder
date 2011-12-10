@@ -31,6 +31,9 @@ function form_builder_webform_components_page($node) {
   drupal_add_js($path . '/js/webform.js');
   drupal_add_js($path . '/js/webform-admin.js');
   drupal_add_js($path . '/js/select-admin.js');
+  if (function_exists('date_popup_load')) {
+    date_popup_load();
+  }
 
   $output = '';
   $output .= form_builder_interface('webform', $node->nid);
