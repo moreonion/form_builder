@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Styles required for the basic functionality of the Form Builder interface.
+ */
 
 #form-builder-wrapper {
   overflow: hidden;
@@ -197,6 +201,7 @@ span.form-builder-links a.progress:hover {
 #form-builder ul.form-builder-tabs {
   margin: 0;
   padding: 0;
+  float: left; /* RTL */
 }
 
 #form-builder ul.form-builder-tabs li {
@@ -219,8 +224,13 @@ span.form-builder-links a.progress:hover {
   margin-left: -1px;
   border-left: 1px solid #999;
   border-top: 1px dashed #999;
-  border-bottom: 1px solid #ebf4fa;
-  background: #ebf4fa;
+  border-bottom: 1px solid #ffffff;
+  background: #ffffff;
+}
+
+#form-builder fieldset.form-builder-group {
+  float: left; /* RTL */
+  width: 100%;
 }
 
 #form-builder-field-configure .form-submit {
