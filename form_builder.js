@@ -117,6 +117,9 @@ Drupal.behaviors.formBuilderTabs = function(context) {
   $tabs = $(tabs);
   $fieldsets.filter(':first').before($close).before($tabs);
 
+  // Remove 'fieldset-legend' class from tabs.
+  $tabs.find('.fieldset-legend').removeClass('fieldset-legend');
+
   // Hide all the fieldsets except the first.
   $fieldsets.not(':first').css('display', 'none');
   $tabs.find('li:first').addClass('active').click(Drupal.formBuilder.clickCancel);
