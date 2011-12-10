@@ -594,6 +594,10 @@ function _form_builder_webform_form_builder_preview_alter_markup($form_element) 
     $form_element['#markup'] = t('Empty markup field');
   }
 
+  // This runs after drupal_pre_render_markup so the changed markup 
+  // needs to be copied to #children.
+  $form_element['#children'] = $form_element['#markup'];
+
   // Do not show the title, since it will not display in the final webform
   // either.
   $form_element['#title_display'] = 'none';
