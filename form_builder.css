@@ -231,6 +231,10 @@ span.form-builder-links a.progress:hover {
 #form-builder fieldset.form-builder-group {
   float: left; /* RTL */
   width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-top: 1px solid #CCC;
 }
 
 #form-builder-field-configure .form-submit {
@@ -243,12 +247,6 @@ span.form-builder-links a.progress:hover {
   font-size: 80%;
   float: right;
   padding: 6px 10px;
-}
-
-#form-builder fieldset.form-builder-group {
-  margin: 0;
-  border: none;
-  border-top: 1px solid #CCC;
 }
 
 /* Weight and parents form */
