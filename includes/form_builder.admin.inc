@@ -469,7 +469,7 @@ function form_builder_pre_render_form($form) {
   // Otherwise make our own columns.
   if (!isset($form['#show_palette'])) {
     if (module_exists('block')) {
-      $form['#show_palette'] = db_query("SELECT status FROM {block} WHERE module = 'form_builder' AND theme = :theme", array(':theme' => $theme))->fetchField();
+      $form['#show_palette'] = !db_query("SELECT status FROM {block} WHERE module = 'form_builder' AND theme = :theme", array(':theme' => $theme))->fetchField();
     }
     else {
       $form['#show_palette'] = TRUE;
