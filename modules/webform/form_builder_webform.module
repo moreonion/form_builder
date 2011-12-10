@@ -33,6 +33,7 @@ function form_builder_webform_components_page($node) {
   $build['#attached']['js'][] = $path . '/js/webform.js';
   $build['#attached']['js'][] = $path . '/js/webform-admin.js';
   $build['#attached']['js'][] = $path . '/js/select-admin.js';
+  $build['#attached']['library'][] = array('system', 'ui.datepicker');
 
   $build[] = form_builder_interface('webform', $node->nid);
   $build[] = drupal_get_form('form_builder_webform_save_form', $node->nid);
