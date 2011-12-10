@@ -274,10 +274,9 @@ function form_builder_positions_submit(&$form, &$form_state) {
  * block.
  */
 function theme_form_builder_wrapper($element, $content) {
-
   $output = '';
-  $output .= '<div id="form-builder-wrapper" class="' . ($element['#block_enabled'] ? 'no-palette' : 'with-palette') . '">';
-  if (!$element['#block_enabled']) {
+  $output .= '<div id="form-builder-wrapper" class="' . ($element['#show_palette'] ? 'with-palette' : 'no-palette') . '">';
+  if ($element['#show_palette']) {
     $output .= '<div id="form-builder-fields">';
     $output .= '<div class="block">';
     $output .= form_builder_field_palette();
@@ -421,7 +420,7 @@ function form_builder_pre_render($element) {
  * Pre-render function to alter the form being edited by Form builder.
  *
  * This function modifies the form element itself and sets a #title to label the
- * form preview and an #block_enabled property to indicate to the theme wrapper
+ * form preview and an #show_palette property to indicate to the theme wrapper
  * whether the field palette should be added.
  */
 function form_builder_pre_render_form($form) {
@@ -451,9 +450,16 @@ function form_builder_pre_render_form($form) {
 
   // Check if the Form Builder block is enabled.
   // Otherwise make our own columns.
-  $form['#block_enabled'] = db_result(db_query("SELECT status FROM {blocks} WHERE module = 'form_builder' AND theme = '%s'", $theme));
+  if (!isset($form['#show_palette'])) {
+    if (module_exists('block')) {
+      $form['#show_palette'] = !db_result(db_query("SELECT status FROM {blocks} WHERE module = 'form_builder' AND theme = '%s'", $theme));
+    }
+    else {
+      $form['#show_palette'] = TRUE;
+    }
+  }
 
-  if ($form['#block_enabled'] && ($theme == 'garland' || $theme == 'minnelli')) {
+  if ($theme == 'garland' || $theme == 'minnelli') {
     drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.garland.css', 'theme');
   }
 
