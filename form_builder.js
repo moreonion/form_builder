@@ -124,6 +124,9 @@ Drupal.behaviors.formBuilderTabs.attach = function(context) {
   // Remove 'fieldset-legend' class from tabs.
   $tabs.find('.fieldset-legend').removeClass('fieldset-legend');
 
+  // Set clearfix on the parent div.
+  $tabs.parent().addClass('clearfix');
+
   // Hide all the fieldsets except the first.
   $fieldsets.not(':first').css('display', 'none');
   $tabs.find('li:first').addClass('active').click(Drupal.formBuilder.clickCancel);
