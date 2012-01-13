@@ -202,6 +202,7 @@ span.form-builder-links a.progress:hover {
   margin: 0;
   padding: 0;
   float: left; /* RTL */
+  position: relative;
 }
 
 #form-builder ul.form-builder-tabs li {
