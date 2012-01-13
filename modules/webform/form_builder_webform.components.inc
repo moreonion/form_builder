@@ -221,8 +221,11 @@ function _form_builder_webform_form_builder_types_file() {
       'key',
       'title_display',
       'webform_file_filtering',
-      'webform_file_savelocation',
-      'webform_file_width',
+      'webform_file_scheme',
+      'webform_file_directory',
+      'webform_file_progress_indicator',
+      // TODO: The manged_file element in core doesn't support #size (or width).
+      //'webform_file_width',
     ),
   );
   $file_element = _form_builder_webform_default('file');
@@ -241,8 +244,14 @@ function _form_builder_webform_form_builder_properties_file() {
     'webform_file_filtering' => array(
       'form' => 'form_builder_webform_property_webform_file_filtering_form',
     ),
-    'webform_file_savelocation' => array(
-      'form' => 'form_builder_webform_property_webform_file_savelocation_form',
+    'webform_file_scheme' => array(
+      'form' => 'form_builder_webform_property_webform_file_scheme_form',
+    ),
+    'webform_file_directory' => array(
+      'form' => 'form_builder_webform_property_webform_file_directory_form',
+    ),
+    'webform_file_progress_indicator' => array(
+      'form' => 'form_builder_webform_property_webform_file_progress_indicator_form',
     ),
     'webform_file_width' => array(
       'form' => 'form_builder_webform_property_webform_file_width_form',
@@ -269,23 +278,19 @@ function _form_builder_webform_form_builder_load_file($form_element) {
     if (isset($form_element['#webform_component']['extra']['filtering'])) {
       $form_element['#webform_file_filtering'] = $form_element['#webform_component']['extra']['filtering'];
     }
-    if (isset($form_element['#webform_component']['extra']['savelocation'])) {
-      $form_element['#webform_file_savelocation'] = $form_element['#webform_component']['extra']['savelocation'];
+    if (isset($form_element['#webform_component']['extra']['scheme'])) {
+      $form_element['#webform_file_scheme'] = $form_element['#webform_component']['extra']['scheme'];
+    }
+    if (isset($form_element['#webform_component']['extra']['directory'])) {
+      $form_element['#webform_file_directory'] = $form_element['#webform_component']['extra']['directory'];
+    }
+    if (isset($form_element['#webform_component']['extra']['progress_indicator'])) {
+      $form_element['#webform_file_progress_indicator'] = $form_element['#webform_component']['extra']['progress_indicator'];
     }
     if (isset($form_element['#webform_component']['extra']['width'])) {
       $form_element['#webform_file_width'] = $form_element['#webform_component']['extra']['width'];
     }
   }
-
-  return $form_element;
-}
-
-/**
- * Implements _form_builder_webform_form_builder_preview_alter_component().
- */
-function _form_builder_webform_form_builder_preview_alter_file($form_element) {
-  // Map our pseudo-property to the visible "size" property.
-  $form_element['#size'] = $form_element['#webform_file_width'];
 
   return $form_element;
 }
@@ -298,7 +303,9 @@ function _form_builder_webform_form_builder_save_file($component, $form_element)
   $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
   $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
   $component['extra']['filtering'] = isset($form_element['#webform_file_filtering']) ? $form_element['#webform_file_filtering'] : array();
-  $component['extra']['savelocation'] = isset($form_element['#webform_file_savelocation']) ? $form_element['#webform_file_savelocation'] : NULL;
+  $component['extra']['scheme'] = isset($form_element['#webform_file_scheme']) ? $form_element['#webform_file_scheme'] : NULL;
+  $component['extra']['directory'] = isset($form_element['#webform_file_directory']) ? $form_element['#webform_file_directory'] : NULL;
+  $component['extra']['progress_indicator'] = isset($form_element['#webform_file_progress_indicator']) ? $form_element['#webform_file_progress_indicator'] : NULL;
   $component['extra']['width'] = isset($form_element['#webform_file_width']) ? $form_element['#webform_file_width'] : NULL;
 
   return $component;
@@ -312,10 +319,24 @@ function form_builder_webform_property_webform_file_filtering_form(&$form_state,
 }
 
 /**
- * Configuration form for the "webform_file_savelocation" property.
+ * Configuration form for the "webform_file_scheme" property.
  */
-function form_builder_webform_property_webform_file_savelocation_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_savelocation', 'default', array('extra', 'savelocation'), array('extra', 'savelocation'));
+function form_builder_webform_property_webform_file_scheme_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_scheme', 'default', array('extra', 'scheme'), array('extra', 'scheme'));
+}
+
+/**
+ * Configuration form for the "webform_file_directory" property.
+ */
+function form_builder_webform_property_webform_file_directory_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_directory', 'default', array('extra', 'directory'), array('extra', 'directory'));
+}
+
+/**
+ * Configuration form for the "webform_file_progress_indicator" property.
+ */
+function form_builder_webform_property_webform_file_progress_indicator_form(&$form_state, $form_type, $element) {
+  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_progress_indicator', 'display', array('display', 'progress_indicator'), array('extra', 'progress_indicator'));
 }
 
 /**
