@@ -311,7 +311,7 @@ function theme_form_builder_wrapper($variables) {
 
   $output .= '<div id="form-builder">';
   if (isset($element['#title'])) {
-    $output .= '<h3>' . $element['#title'] . '</h3>';
+    $output .= '<h3 class="form-builder-title">' . $element['#title'] . '</h3>';
   }
 
   // Add the contents of the form and close the wrappers.
