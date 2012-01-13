@@ -427,12 +427,26 @@ function _webform_render_pagebreak_clone($component, $value = NULL, $filter = TR
  * Customizations to the field configuration form to better integrate with webforms.
  */
 function form_builder_webform_form_form_builder_field_configure_alter(&$form, &$form_state, $form_id) {
-  // Change the list of options from the default Drupal values to the acceptable
-  // webform values.
-  $form['title_display']['#options'] = array(
-    'before' => t('Above'),
-    'inline' => t('Inline'),
-    'none' => t('Hidden'),
-  );
-  $form['title_display']['#default_value'] = isset($form['title_display']['#default_value']) ? $form['title_display']['#default_value'] : 'before';
+  // When editing the title display property for a webform, change the list of
+  // options from the default Drupal values to the acceptable webform values.
+  // Only include "inline" if the webform component being edited actually
+  // allows inline titles.
+  if ($form['#_edit_form_type'] == 'webform' && isset($form['title_display'])) {
+    $type = $form['#_edit_element']['#form_builder']['element_type'];
+    module_load_include('inc', 'webform', 'includes/webform.components');
+    if (webform_component_feature($type, 'title_inline')) {
+      $form['title_display']['#options'] = array(
+        'before' => t('Above'),
+        'inline' => t('Inline'),
+        'none' => t('Hidden'),
+      );
+    }
+    else {
+      $form['title_display']['#options'] = array(
+        'before' => t('Above'),
+        'none' => t('Hidden'),
+      );
+    }
+    $form['title_display']['#default_value'] = isset($form['title_display']['#default_value']) ? $form['title_display']['#default_value'] : 'before';
+  }
 }
