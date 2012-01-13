@@ -228,10 +228,9 @@ function _form_builder_webform_form_builder_types_file() {
       //'webform_file_width',
     ),
   );
-  $file_element = _form_builder_webform_default('file');
-  $fields['file']['default'] = $file_element['default'];
+
+  $fields['file']['default'] = _form_builder_webform_default('file');
   $fields['file']['default']['#title'] = t('New file');
-  $fields['file']['default']['#theme_wrappers'] = array('webform_element');
 
   return $fields;
 }
