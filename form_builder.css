@@ -8,6 +8,10 @@
   padding: 10px 0;
 }
 
+#form-builder-wrapper h3.form-builder-title {
+  margin: 0;
+}
+
 #form-builder-wrapper.with-palette #form-builder-fields {
   float: right;
   padding-left: 10px;
@@ -236,6 +240,15 @@ span.form-builder-links a.progress:hover {
   margin: 0;
   border: none;
   border-top: 1px solid #CCC;
+}
+
+#form-builder fieldset.form-builder-group .fieldset-wrapper {
+  padding: 10px 10px 0;
+}
+
+#form-builder fieldset.form-builder-group .form-item {
+  padding: 0;
+  margin: 0 0 10px;
 }
 
 #form-builder-field-configure .form-submit {
