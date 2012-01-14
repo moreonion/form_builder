@@ -218,9 +218,9 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
       // Handle key changes and replace the existing element in place.
       elseif (isset($element['#key']) && $key != $element['#key']) {
         $new_key = $element['#key'];
-        $index = array_search($key, $form);
-        $before = array_slice($form, 0, $index + 1, TRUE);
-        $after = array_slice($form, $index + 2, NULL, TRUE);
+        $index = array_search($key, array_keys($form));
+        $before = array_slice($form, 0, $index, TRUE);
+        $after = array_slice($form, $index + 1, NULL, TRUE);
         $form = $before + array($new_key => $element) + $after;
         unset($form[$key]);
         $return = TRUE;
