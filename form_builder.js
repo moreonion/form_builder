@@ -123,6 +123,9 @@ Drupal.behaviors.formBuilderTabs = function(context) {
   // Set clear-block on the parent div.
   $tabs.parent().addClass('clear-block');
 
+  // Wrap each fieldset's content. This is only needed in D6.
+  $fieldsets.wrapInner('<div class="fieldset-wrapper"></div>');
+
   // Hide all the fieldsets except the first.
   $fieldsets.not(':first').css('display', 'none');
   $tabs.find('li:first').addClass('active').click(Drupal.formBuilder.clickCancel);
