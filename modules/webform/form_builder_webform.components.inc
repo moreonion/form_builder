@@ -140,9 +140,24 @@ function _form_builder_webform_form_builder_types_email() {
     ),
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
+  $fields['email']['default']['#webform_component']['type'] = 'email';
+  $fields['email']['default'] = _form_builder_webform_form_builder_load_email($fields['email']['default']);
+
   $fields['email']['default']['#title'] = t('New e-mail');
 
   return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_email($form_element) {
+  if (isset($form_element['#webform_component']['type']) && $form_element['#webform_component']['type'] == 'email') {
+    // Elements of type "webform_email" are known to Form Builder as simply an
+    // "email" field. This makes it so that we use the generic email icon.
+    $form_element['#form_builder']['element_type'] = 'email';
+  }
+  return $form_element;
 }
 
 /**
