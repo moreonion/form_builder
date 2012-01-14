@@ -198,7 +198,14 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
   $form['#attached']['library'][] = array('system', 'form');
   $form['#attached']['js'][] = 'misc/form.js';
   $form['#attached']['js'][] = 'misc/collapse.js';
-  $form['#attached']['js'][] = array('data' => array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'type' => 'setting');
+
+  $settings = array(
+    'emptyFieldset' => theme('form_builder_empty_fieldset'),
+    'noFieldSelected' => theme('form_builder_no_field_selected'),
+    'fieldLoading' => theme('form_builder_field_loading'),
+  );
+
+  $form['#attached']['js'][] = array('data' => array('formBuilder' => $settings), 'type' => 'setting');
 
   $form['#attached']['css'][] = drupal_get_path('module', 'form_builder') .'/form_builder.css';
   $form['#attached']['css'][] = drupal_get_path('module', 'options_element') .'/options_element.css';
@@ -365,7 +372,35 @@ function theme_form_builder_element_wrapper($variables) {
 function theme_form_builder_empty_fieldset($variables) {
   $output = '';
   $output .= '<div class="form-builder-wrapper form-builder-empty-placeholder">';
-  $output .= '<span>' . t('This fieldset is empty. Drag a form element into it.') .'</span>';
+  $output .= '<span>' . t('This fieldset is empty. Drag a form element into it.') . '</span>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Message shown in custom field configure forms when no field is selected.
+ *
+ * Note that this message is not displayed using the default field presentation.
+ * Modules or themes can set a custom field configuration form location by
+ * specifying a Drupal.settings.formBuilder.configureFormSelector value.
+ */
+function theme_form_builder_no_field_selected($variables) {
+  $output = '';
+  $output .= '<div class="field-settings-message">';
+  $output .= t('No field selected');
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Message shown in custom field configure forms when a field is loading.
+ *
+ * @see theme_form_builder_no_field_selected().
+ */
+function theme_form_builder_field_loading($variables) {
+  $output = '';
+  $output .= '<div class="field-settings-message">';
+  $output .= t('Loading...');
   $output .= '</div>';
   return $output;
 }
