@@ -230,6 +230,8 @@ function _form_builder_webform_form_builder_types_file() {
   );
 
   $fields['file']['default'] = _form_builder_webform_default('file');
+  $fields['file']['default']['#webform_component']['type'] = 'file';
+  $fields['file']['default'] = _form_builder_webform_form_builder_load_file($fields['file']['default']);
   $fields['file']['default']['#title'] = t('New file');
 
   return $fields;
@@ -267,11 +269,10 @@ function _form_builder_webform_form_builder_load_file($form_element) {
   // Instead, we need the element itself to represent the file component
   // directly.
   if (isset($form_element['#webform_component']['type']) && $form_element['#webform_component']['type'] == 'file') {
-    $form_element['#type'] = 'file';
-    unset($form_element['#theme']);
-    foreach (element_children($form_element) as $key) {
-      unset($form_element[$key]);
-    }
+    // Elements of type "managed_file" are known to Form Builder as simply an
+    // "file" field. This makes it so that we use the generic file icon.
+    $form_element['#form_builder']['element_type'] = 'file';
+
     // Set the custom webform file properties based on the values stored with
     // the webform component.
     if (isset($form_element['#webform_component']['extra']['filtering'])) {
