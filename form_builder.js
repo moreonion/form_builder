@@ -410,7 +410,7 @@ Drupal.formBuilder.displayForm = function(response) {
     // Manually add a hidden element to pass additional data on submit.
     .prepend('<input type="hidden" name="return" value="field" />')
     // Add in any messages from the server.
-    .find('fieldset:visible:first').prepend(response.messages);
+    .find('fieldset:visible:first').find('.fieldset-wrapper:first').prepend(response.messages);
 
   $form.slideDown(function() {
     $preview.parents('div.form-builder-wrapper:first').find('a.progress').removeClass('progress');
@@ -497,7 +497,7 @@ Drupal.formBuilder.updateElement = function(response) {
   // Display messages, if any.
   $configureForm.find('.messages').remove();
   if (response.messages) {
-    $configureForm.find('fieldset:visible:first').prepend(response.messages);
+    $configureForm.find('fieldset:visible:first').find('.fieldset-wrapper:first').prepend(response.messages);
   }
 
   // Do not update the element if errors were received.
