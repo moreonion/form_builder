@@ -34,6 +34,31 @@ function form_builder_property_key_form_validate($element, $form_state) {
   if (!preg_match('/^[a-z0-9_]+$/', $element['#value'])) {
     form_error($element, t('The form key may only contain lowercase alphanumeric characters and underscores.'));
   }
+
+  // Check that the new key does not conflict with an existing key.
+  if ($element['#value'] != $element['#default_value']) {
+    $active_form = form_builder_active_form();
+    $form = form_builder_cache_load($active_form['form_type'], $active_form['form_id']);
+    $parents = $element['#parents'];
+    array_pop($parents);
+    $parents[] = $element['#value'];
+    $key_exists = FALSE;
+    foreach ($parents as $key) {
+      if (isset($form[$key])) {
+        $form = $form[$key];
+        $key_exists = TRUE;
+      }
+      else {
+        $key_exists = FALSE;
+        break;
+      }
+    }
+
+    if ($key_exists) {
+      form_error($element, t('The form key %key is already in use.', array('%key' => $element['#value'])));
+    }
+  }
+
 }
 
 /**
