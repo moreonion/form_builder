@@ -151,7 +151,7 @@ Drupal.behaviors.formBuilderTabs = function(context) {
  * Submit the delete form via AJAX or close the form with the cancel link.
  */
 Drupal.behaviors.formBuilderDeleteConfirmation = function(context) {
-  var $confirmForm = $('form.confirmation');
+  var $confirmForm = $('form.confirmation', context);
   if ($confirmForm.length) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
@@ -250,7 +250,9 @@ Drupal.formBuilder = {
   // replacing newer updates.
   lastUpdateTime: 0,
   // Status of mouse click.
-  mousePressed: 0
+  mousePressed: 0,
+  // Selector for a custom field configuration form.
+  fieldConfigureForm: false
 };
 
 /**
@@ -315,6 +317,7 @@ Drupal.formBuilder.editField = function() {
     return false;
   }
 
+  // Show loading indicators.
   $link.addClass('progress');
 
   // If clicking on the link a second time, close the form instead of open.
@@ -327,6 +330,10 @@ Drupal.formBuilder.editField = function() {
   }
 
   var getForm = function() {
+    if (Drupal.formBuilder.fieldConfigureForm) {
+      $(Drupal.formBuilder.fieldConfigureForm).html(Drupal.settings.formBuilder.fieldLoading);
+    }
+
     $.ajax({
       url: $link.attr('href'),
       type: 'GET',
@@ -374,7 +381,16 @@ Drupal.formBuilder.displayForm = function(response) {
   }
 
   var $preview = $('#form-builder-element-' + response.elementId);
-  var $form = $(response.html).insertAfter($preview).css('display', 'none');
+  var $form = $(response.html);
+
+  if (Drupal.formBuilder.fieldConfigureForm) {
+    $(Drupal.formBuilder.fieldConfigureForm).html($form);
+    $form.css('display', 'none');
+  }
+  else {
+    $form.insertAfter($preview).css('display', 'none');
+  }
+
   Drupal.attachBehaviors($form.get(0));
 
   $form
@@ -387,9 +403,9 @@ Drupal.formBuilder.displayForm = function(response) {
     .find('fieldset:visible:first').prepend(response.messages);
 
   $form.slideDown(function() {
-    $form.parents('div.form-builder-wrapper:first').find('a.progress').removeClass('progress');
+    $preview.parents('div.form-builder-wrapper:first').find('a.progress').removeClass('progress');
+    $form.find('input:visible:first').focus();
   });
-  //Drupal.unfreezeHeight();
 
   Drupal.formBuilder.updatingElement = false;
 };
@@ -747,12 +763,16 @@ Drupal.formBuilder.unsetActive = function() {
 
 Drupal.formBuilder.closeActive = function(callback) {
   if (Drupal.formBuilder.activeElement) {
-    var $activeForm = $(Drupal.formBuilder.activeElement).find('form');
+    var $activeForm = Drupal.formBuilder.fieldConfigureForm ? $(Drupal.formBuilder.fieldConfigureForm).find('form') : $(Drupal.formBuilder.activeElement).find('form');
 
     if ($activeForm.length) {
       Drupal.freezeHeight();
       $activeForm.slideUp(function(){
         $(this).remove();
+        // Set a message in the custom configure form location if it exists.
+        if (Drupal.formBuilder.fieldConfigureForm) {
+          $(Drupal.formBuilder.fieldConfigureForm).html(Drupal.settings.formBuilder.noFieldSelected);
+        }
         if (callback) {
           callback.call();
         }

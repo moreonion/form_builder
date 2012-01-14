@@ -338,7 +338,35 @@ function theme_form_builder_element_wrapper($element, $content) {
 function theme_form_builder_empty_fieldset() {
   $output = '';
   $output .= '<div class="form-builder-wrapper form-builder-empty-placeholder">';
-  $output .= '<span>' . t('This fieldset is empty. Drag a form element into it.') .'</span>';
+  $output .= '<span>' . t('This fieldset is empty. Drag a form element into it.') . '</span>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Message shown in custom field configure forms when no field is selected.
+ *
+ * Note that this message is not displayed using the default field presentation.
+ * Modules or themes can set a custom field configuration form location by
+ * specifying a Drupal.settings.formBuilder.configureFormSelector value.
+ */
+function theme_form_builder_no_field_selected() {
+  $output = '';
+  $output .= '<div class="field-settings-message">';
+  $output .= t('No field selected');
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Message shown in custom field configure forms when a field is loading.
+ *
+ * @see theme_form_builder_no_field_selected().
+ */
+function theme_form_builder_field_loading() {
+  $output = '';
+  $output .= '<div class="field-settings-message">';
+  $output .= t('Loading...');
   $output .= '</div>';
   return $output;
 }
@@ -433,7 +461,15 @@ function form_builder_pre_render_form($form) {
   drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
   drupal_add_js('misc/tabledrag.js');
   drupal_add_js('misc/collapse.js');
-  drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
+
+  $settings = array(
+    'emptyFieldset' => theme('form_builder_empty_fieldset'),
+    'noFieldSelected' => theme('form_builder_no_field_selected'),
+    'fieldLoading' => theme('form_builder_field_loading'),
+  );
+
+  drupal_add_js(array('formBuilder' => $settings), 'setting');
+
   drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
   drupal_add_css(drupal_get_path('module', 'options_element') .'/options_element.css');
 

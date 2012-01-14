@@ -73,6 +73,14 @@ function form_builder_theme() {
       'arguments' => array(),
       'file' => 'includes/form_builder.admin.inc',
     ),
+    'form_builder_no_field_selected' => array(
+      'variables' => array(),
+      'file' => 'includes/form_builder.admin.inc',
+    ),
+    'form_builder_field_loading' => array(
+      'variables' => array(),
+      'file' => 'includes/form_builder.admin.inc',
+    ),
     'form_builder_field_palette' => array(
       'arguments' => array('fields' => NULL, 'groups' => NULL, 'form_type' => NULL, 'form_id' => NULL),
       'file' => 'includes/form_builder.admin.inc',
