@@ -17,9 +17,14 @@ function form_builder_property_key_form(&$form_state, $form_type, $element) {
 
   $form['key'] = array(
     '#title' => t('Form key'),
-    '#type' => 'textfield',
-    '#default_value' => $element['#key'],
-    '#required' => TRUE,
+    '#type' => 'machine_name',
+    '#default_value' => preg_match('/^new_[0-9]+$/', $element['#key']) ? '' : $element['#key'],
+    '#maxlength' => 128,
+    '#description' => t('The form key is used in the field "name" attribute. Must be alphanumeric and underscore characters.'),
+    '#machine_name' => array(
+      'source' => array('title'),
+      'label' => t('Form key'),
+    ),
     '#weight' => -9,
     '#element_validate' => array('form_builder_property_key_form_validate'),
   );
@@ -34,6 +39,31 @@ function form_builder_property_key_form_validate($element, $form_state) {
   if (!preg_match('/^[a-z0-9_]+$/', $element['#value'])) {
     form_error($element, t('The form key may only contain lowercase alphanumeric characters and underscores.'));
   }
+
+  // Check that the new key does not conflict with an existing key.
+  if ($element['#value'] != $element['#default_value']) {
+    $active_form = form_builder_active_form();
+    $form = form_builder_cache_load($active_form['form_type'], $active_form['form_id']);
+    $parents = $element['#parents'];
+    array_pop($parents);
+    $parents[] = $element['#value'];
+    $key_exists = FALSE;
+    foreach ($parents as $key) {
+      if (isset($form[$key])) {
+        $form = $form[$key];
+        $key_exists = TRUE;
+      }
+      else {
+        $key_exists = FALSE;
+        break;
+      }
+    }
+
+    if ($key_exists) {
+      form_error($element, t('The form key %key is already in use.', array('%key' => $element['#value'])));
+    }
+  }
+
 }
 
 /**

@@ -199,6 +199,9 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
   $form['#attached']['js'][] = 'misc/form.js';
   $form['#attached']['js'][] = 'misc/collapse.js';
 
+  $form['#attached']['js'][] = array('data' => array('machineName' => array()), 'type' => 'setting');
+  $form['#attached']['js'][] = 'misc/machine-name.js';
+
   $settings = array(
     'emptyFieldset' => theme('form_builder_empty_fieldset'),
     'noFieldSelected' => theme('form_builder_no_field_selected'),

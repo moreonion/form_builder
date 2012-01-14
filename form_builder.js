@@ -15,6 +15,10 @@ Drupal.behaviors.formBuilderElement.attach = function(context) {
   if ($(context).is('div.form-builder-wrapper:not(.form-builder-processed)')) {
     $wrappers = $wrappers.add(context);
   }
+  // If the context itself is an element, add to the list.
+  else if ($(context).is('div.form-builder-element:not(.form-builder-processed)')) {
+    $elements = $elements.add(context);
+  }
 
   // Add a guard class.
   $wrappers.addClass('form-builder-processed');
@@ -154,6 +158,12 @@ Drupal.behaviors.formBuilderTabs.attach = function(context) {
 Drupal.behaviors.formBuilderDeleteConfirmation = {};
 Drupal.behaviors.formBuilderDeleteConfirmation.attach = function(context) {
   var $confirmForm = $('form.confirmation', context);
+
+  // If the confirmation form is the context.
+  if ($(context).is('form.confirmation')) {
+    $confirmForm = $(context);
+  }
+
   if ($confirmForm.length) {
     $confirmForm.submit(Drupal.formBuilder.deleteField);
     $confirmForm.find('a').click(Drupal.formBuilder.clickCancel);
@@ -504,7 +514,7 @@ Drupal.formBuilder.updateElement = function(response) {
     // Expand root level fieldsets after updating to prevent them from closing
     // after every update.
     $new.children('fieldset.collapsible').removeClass('collapsed');
-    Drupal.attachBehaviors($new.parent().get(0));
+    Drupal.attachBehaviors($new.get(0));
   }
 
   // Set the variable stating we're done updating.
