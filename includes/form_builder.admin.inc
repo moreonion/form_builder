@@ -590,7 +590,7 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
       $function = $property_settings['form'];
       // Set a default value on the property to avoid notices.
       $element['#' . $property] = isset($element['#' . $property]) ? $element['#' . $property] : NULL;
-      $form = array_merge($form, $function($form_state, $form_type, $element));
+      $form = array_merge($form, $function($form_state, $form_type, $element, $property));
     }
   }
 
@@ -673,7 +673,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   foreach ($form_state['values'] as $property => $value) {
     if (in_array($property, $saveable)) {
       // Remove empty properties entirely.
-      if ($value == '') {
+      if ($value === '' || is_null($value)) {
         unset($element['#'. $property]);
       }
       else {

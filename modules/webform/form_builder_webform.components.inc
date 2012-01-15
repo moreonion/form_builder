@@ -140,7 +140,6 @@ function _form_builder_webform_form_builder_types_email() {
     ),
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
-  $fields['email']['default']['#webform_component']['type'] = 'email';
   $fields['email']['default'] = _form_builder_webform_form_builder_load_email($fields['email']['default']);
 
   $fields['email']['default']['#title'] = t('New e-mail');
@@ -245,7 +244,6 @@ function _form_builder_webform_form_builder_types_file() {
   );
 
   $fields['file']['default'] = _form_builder_webform_default('file');
-  $fields['file']['default']['#webform_component']['type'] = 'file';
   $fields['file']['default'] = _form_builder_webform_form_builder_load_file($fields['file']['default']);
   $fields['file']['default']['#title'] = t('New file');
 
@@ -645,6 +643,109 @@ function _form_builder_webform_form_builder_preview_alter_markup($form_element) 
  * @} End of "defgroup form-builder-webform-markup-callbacks"
  */
 
+
+/**
+ * @defgroup form-builder-webform-number-callbacks Callbacks for the Number component
+ * @{
+ */
+
+/**
+ * Implements _form_builder_webform_form_builder_types_component().
+ */
+function _form_builder_webform_form_builder_types_number() {
+  $fields = array();
+
+  $fields['number'] = array(
+    'title' => t('Number'),
+    'properties' => array(
+      'title',
+      'description',
+      'required',
+      'key',
+      'title_display',
+      'default_value',
+      'field_prefix',
+      'field_suffix',
+      // Number-specific properties.
+      // TODO: Implement the number type support when possible through Webform.
+      //'number_type',
+      'min',
+      'max',
+      'step',
+      'decimals',
+      'point',
+      'separator',
+      'integer',
+      'excludezero',
+    ),
+  );
+
+  $fields['number']['default'] = _form_builder_webform_default('number');
+  $fields['number']['default']['#title'] = t('New number');
+
+  return $fields;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_map_component().
+ */
+function _form_builder_webform_form_builder_map_number() {
+  return array(
+    'form_builder_type' => 'number',
+    'properties' => array(
+      'maxlength' => array(
+        'storage_parents' => array('extra', 'maxlength'),
+      ),
+      'field_prefix' => array(
+        'storage_parents' => array('extra', 'field_prefix'),
+      ),
+      'field_suffix' => array(
+        'storage_parents' => array('extra', 'field_suffix'),
+      ),
+      'number_type' => array(
+        'form_parents' => array('display', 'type'),
+        'storage_parents' => array('extra', 'type'),
+      ),
+      'min' => array(
+        'form_parents' => array('validation', 'min'),
+        'storage_parents' => array('extra', 'min'),
+      ),
+      'max' => array(
+        'form_parents' => array('validation', 'max'),
+        'storage_parents' => array('extra', 'max'),
+      ),
+      'step' => array(
+        'form_parents' => array('validation', 'step'),
+        'storage_parents' => array('extra', 'step'),
+      ),
+      'decimals' => array(
+        'form_parents' => array('display', 'decimals'),
+        'storage_parents' => array('extra', 'decimals'),
+      ),
+      'point' => array(
+        'form_parents' => array('display', 'point'),
+        'storage_parents' => array('extra', 'point'),
+      ),
+      'separator' => array(
+        'form_parents' => array('display', 'separator'),
+        'storage_parents' => array('extra', 'separator'),
+      ),
+      'integer' => array(
+        'form_parents' => array('validation', 'integer'),
+        'storage_parents' => array('extra', 'integer'),
+      ),
+      'excludezero' => array(
+        'form_parents' => array('analysis', 'excludezero'),
+        'storage_parents' => array('extra', 'excludezero'),
+      ),
+    ),
+  );
+}
+
+/**
+ * @} End of "defgroup form-builder-webform-number-callbacks"
+ */
+
 /**
  * @defgroup form-builder-webform-pagebreak-callbacks Callbacks for the Pagebreak component
  * @{
@@ -1002,12 +1103,74 @@ function form_builder_webform_property_time_hourformat_form(&$form_state, $form_
  */
 
 /**
+ * Helper function; Generate a configuration form based on a map.
+ */
+function _form_builder_webform_mapped_form(&$form_state, $form_type, $element, $property) {
+  $form = array();
+  if ($component_type = $element['#webform_component']['type']) {
+    if ($map = form_builder_webform_component_invoke($component_type, 'form_builder_map')) {
+      $property_group = isset($map['properties'][$property]['property_group']) ? $map['properties'][$property]['property_group'] : reset($map['properties'][$property]['form_parents']);
+      $form = _form_builder_webform_build_edit_form($component_type, $element, $property, $property_group, $map['properties'][$property]['form_parents'], $map['properties'][$property]['storage_parents']);
+    }
+  }
+  return $form;
+}
+
+/**
+ * Helper function; Save an element to a Webform component based on a map.
+ */
+function _form_builder_webform_save_mapped_component($component, $element) {
+  if ($map = form_builder_webform_component_invoke($component['type'], 'form_builder_map')) {
+    foreach ($map['properties'] as $property => $property_map) {
+      if (isset($element['#' . $property]) && isset($property_map['storage_parents'])) {
+        _form_builder_webform_save_mapped_component_value($component, $element['#' . $property], $property_map['storage_parents']);
+      }
+    }
+  }
+  return $component;
+}
+
+/**
+ * Recursive function to set the value of a $component property.
+ */
+function _form_builder_webform_save_mapped_component_value(&$component, $value, $parents) {
+  $parent = array_shift($parents);
+  if (empty($parents)) {
+    $component[$parent] = $value;
+  }
+  else {
+    _form_builder_webform_save_mapped_component_value($component[$parent], $value, $parents);
+  }
+}
+
+/**
+ * Helper function; Alter a form element upon load based on a map.
+ */
+function _form_builder_webform_set_mapped_type($element) {
+  if ($map = form_builder_webform_component_invoke($element['#webform_component']['type'], 'form_builder_map')) {
+    // Keep the internal type of this element as the component type. For example
+    // this may match an $element['#type'] of 'webform_date' and set the
+    // $element['#form_builder']['element_type'] to simply 'date'.
+    $element['#form_builder']['element_type'] = $map['form_builder_type'];
+  }
+  return $element;
+}
+
+/**
  * Helper function; Generate a default FAPI element for any component type.
  */
 function _form_builder_webform_default($component_type, $merge_extras = array()) {
   $default_component = webform_component_invoke($component_type, 'defaults');
   $default_component['extra'] = isset($default_component['extra']) ? array_merge($default_component['extra'], $merge_extras) : $merge_extras;
   $default_element = webform_component_invoke($component_type, 'render', $default_component, NULL, FALSE);
+
+  // Set a bare-minimum component for identification of the component type.
+  $default_element['#webform_component']['type'] = $component_type;
+
+  // Call the loading function to make sure that the default element gets the
+  // same treatment as an existing one.
+  $default_element = _form_builder_webform_set_mapped_type($default_element);
+
   return $default_element;
 }
 
@@ -1017,7 +1180,7 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
  * The returned form is derived from a subcomponent of the component form
  * provided by the Webform module.
  *
- * @param $type
+ * @param $component_type
  *   The webform component type to be edited.
  * @param $element
  *   A form array representing the element whose configuration form we are
@@ -1048,11 +1211,11 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
  *   A form array that can be used to edit the specified part of the webform
  *   component represented by $element.
  */
-function _form_builder_webform_build_edit_form($type, $element, $property, $form_builder_property_group, $form_nested_keys, $component_nested_keys) {
+function _form_builder_webform_build_edit_form($component_type, $element, $property, $form_builder_property_group, $form_nested_keys, $component_nested_keys) {
   // The Webform module stores existing component data as part of the passed-in
   // element. If the component doesn't exist yet, initialize a default
   // component.
-  $defaults_function = '_webform_defaults_' . $type;
+  $defaults_function = '_webform_defaults_' . $component_type;
   $component = isset($element['#webform_component']) ? $element['#webform_component'] : $defaults_function();
 
   // The most up-to-date configuration data stored by Form Builder for the
@@ -1064,7 +1227,7 @@ function _form_builder_webform_build_edit_form($type, $element, $property, $form
 
   // Build the entire _webform_edit_file() form based on the current state of
   // the component, and obtain the slice of it that we want.
-  $edit_function = '_webform_edit_' . $type;
+  $edit_function = '_webform_edit_' . $component_type;
   $form = $edit_function($component);
   $form = drupal_array_get_nested_value($form, $form_nested_keys);
 
