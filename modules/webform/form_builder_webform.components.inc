@@ -788,6 +788,18 @@ function _form_builder_webform_form_builder_map_select() {
 }
 
 /**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_select() {
+  return array(
+    'options' => array(
+      'form' => 'form_builder_webform_property_select_options_form',
+      'submit' => array('form_builder_property_options_form_submit'),
+    ),
+  );
+}
+
+/**
  * Implements _form_builder_webform_form_builder_save_component().
  */
 function _form_builder_webform_form_builder_save_select($component, $form_element) {
@@ -802,6 +814,16 @@ function _form_builder_webform_form_builder_save_select($component, $form_elemen
   $component['extra']['aslist'] = $form_element['#form_builder']['element_type'] == 'select';
 
   return $component;
+}
+
+/**
+ * Configuration form for the "options" property.
+ */
+function form_builder_webform_property_select_options_form(&$form_state, $form_type, $element) {
+  // Use the default options form, but enhance to allow Webform tokens.
+  $form = form_builder_property_options_form($form_state, $form_type, $element);
+  $form['options']['#default_value_pattern'] = '^%.+\[.+\]$';
+  return $form;
 }
 
 /**
