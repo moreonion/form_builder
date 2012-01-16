@@ -725,6 +725,7 @@ function _form_builder_webform_form_builder_types_select() {
       'multiple',
       'key',
       'title_display',
+      'key_type_toggled',
     ),
   );
   $fields['select']['default'] = _form_builder_webform_default('select', array('aslist' => TRUE, 'multiple' => FALSE));
@@ -743,6 +744,7 @@ function _form_builder_webform_form_builder_types_select() {
       'multiple',
       'key',
       'title_display',
+      'key_type_toggled',
     ),
   );
   $fields['checkboxes']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => TRUE));
@@ -760,6 +762,7 @@ function _form_builder_webform_form_builder_types_select() {
       'options',
       'key',
       'title_display',
+      'key_type_toggled',
     ),
   );
   $fields['radios']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => FALSE));
@@ -783,6 +786,9 @@ function _form_builder_webform_form_builder_map_select() {
         'form_parents' => array('display', 'title_display'),
         'storage_parents' => array('extra', 'title_display'),
       ),
+      'key_type_toggled' => array(
+        'storage_parents' => array('extra', 'custom_keys'),
+      ),
     ),
   );
 }
@@ -797,6 +803,16 @@ function _form_builder_webform_form_builder_properties_select() {
       'submit' => array('form_builder_property_options_form_submit'),
     ),
   );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_select($form_element) {
+  // Properties that are only used by Form Builder and not in the normal form.
+  $form_element['#key_type_toggled'] = !empty($form_element['#webform_component']['extra']['custom_keys']);
+
+  return $form_element;
 }
 
 /**
@@ -1071,7 +1087,9 @@ function _form_builder_webform_set_mapped_type($element) {
     // Keep the internal type of this element as the component type. For example
     // this may match an $element['#type'] of 'webform_date' and set the
     // $element['#form_builder']['element_type'] to simply 'date'.
-    $element['#form_builder']['element_type'] = $map['form_builder_type'];
+    if (isset($map['form_builder_type'])) {
+      $element['#form_builder']['element_type'] = $map['form_builder_type'];
+    }
   }
   return $element;
 }
