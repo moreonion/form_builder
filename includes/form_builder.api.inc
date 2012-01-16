@@ -17,7 +17,9 @@ function form_builder_get_properties($form_type, $reset = FALSE) {
 
   if (!isset($properties[$form_type])) {
     // Get the list of all properties for all elements.
-    $properties = module_invoke_all('form_builder_properties', $form_type);
+    foreach (module_implements('form_builder_properties') as $module) {
+      $properties = array_merge($properties, module_invoke($module, 'form_builder_properties', $form_type));
+    }
     drupal_alter('form_builder_properties', $properties, $form_type);
   }
 

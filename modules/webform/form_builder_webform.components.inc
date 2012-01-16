@@ -40,76 +40,41 @@ function _form_builder_webform_form_builder_types_date() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_properties_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_properties_date() {
+function _form_builder_webform_form_builder_map_date() {
   return array(
-    'timezone' => array(
-      'form' => 'form_builder_webform_property_date_timezone_form',
-    ),
-    'year_start' => array(
-      'form' => 'form_builder_webform_property_date_year_start_form',
-    ),
-    'year_end' => array(
-      'form' => 'form_builder_webform_property_date_year_end_form',
-    ),
-    'year_textfield' => array(
-      'form' => 'form_builder_webform_property_date_year_textfield_form',
-    ),
-    'datepicker' => array(
-      'form' => 'form_builder_webform_property_date_datepicker_form',
+    'form_builder_type' => 'date',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'timezone' => array(
+        'form_parents' => array('default', 'timezone'),
+        'storage_parents' => array('extra', 'timezone'),
+      ),
+      'year_start' => array(
+        'form_parents' => array('validation', 'year_start'),
+        'storage_parents' => array('extra', 'year_start'),
+      ),
+      'year_end' => array(
+        'form_parents' => array('validation', 'year_end'),
+        'storage_parents' => array('extra', 'year_end'),
+      ),
+      'year_textfield' => array(
+        'form_parents' => array('display', 'year_textfield'),
+        'storage_parents' => array('extra', 'year_textfield'),
+      ),
+      'datepicker' => array(
+        'form_parents' => array('display', 'datepicker'),
+        'storage_parents' => array('extra', 'datepicker'),
+      ),
     ),
   );
-}
-
-/**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_date($component, $form_element) {
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  $component['extra']['timezone'] = isset($form_element['#timezone']) ? $form_element['#timezone'] : 'user';
-  $component['extra']['year_start'] = isset($form_element['#year_start']) ? $form_element['#year_start'] : '-2';
-  $component['extra']['year_end'] = isset($form_element['#year_end']) ? $form_element['#year_end'] : '+2';
-  $component['extra']['year_textfield'] = isset($form_element['#year_textfield']) ? $form_element['#year_textfield'] : FALSE;
-  $component['extra']['datepicker'] = isset($form_element['#datepicker']) ? $form_element['#datepicker'] : FALSE;
-  return $component;
-}
-
-/**
- * Configuration form for the "timezone" property.
- */
-function form_builder_webform_property_date_timezone_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('date', $element, 'timezone', NULL, array('extra', 'timezone'), array('extra', 'timezone'));
-}
-
-/**
- * Configuration form for the "year_start" property.
- */
-function form_builder_webform_property_date_year_start_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('date', $element, 'year_start', 'validation', array('validation', 'year_start'), array('extra', 'year_start'));
-}
-
-/**
- * Configuration form for the "year_end" property.
- */
-function form_builder_webform_property_date_year_end_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('date', $element, 'year_end', 'validation', array('validation', 'year_end'), array('extra', 'year_end'));
-}
-
-/**
- * Configuration form for the "year_textfield" property.
- */
-function form_builder_webform_property_date_year_textfield_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('date', $element, 'year_textfield', 'display', array('display', 'year_textfield'), array('extra', 'year_textfield'));
-}
-
-/**
- * Configuration form for the "datepicker" property.
- */
-function form_builder_webform_property_date_datepicker_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('date', $element, 'datepicker', 'display', array('display', 'datepicker'), array('extra', 'datepicker'));
 }
 
 /**
@@ -141,34 +106,33 @@ function _form_builder_webform_form_builder_types_email() {
     ),
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
-  $fields['email']['default'] = _form_builder_webform_form_builder_load_email($fields['email']['default']);
-
   $fields['email']['default']['#title'] = t('New e-mail');
 
   return $fields;
 }
 
 /**
- * Implements _form_builder_webform_form_builder_load_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_load_email($form_element) {
-  if (isset($form_element['#webform_component']['type']) && $form_element['#webform_component']['type'] == 'email') {
-    // Elements of type "webform_email" are known to Form Builder as simply an
-    // "email" field. This makes it so that we use the generic email icon.
-    $form_element['#form_builder']['element_type'] = 'email';
-  }
-  return $form_element;
-}
-
-/**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_email($component, $form_element) {
-  $component['extra']['width'] = isset($form_element['#size']) ? $form_element['#size'] : NULL;
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  return $component;
+function _form_builder_webform_form_builder_map_email() {
+  return array(
+    'form_builder_type' => 'email',
+    'properties' => array(
+      'size' => array(
+        'storage_parents' => array('extra', 'width'),
+      ),
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'disabled' => array(
+        'storage_parents' => array('extra', 'disabled'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -203,13 +167,23 @@ function _form_builder_webform_form_builder_types_fieldset() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_save_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_save_fieldset($component, $form_element) {
-  $component['extra']['collapsible'] = isset($form_element['#collapsible']) ? $form_element['#collapsible'] : NULL;
-  $component['extra']['collapsed'] = isset($form_element['#collapsed']) ? $form_element['#collapsed'] : NULL;
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : '';
-  return $component;
+function _form_builder_webform_form_builder_map_fieldset() {
+  return array(
+    'form_builder_type' => 'fieldset',
+    'properties' => array(
+      'collapsible' => array(
+        'storage_parents' => array('extra', 'collapsible'),
+      ),
+      'collapsed' => array(
+        'storage_parents' => array('extra', 'collapsed'),
+      ),
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -245,119 +219,56 @@ function _form_builder_webform_form_builder_types_file() {
   );
 
   $fields['file']['default'] = _form_builder_webform_default('file');
-  $fields['file']['default'] = _form_builder_webform_form_builder_load_file($fields['file']['default']);
   $fields['file']['default']['#title'] = t('New file');
 
   return $fields;
 }
 
 /**
- * Implements _form_builder_webform_form_builder_properties_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_properties_file() {
+function _form_builder_webform_form_builder_map_file() {
   return array(
-    'webform_file_filtering' => array(
-      'form' => 'form_builder_webform_property_webform_file_filtering_form',
-    ),
-    'webform_file_scheme' => array(
-      'form' => 'form_builder_webform_property_webform_file_scheme_form',
-    ),
-    'webform_file_directory' => array(
-      'form' => 'form_builder_webform_property_webform_file_directory_form',
-    ),
-    'webform_file_progress_indicator' => array(
-      'form' => 'form_builder_webform_property_webform_file_progress_indicator_form',
-    ),
-    'webform_file_width' => array(
-      'form' => 'form_builder_webform_property_webform_file_width_form',
+    'form_builder_type' => 'file',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'webform_file_filtering' => array(
+        'form_parents' => array('validation', 'filtering'),
+        'storage_parents' => array('extra', 'filtering'),
+      ),
+      'webform_file_directory' => array(
+        'form_parents' => array('extra', 'directory'),
+        'storage_parents' => array('extra', 'directory'),
+      ),
+      'webform_file_scheme' => array(
+        'form_parents' => array('extra', 'scheme'),
+        'storage_parents' => array('extra', 'scheme'),
+      ),
+      'webform_file_progress_indicator' => array(
+        'form_parents' => array('display', 'progress_indicator'),
+        'storage_parents' => array('extra', 'progress_indicator'),
+      ),
     ),
   );
 }
 
 /**
- * Implements _form_builder_webform_form_builder_load_component().
+ * Implements _form_builder_webform_form_builder_preview_alter_component().
  */
-function _form_builder_webform_form_builder_load_file($form_element) {
-  // If we are loading a file element, _webform_render_file() adds some extra
-  // structure (including several element children) that we don't want here.
-  // Instead, we need the element itself to represent the file component
-  // directly.
-  if (isset($form_element['#webform_component']['type']) && $form_element['#webform_component']['type'] == 'file') {
-    // Elements of type "managed_file" are known to Form Builder as simply an
-    // "file" field. This makes it so that we use the generic file icon.
-    $form_element['#form_builder']['element_type'] = 'file';
+function _form_builder_webform_form_builder_preview_alter_file($form_element) {
 
-    // Set the custom webform file properties based on the values stored with
-    // the webform component.
-    if (isset($form_element['#webform_component']['extra']['filtering'])) {
-      $form_element['#webform_file_filtering'] = $form_element['#webform_component']['extra']['filtering'];
-    }
-    if (isset($form_element['#webform_component']['extra']['scheme'])) {
-      $form_element['#webform_file_scheme'] = $form_element['#webform_component']['extra']['scheme'];
-    }
-    if (isset($form_element['#webform_component']['extra']['directory'])) {
-      $form_element['#webform_file_directory'] = $form_element['#webform_component']['extra']['directory'];
-    }
-    if (isset($form_element['#webform_component']['extra']['progress_indicator'])) {
-      $form_element['#webform_file_progress_indicator'] = $form_element['#webform_component']['extra']['progress_indicator'];
-    }
-    if (isset($form_element['#webform_component']['extra']['width'])) {
-      $form_element['#webform_file_width'] = $form_element['#webform_component']['extra']['width'];
-    }
-  }
+  // Remove AJAX wrappers.
+  $form_element['#prefix'] = '';
+  $form_element['#suffix'] = '';
+  $form_element['upload_button']['#disabled'] = TRUE;
 
   return $form_element;
-}
-
-/**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_file($component, $form_element) {
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  $component['extra']['filtering'] = isset($form_element['#webform_file_filtering']) ? $form_element['#webform_file_filtering'] : array();
-  $component['extra']['scheme'] = isset($form_element['#webform_file_scheme']) ? $form_element['#webform_file_scheme'] : NULL;
-  $component['extra']['directory'] = isset($form_element['#webform_file_directory']) ? $form_element['#webform_file_directory'] : NULL;
-  $component['extra']['progress_indicator'] = isset($form_element['#webform_file_progress_indicator']) ? $form_element['#webform_file_progress_indicator'] : NULL;
-  $component['extra']['width'] = isset($form_element['#webform_file_width']) ? $form_element['#webform_file_width'] : NULL;
-
-  return $component;
-}
-
-/**
- * Configuration form for the "webform_file_filtering" property.
- */
-function form_builder_webform_property_webform_file_filtering_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_filtering', 'validation', array('validation', 'filtering'), array('extra', 'filtering'));
-}
-
-/**
- * Configuration form for the "webform_file_scheme" property.
- */
-function form_builder_webform_property_webform_file_scheme_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_scheme', 'default', array('extra', 'scheme'), array('extra', 'scheme'));
-}
-
-/**
- * Configuration form for the "webform_file_directory" property.
- */
-function form_builder_webform_property_webform_file_directory_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_directory', 'default', array('extra', 'directory'), array('extra', 'directory'));
-}
-
-/**
- * Configuration form for the "webform_file_progress_indicator" property.
- */
-function form_builder_webform_property_webform_file_progress_indicator_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_progress_indicator', 'display', array('display', 'progress_indicator'), array('extra', 'progress_indicator'));
-}
-
-/**
- * Configuration form for the "webform_file_width" property.
- */
-function form_builder_webform_property_webform_file_width_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('file', $element, 'webform_file_width', 'display', array('display', 'width'), array('extra', 'width'));
 }
 
 /**
@@ -401,6 +312,32 @@ function _form_builder_webform_form_builder_types_grid() {
 }
 
 /**
+ * Implements _form_builder_webform_form_builder_map_component().
+ */
+function _form_builder_webform_form_builder_map_grid() {
+  return array(
+    'form_builder_type' => 'grid',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'optrand' => array(
+        'form_parents' => array('display', 'optrand'),
+        'storage_parents' => array('extra', 'optrand'),
+      ),
+      'qrand' => array(
+        'form_parents' => array('display', 'qrand'),
+        'storage_parents' => array('extra', 'qrand'),
+      ),
+    ),
+  );
+}
+
+/**
  * Implements _form_builder_webform_form_builder_properties_component().
  */
 function _form_builder_webform_form_builder_properties_grid() {
@@ -413,12 +350,6 @@ function _form_builder_webform_form_builder_properties_grid() {
       'form' => 'form_builder_webform_property_grid_questions_form',
       'submit' => array('form_builder_webform_property_grid_form_submit'),
     ),
-    'optrand' => array(
-      'form' => 'form_builder_webform_property_grid_optrand_form'
-    ),
-    'qrand' => array(
-      'form' => 'form_builder_webform_property_grid_qrand_form'
-    ),
   );
 }
 
@@ -426,15 +357,10 @@ function _form_builder_webform_form_builder_properties_grid() {
  * Implements _form_builder_webform_form_builder_load_component().
  */
 function _form_builder_webform_form_builder_load_grid($element) {
-  if (isset($element['#type']) && $element['#type'] == 'webform_grid') {
-    // Elements of type "webform_grid" are known to Form Builder as simply a
-    // "grid" field. This makes it so that we use the generic grid icon.
-    $element['#form_builder']['element_type'] = 'grid';
+  // Convert properties used only in Form Builder.
+  $element['#custom_grid_option_keys'] = !empty($element['#webform_component']['extra']['custom_option_keys']);
+  $element['#custom_grid_question_keys'] = !empty($element['#webform_component']['extra']['custom_question_keys']);
 
-    // Convert properties used only in Form Builder.
-    $element['#custom_grid_option_keys'] = !empty($element['#webform_component']['extra']['custom_option_keys']);
-    $element['#custom_grid_question_keys'] = !empty($element['#webform_component']['extra']['custom_question_keys']);
-  }
   return $element;
 }
 
@@ -453,14 +379,10 @@ function _form_builder_webform_form_builder_save_grid($component, $form_element)
     $questions .= $key . '|' . $question_value . "\n";
   }
 
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
   $component['extra']['options'] = $options;
   $component['extra']['questions'] = $questions;
   $component['extra']['custom_option_keys'] = isset($form_element['#custom_grid_option_keys']) ? $form_element['#custom_grid_option_keys'] : FALSE;
   $component['extra']['custom_question_keys'] =  isset($form_element['#custom_grid_question_keys']) ? $form_element['#custom_grid_question_keys'] : FALSE;
-  $component['extra']['optrand'] = !empty($form_element['#optrand']);
-  $component['extra']['qrand'] = !empty($form_element['#qrand']);
 
   return $component;
 }
@@ -502,20 +424,6 @@ function form_builder_webform_property_grid_form_submit(&$form, &$form_state) {
     $form_state['values']['grid_questions'] = _webform_select_options_from_text($form_state['values']['extra']['grid_questions']);
     $form_state['values']['custom_grid_question_keys'] = $form_state['values']['extra']['custom_grid_question_keys'];
   }
-}
-
-/**
- * Configuration form for the "optrand" property.
- */
-function form_builder_webform_property_grid_optrand_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('grid', $element, 'optrand', 'display', array('display', 'optrand'), array('extra', 'optrand'));
-}
-
-/**
- * Configuration form for the "qrand" property.
- */
-function form_builder_webform_property_grid_qrand_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('grid', $element, 'qrand', 'display', array('display', 'qrand'), array('extra', 'qrand'));
 }
 
 /**
@@ -608,13 +516,20 @@ function _form_builder_webform_form_builder_types_markup() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_save_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_save_markup($component, $form_element) {
-  $component['value'] = $form_element['#markup'];
-  $component['extra']['format'] = isset($form_element['#format']) ? $form_element['#format'] : filter_default_format();
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  return $component;
+function _form_builder_webform_form_builder_map_markup() {
+  return array(
+    'form_builder_type' => 'markup',
+    'properties' => array(
+      'markup' => array(
+        'storage_parents' => array('value'),
+      ),
+      'format' => array(
+        'storage_parents' => array('extra', 'format'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -694,8 +609,12 @@ function _form_builder_webform_form_builder_map_number() {
   return array(
     'form_builder_type' => 'number',
     'properties' => array(
-      'maxlength' => array(
-        'storage_parents' => array('extra', 'maxlength'),
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
       ),
       'field_prefix' => array(
         'storage_parents' => array('extra', 'field_prefix'),
@@ -844,7 +763,6 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['select']['default']['#options'] = array(t('one'), t('two'), t('three'));
   $fields['select']['default']['#default_value'] = 0;
   $fields['select']['default']['#title'] = t('New select');
-  $fields['select']['default']['#webform'] = array('type' => 'select');
 
   $fields['checkboxes'] = array(
     'title' => t('Checkboxes'),
@@ -863,7 +781,6 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['checkboxes']['default']['#options'] = array(t('one'), t('two'), t('three'));
   $fields['checkboxes']['default']['#default_value'] = array(0, 1);
   $fields['checkboxes']['default']['#title'] = t('New checkboxes');
-  $fields['checkboxes']['default']['#webform'] = array('type' => 'select');
 
   $fields['radios'] = array(
     'title' => t('Radios'),
@@ -881,22 +798,25 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['radios']['default']['#options'] = array(t('one'), t('two'), t('three'));
   $fields['radios']['default']['#default_value'] = 0;
   $fields['radios']['default']['#title'] = t('New radios');
-  $fields['radios']['default']['#webform'] = array('type' => 'select');
 
   return $fields;
 }
 
 /**
- * Implements _form_builder_webform_form_builder_load_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_load_select($form_element) {
-  if (in_array($form_element['#type'], array('radios', 'checkboxes', 'select'))) {
-    $form_element['#webform']['type'] = 'select';
-    if ($form_element['#type'] == 'checkboxes') {
-      $form_element['#multiple'] = TRUE;
-    }
-    return $form_element;
-  }
+function _form_builder_webform_form_builder_map_select() {
+  return array(
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -912,8 +832,7 @@ function _form_builder_webform_form_builder_save_select($component, $form_elemen
   $component['extra']['items'] = $options;
   $component['extra']['multiple'] = $form_element['#form_builder']['element_type'] == 'checkboxes';
   $component['extra']['aslist'] = $form_element['#form_builder']['element_type'] == 'select';
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : '';
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
+
   return $component;
 }
 
@@ -952,15 +871,30 @@ function _form_builder_webform_form_builder_types_textarea() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_save_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_save_textarea($component, $form_element) {
-  $component['extra']['description'] = $form_element['#description'];
-  $component['extra']['cols'] = $form_element['#cols'];
-  $component['extra']['rows'] = $form_element['#rows'];
-  $component['extra']['disabled'] = empty($form_element['#disabled']) ? NULL : TRUE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  return $component;
+function _form_builder_webform_form_builder_map_textarea() {
+  return array(
+    'form_builder_type' => 'textarea',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'cols' => array(
+        'storage_parents' => array('extra', 'cols'),
+      ),
+      'rows' => array(
+        'storage_parents' => array('extra', 'rows'),
+      ),
+      'disabled' => array(
+        'storage_parents' => array('extra', 'disabled'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -1000,17 +934,36 @@ function _form_builder_webform_form_builder_types_textfield() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_save_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_save_textfield($component, $form_element) {
-  $component['extra']['width'] = isset($form_element['#size']) ? $form_element['#size'] : NULL;
-  $component['extra']['maxlength'] = isset($form_element['#maxlength']) ? $form_element['#maxlength'] : NULL;
-  $component['extra']['field_prefix'] = isset($form_element['#field_prefix']) ? $form_element['#field_prefix'] : NULL;
-  $component['extra']['field_suffix'] = isset($form_element['#field_suffix']) ? $form_element['#field_suffix'] : NULL;
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  return $component;
+function _form_builder_webform_form_builder_map_textfield() {
+  return array(
+    'form_builder_type' => 'textfield',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'size' => array(
+        'storage_parents' => array('extra', 'width'),
+      ),
+      'maxlength' => array(
+        'storage_parents' => array('extra', 'maxlength'),
+      ),
+      'field_prefix' => array(
+        'storage_parents' => array('extra', 'field_prefix'),
+      ),
+      'field_suffix' => array(
+        'storage_parents' => array('extra', 'field_suffix'),
+      ),
+      'disabled' => array(
+        'storage_parents' => array('extra', 'disabled'),
+      ),
+    ),
+  );
 }
 
 /**
@@ -1048,56 +1001,31 @@ function _form_builder_webform_form_builder_types_time() {
   return $fields;
 }
 
+
 /**
- * Implements _form_builder_webform_form_builder_properties_component().
+ * Implements _form_builder_webform_form_builder_map_component().
  */
-function _form_builder_webform_form_builder_properties_time() {
+function _form_builder_webform_form_builder_map_time() {
   return array(
-    'timezone' => array(
-      'form' => 'form_builder_webform_property_time_timezone_form',
-    ),
-    'hourformat' => array(
-      'form' => 'form_builder_webform_property_time_hourformat_form',
+    'form_builder_type' => 'time',
+    'properties' => array(
+      'description' => array(
+        'storage_parents' => array('extra', 'description'),
+      ),
+      'title_display' => array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      ),
+      'timezone' => array(
+        'form_parents' => array('extra', 'timezone'),
+        'storage_parents' => array('extra', 'timezone'),
+      ),
+      'hourformat' => array(
+        'storage_parents' => array('display', 'hourformat'),
+        'storage_parents' => array('extra', 'hourformat'),
+      ),
     ),
   );
-}
-
-/**
- * Implements _form_builder_webform_form_builder_load_component().
- */
-function _form_builder_webform_form_builder_load_time($element) {
-  if (isset($element['#type']) && $element['#type'] == 'webform_time') {
-    // Elements of type "webform_time" are known to Form Builder as simply a
-    // "time" field. This makes it so that we use the generic time icon.
-    $element['#form_builder']['element_type'] = 'time';
-  }
-  return $element;
-}
-
-/**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_time($component, $form_element) {
-  $component['extra']['description'] = isset($form_element['#description']) ? $form_element['#description'] : NULL;
-  $component['extra']['disabled'] = isset($form_element['#disabled']) ? $form_element['#disabled'] : FALSE;
-  $component['extra']['title_display'] = isset($form_element['#title_display']) ? $form_element['#title_display'] : 'before';
-  $component['extra']['timezone'] = isset($form_element['#timezone']) ? $form_element['#timezone'] : 'user';
-  $component['extra']['hourformat'] = isset($form_element['#hourformat']) ? $form_element['#hourformat'] : '12-hour';
-  return $component;
-}
-
-/**
- * Configuration form for the "timezone" property.
- */
-function form_builder_webform_property_time_timezone_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('time', $element, 'timezone', NULL, array('extra', 'timezone'), array('extra', 'timezone'));
-}
-
-/**
- * Configuration form for the "hourformat" property.
- */
-function form_builder_webform_property_time_hourformat_form(&$form_state, $form_type, $element) {
-  return _form_builder_webform_build_edit_form('time', $element, 'hourformat', 'display', array('display', 'hourformat'), array('extra', 'hourformat'));
 }
 
 /**
@@ -1167,6 +1095,7 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
   $default_element = webform_component_invoke($component_type, 'render', $default_component, NULL, FALSE);
 
   // Set a bare-minimum component for identification of the component type.
+  $default_element['#webform_component'] = $default_component;
   $default_element['#webform_component']['type'] = $component_type;
 
   // Call the loading function to make sure that the default element gets the
@@ -1214,6 +1143,8 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
  *   component represented by $element.
  */
 function _form_builder_webform_build_edit_form($component_type, $element, $property, $form_builder_property_group, $form_nested_keys, $component_nested_keys) {
+  module_load_include('inc', 'webform', 'includes/webform.components');
+
   // The Webform module stores existing component data as part of the passed-in
   // element. If the component doesn't exist yet, initialize a default
   // component.
@@ -1229,8 +1160,10 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
 
   // Build the entire _webform_edit_file() form based on the current state of
   // the component, and obtain the slice of it that we want.
-  $edit_function = '_webform_edit_' . $component_type;
-  $form = $edit_function($component);
+  $empty_form = array();
+  $empty_form_state = form_state_defaults();
+  $node = (object) array('nid' => NULL);
+  $form = webform_component_edit_form($empty_form, $empty_form_state, $node, $component);
   $form = drupal_array_get_nested_value($form, $form_nested_keys);
 
   // Force the form to have a consistent #tree structure so it will appear in
