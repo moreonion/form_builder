@@ -172,6 +172,9 @@ function form_builder_form_builder_properties($form_type) {
     'description' => array(
       'form' => 'form_builder_property_description_form',
     ),
+    'disabled' => array(
+      'form' => 'form_builder_property_disabled_form',
+    ),
     'weight' => array(
       'form' => 'form_builder_property_weight_form',
     ),

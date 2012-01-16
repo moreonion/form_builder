@@ -137,6 +137,7 @@ function _form_builder_webform_form_builder_types_email() {
       'size',
       'key',
       'title_display',
+      'disabled',
     ),
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
@@ -940,6 +941,7 @@ function _form_builder_webform_form_builder_types_textfield() {
       'size',
       'key',
       'title_display',
+      'disabled',
     ),
   );
   $fields['textfield']['default'] = _form_builder_webform_default('textfield');

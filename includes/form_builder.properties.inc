@@ -142,6 +142,23 @@ function form_builder_property_description_form(&$form_state, $form_type, $eleme
 }
 
 /**
+ * Configuration form for the "disabled" property.
+ */
+function form_builder_property_disabled_form(&$form_state, $form_type, $element, $property) {
+  $form = array();
+
+  $form['disabled'] = array(
+    '#form_builder' => array('property_group' => 'display'),
+    '#title' => t('Disabled (read-only)'),
+    '#type' => 'checkbox',
+    '#default_value' => $element['#disabled'],
+    '#weight' => 12,
+  );
+
+  return $form;
+}
+
+/**
  * Configuration form for the "required" property.
  */
 function form_builder_property_required_form(&$form_state, $form_type, $element, $property) {
