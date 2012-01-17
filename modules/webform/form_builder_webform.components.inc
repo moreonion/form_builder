@@ -18,20 +18,6 @@ function _form_builder_webform_form_builder_types_date() {
 
   $fields['date'] = array(
     'title' => t('Date'),
-    'properties' => array(
-      'title',
-      'description',
-      'default_value',
-      'required',
-      'key',
-      'title_display',
-      // Date-specific properties.
-      'timezone',
-      'year_start',
-      'year_end',
-      'year_textfield',
-      'datepicker',
-    ),
   );
   $fields['date']['default'] = _form_builder_webform_default('date');
   $fields['date']['default']['#title'] = t('New date');
@@ -46,13 +32,6 @@ function _form_builder_webform_form_builder_map_date() {
   return array(
     'form_builder_type' => 'date',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'timezone' => array(
         'form_parents' => array('default', 'timezone'),
         'storage_parents' => array('extra', 'timezone'),
@@ -94,16 +73,6 @@ function _form_builder_webform_form_builder_types_email() {
 
   $fields['email'] = array(
     'title' => t('E-mail'),
-    'properties' => array(
-      'title',
-      'description',
-      'default_value',
-      'required',
-      'size',
-      'key',
-      'title_display',
-      'disabled',
-    ),
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
   $fields['email']['default']['#title'] = t('New e-mail');
@@ -120,13 +89,6 @@ function _form_builder_webform_form_builder_map_email() {
     'properties' => array(
       'size' => array(
         'storage_parents' => array('extra', 'width'),
-      ),
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
@@ -152,13 +114,6 @@ function _form_builder_webform_form_builder_types_fieldset() {
 
   $fields['fieldset'] = array(
     'title' => t('Fieldset'),
-    'properties' => array(
-      'title',
-      'description',
-      'collapsible',
-      'collapsed',
-      'key',
-    ),
   );
   $fields['fieldset']['default'] = _form_builder_webform_default('fieldset');
   $fields['fieldset']['default']['#title'] = t('New fieldset');
@@ -178,9 +133,6 @@ function _form_builder_webform_form_builder_map_fieldset() {
       ),
       'collapsed' => array(
         'storage_parents' => array('extra', 'collapsed'),
-      ),
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
       ),
     ),
   );
@@ -203,19 +155,6 @@ function _form_builder_webform_form_builder_types_file() {
 
   $fields['file'] = array(
     'title' => t('File'),
-    'properties' => array(
-      'title',
-      'description',
-      'required',
-      'key',
-      'title_display',
-      'webform_file_filtering',
-      'webform_file_scheme',
-      'webform_file_directory',
-      'webform_file_progress_indicator',
-      // TODO: The manged_file element in core doesn't support #size (or width).
-      //'webform_file_width',
-    ),
   );
 
   $fields['file']['default'] = _form_builder_webform_default('file');
@@ -231,13 +170,6 @@ function _form_builder_webform_form_builder_map_file() {
   return array(
     'form_builder_type' => 'file',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'webform_file_filtering' => array(
         'form_parents' => array('validation', 'filtering'),
         'storage_parents' => array('extra', 'filtering'),
@@ -289,18 +221,11 @@ function _form_builder_webform_form_builder_types_grid() {
   $fields['grid'] = array(
     'title' => t('Grid'),
     'properties' => array(
-      'title',
-      'description',
-      'required',
-      'key',
-      'title_display',
       // Grid-specific properties.
       'grid_options',
       'grid_questions',
       'custom_grid_option_keys',
       'custom_grid_question_keys',
-      'optrand',
-      'qrand',
     ),
   );
   $fields['grid']['default'] = _form_builder_webform_default('grid');
@@ -318,13 +243,6 @@ function _form_builder_webform_form_builder_map_grid() {
   return array(
     'form_builder_type' => 'grid',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'optrand' => array(
         'form_parents' => array('display', 'optrand'),
         'storage_parents' => array('extra', 'optrand'),
@@ -443,11 +361,6 @@ function _form_builder_webform_form_builder_types_hidden() {
 
   $fields['hidden'] = array(
     'title' => t('Hidden'),
-    'properties' => array(
-      'title',
-      'default_value',
-      'key',
-    ),
   );
   $fields['hidden']['default'] = _form_builder_webform_default('hidden');
   $fields['hidden']['default']['#title'] = t('New hidden');
@@ -502,10 +415,8 @@ function _form_builder_webform_form_builder_types_markup() {
   $fields['markup'] = array(
     'title' => t('Markup'),
     'properties' => array(
-      'title',
       'markup',
       'format',
-      'key',
     ),
   );
   $fields['markup']['default'] = _form_builder_webform_default('markup');
@@ -573,27 +484,6 @@ function _form_builder_webform_form_builder_types_number() {
 
   $fields['number'] = array(
     'title' => t('Number'),
-    'properties' => array(
-      'title',
-      'description',
-      'required',
-      'key',
-      'title_display',
-      'default_value',
-      'field_prefix',
-      'field_suffix',
-      // Number-specific properties.
-      // TODO: Implement the number type support when possible through Webform.
-      //'number_type',
-      'min',
-      'max',
-      'step',
-      'decimals',
-      'point',
-      'separator',
-      'integer',
-      'excludezero',
-    ),
   );
 
   $fields['number']['default'] = _form_builder_webform_default('number');
@@ -609,23 +499,17 @@ function _form_builder_webform_form_builder_map_number() {
   return array(
     'form_builder_type' => 'number',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'field_prefix' => array(
         'storage_parents' => array('extra', 'field_prefix'),
       ),
       'field_suffix' => array(
         'storage_parents' => array('extra', 'field_suffix'),
       ),
-      'number_type' => array(
-        'form_parents' => array('display', 'type'),
-        'storage_parents' => array('extra', 'type'),
-      ),
+      // TODO: Add this option when the live preview can support it.
+      //'number_type' => array(
+      //  'form_parents' => array('display', 'type'),
+      //  'storage_parents' => array('extra', 'type'),
+      //),
       'min' => array(
         'form_parents' => array('validation', 'min'),
         'storage_parents' => array('extra', 'min'),
@@ -679,10 +563,6 @@ function _form_builder_webform_form_builder_types_pagebreak() {
 
   $fields['pagebreak'] = array(
     'title' => t('Page break'),
-    'properties' => array(
-      'title',
-      'key',
-    ),
     'default' => array(
       '#title' => t('Page break'),
       '#type' => 'pagebreak',
@@ -749,15 +629,9 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['select'] = array(
     'title' => t('Select list'),
     'properties' => array(
-      'title',
-      'description',
       'default_value',
-      'required',
       'options',
       'multiple',
-      'key',
-      'title_display',
-      'key_type_toggled',
     ),
   );
   $fields['select']['default'] = _form_builder_webform_default('select', array('aslist' => TRUE, 'multiple' => FALSE));
@@ -768,15 +642,9 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['checkboxes'] = array(
     'title' => t('Checkboxes'),
     'properties' => array(
-      'title',
-      'description',
       'default_value',
-      'required',
       'options',
       'multiple',
-      'key',
-      'title_display',
-      'key_type_toggled',
     ),
   );
   $fields['checkboxes']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => TRUE));
@@ -787,14 +655,8 @@ function _form_builder_webform_form_builder_types_select() {
   $fields['radios'] = array(
     'title' => t('Radios'),
     'properties' => array(
-      'title',
-      'description',
       'default_value',
-      'required',
       'options',
-      'key',
-      'title_display',
-      'key_type_toggled',
     ),
   );
   $fields['radios']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => FALSE));
@@ -811,13 +673,6 @@ function _form_builder_webform_form_builder_types_select() {
 function _form_builder_webform_form_builder_map_select() {
   return array(
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'key_type_toggled' => array(
         'storage_parents' => array('extra', 'custom_keys'),
       ),
@@ -891,16 +746,6 @@ function _form_builder_webform_form_builder_types_textarea() {
 
   $fields['textarea'] = array(
     'title' => t('Textarea'),
-    'properties' => array(
-      'title',
-      'description',
-      'default_value',
-      'required',
-      'rows',
-      'cols',
-      'key',
-      'title_display',
-    ),
   );
   $fields['textarea']['default'] = _form_builder_webform_default('textarea');
   $fields['textarea']['default']['#title'] = t('New textarea');
@@ -915,13 +760,6 @@ function _form_builder_webform_form_builder_map_textarea() {
   return array(
     'form_builder_type' => 'textarea',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'cols' => array(
         'storage_parents' => array('extra', 'cols'),
       ),
@@ -952,18 +790,6 @@ function _form_builder_webform_form_builder_types_textfield() {
 
   $fields['textfield'] = array(
     'title' => t('Textfield'),
-    'properties' => array(
-      'title',
-      'description',
-      'field_prefix',
-      'field_suffix',
-      'default_value',
-      'required',
-      'size',
-      'key',
-      'title_display',
-      'disabled',
-    ),
   );
   $fields['textfield']['default'] = _form_builder_webform_default('textfield');
   $fields['textfield']['default']['#title'] = t('New textfield');
@@ -978,13 +804,6 @@ function _form_builder_webform_form_builder_map_textfield() {
   return array(
     'form_builder_type' => 'textfield',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'size' => array(
         'storage_parents' => array('extra', 'width'),
       ),
@@ -1021,17 +840,6 @@ function _form_builder_webform_form_builder_types_time() {
 
   $fields['time'] = array(
     'title' => t('Time'),
-    'properties' => array(
-      'title',
-      'description',
-      'default_value',
-      'required',
-      'key',
-      'title_display',
-      // Date-specific properties.
-      'timezone',
-      'hourformat',
-    ),
   );
   $fields['time']['default'] = _form_builder_webform_default('time');
   $fields['time']['default']['#title'] = t('New time');
@@ -1047,13 +855,6 @@ function _form_builder_webform_form_builder_map_time() {
   return array(
     'form_builder_type' => 'time',
     'properties' => array(
-      'description' => array(
-        'storage_parents' => array('extra', 'description'),
-      ),
-      'title_display' => array(
-        'form_parents' => array('display', 'title_display'),
-        'storage_parents' => array('extra', 'title_display'),
-      ),
       'timezone' => array(
         'form_parents' => array('extra', 'timezone'),
         'storage_parents' => array('extra', 'timezone'),
@@ -1076,7 +877,7 @@ function _form_builder_webform_form_builder_map_time() {
 function _form_builder_webform_mapped_form(&$form_state, $form_type, $element, $property) {
   $form = array();
   if ($component_type = $element['#webform_component']['type']) {
-    if ($map = form_builder_webform_component_invoke($component_type, 'form_builder_map')) {
+    if ($map = _form_builder_webform_property_map($component_type)) {
       $property_group = isset($map['properties'][$property]['property_group']) ? $map['properties'][$property]['property_group'] : reset($map['properties'][$property]['form_parents']);
       $form = _form_builder_webform_build_edit_form($component_type, $element, $property, $property_group, $map['properties'][$property]['form_parents'], $map['properties'][$property]['storage_parents']);
     }
@@ -1088,7 +889,7 @@ function _form_builder_webform_mapped_form(&$form_state, $form_type, $element, $
  * Helper function; Save an element to a Webform component based on a map.
  */
 function _form_builder_webform_save_mapped_component($component, $element) {
-  if ($map = form_builder_webform_component_invoke($component['type'], 'form_builder_map')) {
+  if ($map = _form_builder_webform_property_map($component['type'])) {
     foreach ($map['properties'] as $property => $property_map) {
       if (isset($element['#' . $property]) && isset($property_map['storage_parents'])) {
         _form_builder_webform_save_mapped_component_value($component, $element['#' . $property], $property_map['storage_parents']);
@@ -1115,7 +916,7 @@ function _form_builder_webform_save_mapped_component_value(&$component, $value, 
  * Helper function; Alter a form element upon load based on a map.
  */
 function _form_builder_webform_set_mapped_type($element) {
-  if ($map = form_builder_webform_component_invoke($element['#webform_component']['type'], 'form_builder_map')) {
+  if ($map = _form_builder_webform_property_map($element['#webform_component']['type'])) {
     // Keep the internal type of this element as the component type. For example
     // this may match an $element['#type'] of 'webform_date' and set the
     // $element['#form_builder']['element_type'] to simply 'date'.
