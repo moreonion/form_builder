@@ -218,6 +218,13 @@ function form_builder_webform_form_builder_types() {
   $components = webform_components();
   foreach ($components as $type => $component) {
     if ($additional_fields = form_builder_webform_component_invoke($type, 'form_builder_types')) {
+      if ($map = _form_builder_webform_property_map($type)) {
+        foreach ($additional_fields as $field_name => $field_type) {
+          foreach ($map['properties'] as $property_name => $property_info) {
+            $additional_fields[$field_name]['properties'][] = $property_name;
+          }
+        }
+      }
       $fields = array_merge($fields, $additional_fields);
     }
   }
@@ -235,7 +242,7 @@ function form_builder_webform_form_builder_properties($form_type) {
     $components = webform_components();
     foreach ($components as $component_type => $component) {
       // Components providing a map to automatically list properties.
-      if ($map = form_builder_webform_component_invoke($component_type, 'form_builder_map')) {
+      if ($map = _form_builder_webform_property_map($component_type)) {
         foreach ($map['properties'] as $property_name => $property_map) {
           if (isset($property_map['form_parents'])) {
             $properties[$property_name] = array(
@@ -410,4 +417,56 @@ function form_builder_webform_component_invoke($component_type, $callback) {
  */
 function _webform_render_pagebreak_clone($component, $value = NULL, $filter = TRUE) {
   return webform_component_invoke('pagebreak', 'render', $component, $value, $filter);
+}
+
+/**
+ * Helper function; Retrieve a component's map and merge in generic properties.
+ */
+function _form_builder_webform_property_map($component_type) {
+  static $maps;
+
+  if (!isset($maps[$component_type])) {
+    module_load_include('inc', 'webform', 'includes/webform.components');
+    $map = form_builder_webform_component_invoke($component_type, 'form_builder_map');
+    $map = $map ? $map : array();
+
+    if (webform_component_feature($component_type, 'title')) {
+      $map['properties']['title'] = array();
+    }
+
+    if (webform_component_feature($component_type, 'title_display')) {
+      $map['properties']['title_display'] = array(
+        'form_parents' => array('display', 'title_display'),
+        'storage_parents' => array('extra', 'title_display'),
+      );
+    }
+
+    if (webform_component_feature($component_type, 'default_value')) {
+      $map['properties']['default_value'] = array();
+    }
+
+    if (webform_component_feature($component_type, 'description')) {
+      $map['properties']['description'] = array(
+        'storage_parents' => array('extra', 'description'),
+      );
+    }
+
+    if (webform_component_feature($component_type, 'private')) {
+      $map['properties']['private'] = array(
+        'form_parents' => array('display', 'private'),
+        'storage_parents' => array('extra', 'private'),
+      );
+    }
+  
+    if (webform_component_feature($component_type, 'required')) {
+      $map['properties']['required'] = array();
+    }
+  
+    // All components support the key property.
+    $map['properties']['key'] = array();
+
+    $maps[$component_type] = $map;
+  }
+
+  return $maps[$component_type];
 }
