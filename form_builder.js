@@ -201,7 +201,8 @@ Drupal.behaviors.formBuilderBlockScroll.attach = function(context) {
         return;
       }
 
-      var windowOffset = $(window).scrollTop() + parseInt($('body.toolbar').css('padding-top'));
+      var toolbarHeight = parseInt($('body.toolbar').css('padding-top'));
+      var windowOffset = $(window).scrollTop() + (toolbarHeight ? toolbarHeight : 0);
       var blockHeight = $block.height();
       var formBuilderHeight = $('#form-builder').height();
       if (windowOffset - blockScrollStart > 0) {
