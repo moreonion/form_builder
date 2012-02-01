@@ -91,13 +91,16 @@ Drupal.behaviors.formBuilder = function(context) {
     stop: Drupal.formBuilder.stopDrag
   });
 
-  // This sets the height of the drag target to be at least as hight as the field
+  // This sets the height of the drag target to be at least as high as the field
   // palette so that field can be more easily dropped into an empty form.  IE6
   // does not respect min-height but does treat height in the same manner that
   // min-height would be expected.  So a check for browser and version is needed
   // here.
   var property = $.browser.msie && $.browser.version < 7 ? 'height' : 'min-height';
   $formbuilder.css(property, $('#form-builder-fields').height());
+
+  // Add the placeholder for an empty form.
+  Drupal.formBuilder.checkForm();
 };
 
 /**
@@ -370,7 +373,9 @@ Drupal.formBuilder.deleteField = function() {
     $('ul.form-builder-fields').find('li.' + elementId).show('slow');
     // Remove the field from the form.
     $(this).remove();
-    // Check for empty fieldsets.
+
+    // Check for an entirely empty form and for empty fieldsets.
+    Drupal.formBuilder.checkForm();
     Drupal.formBuilder.checkFieldsets(null, null, true);
   });
 };
@@ -754,6 +759,16 @@ Drupal.formBuilder.checkFieldsets = function(exclusions) {
       $(this).find('.form-builder-empty-placeholder').remove();
     }
   });
+};
+
+/**
+ * Check the root form tag and place explanatory text if the form is empty.
+ */
+Drupal.formBuilder.checkForm = function () {
+  var $formBuilder = $('#form-builder');
+  if ($formBuilder.children('div.form-builder-wrapper').length == 0) {
+    $formBuilder.append(Drupal.settings.formBuilder.emptyForm);
+  }
 };
 
 Drupal.formBuilder.setActive = function(element, link) {

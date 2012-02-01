@@ -69,6 +69,10 @@ function form_builder_theme() {
       'arguments' => array('element' => NULL, 'content' => NULL),
       'file' => 'includes/form_builder.admin.inc',
     ),
+    'form_builder_empty_form' => array(
+      'arguments' => array(),
+      'file' => 'includes/form_builder.admin.inc',
+    ),
     'form_builder_empty_fieldset' => array(
       'arguments' => array(),
       'file' => 'includes/form_builder.admin.inc',

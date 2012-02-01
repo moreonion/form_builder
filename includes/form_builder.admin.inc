@@ -333,6 +333,17 @@ function theme_form_builder_element_wrapper($element, $content) {
 }
 
 /**
+ * Placeholder for an entirely empty form before any fields are added.
+ */
+function theme_form_builder_empty_form() {
+  $output = '';
+  $output .= '<div class="form-builder-empty-form form-builder-empty-placeholder">';
+  $output .= '<span>' . t('Drag a field from the palette to add it to this form.') . '</span>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
  * Placeholder for empty fieldsets during drag and drop.
  */
 function theme_form_builder_empty_fieldset() {
@@ -463,6 +474,7 @@ function form_builder_pre_render_form($form) {
   drupal_add_js('misc/collapse.js');
 
   $settings = array(
+    'emptyForm' => theme('form_builder_empty_form'),
     'emptyFieldset' => theme('form_builder_empty_fieldset'),
     'noFieldSelected' => theme('form_builder_no_field_selected'),
     'fieldLoading' => theme('form_builder_field_loading'),
