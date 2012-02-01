@@ -203,6 +203,7 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
   $form['#attached']['js'][] = 'misc/machine-name.js';
 
   $settings = array(
+    'emptyForm' => theme('form_builder_empty_form'),
     'emptyFieldset' => theme('form_builder_empty_fieldset'),
     'noFieldSelected' => theme('form_builder_no_field_selected'),
     'fieldLoading' => theme('form_builder_field_loading'),
@@ -366,6 +367,17 @@ function theme_form_builder_element_wrapper($variables) {
 
   $output .= '</div></div>';
 
+  return $output;
+}
+
+/**
+ * Placeholder for an entirely empty form before any fields are added.
+ */
+function theme_form_builder_empty_form($variables) {
+  $output = '';
+  $output .= '<div class="form-builder-empty-form form-builder-empty-placeholder">';
+  $output .= '<span>' . t('Drag a field from the palette to add it to this form.') . '</span>';
+  $output .= '</div>';
   return $output;
 }
 
