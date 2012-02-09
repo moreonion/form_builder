@@ -51,7 +51,7 @@ function form_builder_schema() {
         ),
       'form_id' => array(
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '128',
         'not null' => FALSE,
       ),
       'type' => array(
@@ -92,5 +92,19 @@ function form_builder_update_6000() {
     'size' => 'big',
   );
   db_change_field($ret, 'form_builder_cache', 'data', 'data', $spec);
+  return $ret;
+}
+
+/**
+ * Change the {form_builder_cache} table to use a longer form_id column.
+ */
+function form_builder_update_6001() {
+  $ret = array();
+  $spec = array(
+    'type' => 'varchar',
+    'length' => '128',
+    'not null' => FALSE,
+  );
+  db_change_field($ret, 'form_builder_cache', 'form_id', 'form_id', $spec);
   return $ret;
 }
