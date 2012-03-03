@@ -368,6 +368,11 @@ function form_builder_webform_form_builder_preview_alter(&$element, $form_type, 
     if ($new_element = form_builder_webform_component_invoke($type, 'form_builder_preview_alter', $element)) {
       $element = $new_element;
     }
+
+    // A #title_display property of 0 (as stored by Webform) means no setting.
+    if (isset($element['#title_display']) && $element['#title_display'] == 0) {
+      unset($element['#title_display']);
+    }
   }
 }
 
