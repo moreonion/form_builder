@@ -170,9 +170,19 @@ function _form_builder_webform_form_builder_map_file() {
   return array(
     'form_builder_type' => 'file',
     'properties' => array(
+      // Webform 3.16 and earlier file filtering.
       'webform_file_filtering' => array(
         'form_parents' => array('validation', 'filtering'),
         'storage_parents' => array('extra', 'filtering'),
+      ),
+      // Webform 3.17 and later file filtering.
+      'webform_file_extensions' => array(
+        'form_parents' => array('validation', 'extensions'),
+        'storage_parents' => array('extra', 'filtering'),
+      ),
+      'webform_file_size' => array(
+        'form_parents' => array('validation', 'size'),
+        'storage_parents' => array('extra', 'filtering', 'size'),
       ),
       'webform_file_directory' => array(
         'form_parents' => array('extra', 'directory'),
