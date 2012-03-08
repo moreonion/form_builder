@@ -18,6 +18,7 @@ function _form_builder_webform_form_builder_types_date() {
 
   $fields['date'] = array(
     'title' => t('Date'),
+    'weight' => -2,
   );
   $fields['date']['default'] = _form_builder_webform_default('date');
   $fields['date']['default']['#title'] = t('New date');
@@ -73,6 +74,7 @@ function _form_builder_webform_form_builder_types_email() {
 
   $fields['email'] = array(
     'title' => t('E-mail'),
+    'weight' => -18,
   );
   $fields['email']['default'] = _form_builder_webform_default('email');
   $fields['email']['default']['#title'] = t('New e-mail');
@@ -114,6 +116,7 @@ function _form_builder_webform_form_builder_types_fieldset() {
 
   $fields['fieldset'] = array(
     'title' => t('Fieldset'),
+    'weight' => 19,
   );
   $fields['fieldset']['default'] = _form_builder_webform_default('fieldset');
   $fields['fieldset']['default']['#title'] = t('New fieldset');
@@ -155,6 +158,7 @@ function _form_builder_webform_form_builder_types_file() {
 
   $fields['file'] = array(
     'title' => t('File'),
+    'weight' => 6,
   );
 
   $fields['file']['default'] = _form_builder_webform_default('file');
@@ -237,6 +241,7 @@ function _form_builder_webform_form_builder_types_grid() {
       'custom_grid_option_keys',
       'custom_grid_question_keys',
     ),
+    'weight' => -4,
   );
   $fields['grid']['default'] = _form_builder_webform_default('grid');
   $fields['grid']['default']['#title'] = t('New grid');
@@ -371,6 +376,7 @@ function _form_builder_webform_form_builder_types_hidden() {
 
   $fields['hidden'] = array(
     'title' => t('Hidden'),
+    'weight' => 8,
   );
   $fields['hidden']['default'] = _form_builder_webform_default('hidden');
   $fields['hidden']['default']['#title'] = t('New hidden');
@@ -428,6 +434,7 @@ function _form_builder_webform_form_builder_types_markup() {
       'markup',
       'format',
     ),
+    'weight' => 17,
   );
   $fields['markup']['default'] = _form_builder_webform_default('markup');
   $fields['markup']['default']['#markup'] = $default;
@@ -494,6 +501,7 @@ function _form_builder_webform_form_builder_types_number() {
 
   $fields['number'] = array(
     'title' => t('Number'),
+    'weight' => -17,
   );
 
   $fields['number']['default'] = _form_builder_webform_default('number');
@@ -577,6 +585,7 @@ function _form_builder_webform_form_builder_types_pagebreak() {
       '#title' => t('Page break'),
       '#type' => 'pagebreak',
     ),
+    'weight' => 20,
   );
 
   return $fields;
@@ -643,6 +652,7 @@ function _form_builder_webform_form_builder_types_select() {
       'options',
       'multiple',
     ),
+    'weight' => -5,
   );
   $fields['select']['default'] = _form_builder_webform_default('select', array('aslist' => TRUE, 'multiple' => FALSE));
   $fields['select']['default']['#options'] = array(t('one'), t('two'), t('three'));
@@ -656,6 +666,7 @@ function _form_builder_webform_form_builder_types_select() {
       'options',
       'multiple',
     ),
+    'weight' => -6,
   );
   $fields['checkboxes']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => TRUE));
   $fields['checkboxes']['default']['#options'] = array(t('one'), t('two'), t('three'));
@@ -668,6 +679,7 @@ function _form_builder_webform_form_builder_types_select() {
       'default_value',
       'options',
     ),
+    'weight' => -7,
   );
   $fields['radios']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => FALSE));
   $fields['radios']['default']['#options'] = array(t('one'), t('two'), t('three'));
@@ -756,6 +768,7 @@ function _form_builder_webform_form_builder_types_textarea() {
 
   $fields['textarea'] = array(
     'title' => t('Textarea'),
+    'weight' => -19,
   );
   $fields['textarea']['default'] = _form_builder_webform_default('textarea');
   $fields['textarea']['default']['#title'] = t('New textarea');
@@ -800,6 +813,7 @@ function _form_builder_webform_form_builder_types_textfield() {
 
   $fields['textfield'] = array(
     'title' => t('Textfield'),
+    'weight' => -20,
   );
   $fields['textfield']['default'] = _form_builder_webform_default('textfield');
   $fields['textfield']['default']['#title'] = t('New textfield');
@@ -850,6 +864,7 @@ function _form_builder_webform_form_builder_types_time() {
 
   $fields['time'] = array(
     'title' => t('Time'),
+    'weight' => -1,
   );
   $fields['time']['default'] = _form_builder_webform_default('time');
   $fields['time']['default']['#title'] = t('New time');
