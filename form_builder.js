@@ -675,7 +675,7 @@ Drupal.formBuilder.dropElement = function (event, ui) {
   Drupal.formBuilder.activeDragUi = false;
 
   // Scroll the palette into view.
-  $(window).scroll();
+  $(window).triggerHandler('scroll');
 };
 
 /**
@@ -731,7 +731,7 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
   Drupal.formBuilder.checkFieldsets();
 
   // Scroll the palette into view.
-  $(window).scroll();
+  $(window).triggerHandler('scroll');
 };
 
 /**
