@@ -91,6 +91,11 @@ Drupal.behaviors.formBuilder = function(context) {
     stop: Drupal.formBuilder.stopDrag
   });
 
+  // Drupal 6 jQuery UI fix to prevent selecting text while dragging.
+  $elements.mousedown(function(e) {
+    e.preventDefault();
+  });
+
   // This sets the height of the drag target to be at least as high as the field
   // palette so that field can be more easily dropped into an empty form.  IE6
   // does not respect min-height but does treat height in the same manner that
