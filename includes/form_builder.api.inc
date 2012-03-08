@@ -65,8 +65,10 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
             $field['default']['#form_builder']['element_type'] = $field_key;
           }
         }
-
       }
+
+      // Sort fields by weight and title.
+      uasort($type, '_form_builder_sort');
     }
 
     drupal_alter('form_builder_types', $types);
@@ -301,7 +303,6 @@ function form_builder_save_form(&$form, $form_type, $form_id) {
   form_builder_cache_delete($form_type, $form_id);
 }
 
-
 /**
  * Helper function to add default #form_builder properties to a form.
  */
@@ -354,4 +355,22 @@ function form_builder_add_default_properties($form, $form_type, $key = NULL, $pa
   }
 
   return $form;
+}
+
+/**
+ * Helper function to sort elements by 'weight' and 'title'.
+ */
+function _form_builder_sort($a, $b) {
+  $a_weight = (is_array($a) && isset($a['weight'])) ? $a['weight'] : 0;
+  $b_weight = (is_array($b) && isset($b['weight'])) ? $b['weight'] : 0;
+  if ($a_weight == $b_weight) {
+    if (!isset($b['title'])) {
+      return -1;
+    }
+    if (!isset($a['title'])) {
+      return 1;
+    }
+    return strcasecmp($a['title'], $b['title']);
+  }
+  return ($a_weight < $b_weight) ? -1 : 1;
 }
