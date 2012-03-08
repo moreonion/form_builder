@@ -313,9 +313,6 @@ div.form-builder-new-field span.progress {
   color: black;
 }
 
-#form-builder-field-palette ul li.field-body_field {
-  background-image: url(images/fields/body.png);
-}
 #form-builder-field-palette ul li.field-checkboxes {
   background-image: url(images/fields/checkboxes.png);
 }
@@ -328,8 +325,7 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-fieldset {
   background-image: url(images/fields/fieldset.png);
 }
-#form-builder-field-palette ul li.field-file,
-#form-builder-field-palette ul li.field-upload_settings {
+#form-builder-field-palette ul li.field-file {
   background-image: url(images/fields/file.png);
 }
 #form-builder-field-palette ul li.field-grid {
@@ -344,23 +340,14 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-markup {
   background-image: url(images/fields/markup.png);
 }
-#form-builder-field-palette ul li.field-menu_settings {
-  background-image: url(images/fields/menu.png);
-}
 #form-builder-field-palette ul li.field-number {
   background-image: url(images/fields/number.png);
 }
 #form-builder-field-palette ul li.field-pagebreak {
   background-image: url(images/fields/pagebreak.png);
 }
-#form-builder-field-palette ul li.field-path_settings {
-  background-image: url(images/fields/path.png);
-}
 #form-builder-field-palette ul li.field-radios {
   background-image: url(images/fields/radios.png);
-}
-#form-builder-field-palette ul li.field-revision_information {
-  background-image: url(images/fields/revisions.png);
 }
 #form-builder-field-palette ul li.field-select {
   background-image: url(images/fields/select.png);
@@ -368,16 +355,9 @@ div.form-builder-new-field span.progress {
 #form-builder-field-palette ul li.field-time {
   background-image: url(images/fields/time.png);
 }
-#form-builder-field-palette ul li.field-taxonomy {
-  background-image: url(images/fields/taxonomy.png);
-}
 #form-builder-field-palette ul li.field-textarea {
   background-image: url(images/fields/textarea.png);
 }
 #form-builder-field-palette ul li.field-textfield {
   background-image: url(images/fields/textfield.png);
 }
-#form-builder-field-palette ul li.field-title {
-  background-image: url(images/fields/title.png);
-}
-
