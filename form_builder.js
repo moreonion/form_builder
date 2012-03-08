@@ -377,7 +377,7 @@ Drupal.formBuilder.deleteField = function() {
 
     // Check for an entirely empty form and for empty fieldsets.
     Drupal.formBuilder.checkForm();
-    Drupal.formBuilder.checkFieldsets(null, null, true);
+    Drupal.formBuilder.checkFieldsets([], true);
   });
 };
 
@@ -740,8 +740,12 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
  *   An array of DOM objects within a fieldset that should not be included when
  *   checking if the fieldset is empty.
  */
-Drupal.formBuilder.checkFieldsets = function(exclusions) {
+Drupal.formBuilder.checkFieldsets = function(exclusions, animate) {
   var $wrappers = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset > div.fieldset-wrapper');
+
+  // Make sure exclusions is an array and always skip any description.
+  exclusions = exclusions ? exclusions : [];
+  exclusions.push('.description, legend');
 
   // Insert a placeholder into all empty fieldset wrappers.
   $wrappers.each(function() {
@@ -752,7 +756,12 @@ Drupal.formBuilder.checkFieldsets = function(exclusions) {
 
     if (children.length == 0) {
       // No children, add a placeholder.
-      $(this).prepend(Drupal.settings.formBuilder.emptyFieldset);
+      if (animate) {
+        $(Drupal.settings.formBuilder.emptyFieldset).css('display', 'none').appendTo(this).slideDown();
+      }
+      else {
+        $(Drupal.settings.formBuilder.emptyFieldset).appendTo(this);
+      }
     }
     else if (children.length > 1 && children.hasClass('form-builder-empty-placeholder')) {
       // The fieldset has at least one element besides the placeholder, remove
