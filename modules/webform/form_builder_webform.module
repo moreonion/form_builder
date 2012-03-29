@@ -272,31 +272,10 @@ function form_builder_webform_form_builder_load($form_builder_type, $form_builde
     $nid = $form_builder_id;
     $node = node_load($nid);
 
-    // Since webform_client_form() has special handling for the 'pagebreak'
-    // component that we do not want to occur here (here we want to display the
-    // entire webform on a single page, without page breaks), we temporarily
-    // change the component to 'pagebreak_clone' and then change it back
-    // afterwards. See _webform_render_pagebreak_clone().
-    // @todo: Replace this with something cleaner, if webform eventually allows
-    //   us to do that.
-    $pagebreak_component_keys = array();
-    foreach ($node->webform['components'] as &$component) {
-      if ($component['type'] == 'pagebreak') {
-        $component['type'] = 'pagebreak_clone';
-        $pagebreak_component_keys[] = $component['form_key'];
-      }
-    }
-
     // Get the unfiltered version of the client form.
     $form = array();
     $form_state = array();
     $form = webform_client_form($form, $form_state, $node, array(), TRUE, FALSE);
-
-    // Change 'pagebreak' components back, as described above.
-    foreach ($pagebreak_component_keys as $key) {
-      $form['submitted'][$key]['#type'] = 'pagebreak';
-      $form['submitted'][$key]['#webform_component']['type'] = 'pagebreak';
-    }
 
     // Perform final processing of the form, and return it.
     $form += array('submitted' => array());
@@ -452,20 +431,6 @@ function form_builder_webform_component_invoke($component_type, $callback) {
   if (function_exists($function)) {
     return call_user_func_array($function, $args);
   }
-}
-
-/**
- * Implements _webform_render_component().
- *
- * This "component" is only used as a temporary replacement for the standard
- * pagebreak component when the form builder version of the webform is being
- * rendered; this occurs when form_builder_webform_form_builder_load() calls
- * webform_client_form(). Therefore, we do not need to register it as a regular
- * webform component anywhere else (and don't want to, since we don't want it
- * to be available elsewhere in the webform UI).
- */
-function _webform_render_pagebreak_clone($component, $value = NULL, $filter = TRUE) {
-  return webform_component_invoke('pagebreak', 'render', $component, $value, $filter);
 }
 
 /**
