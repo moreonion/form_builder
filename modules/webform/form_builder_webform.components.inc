@@ -579,10 +579,28 @@ function _form_builder_webform_form_builder_load_pagebreak($form_element) {
   // Pagebreak components are rendered as hidden elements by webform, but
   // hidden elements do not have a #title property. So we have to convert the
   // rendered value to be used as the #title instead.
-  if ($form_element['#type'] == 'pagebreak') {
-    $form_element['#title'] = $form_element['#value'];
-  }
+  $form_element['#title'] = $form_element['#value'];
+  $form_element['#form_builder']['element_type'] = 'pagebreak';
+
   return $form_element;
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_save_component().
+ */
+function _form_builder_webform_form_builder_save_pagebreak($component, $form_element) {
+  // Ensure pagebreaks are saved at the root level.
+  if ($component['pid'] !== 0) {
+    drupal_set_message(t('Page breaks may not be nested inside fieldsets. Each pagebreak has been moved outside of fieldsets.'), 'status', FALSE);
+
+    $form_cache = form_builder_cache_load('webform', $form_element['#form_builder']['form_id']);
+    $parent = form_builder_get_element($form_cache, $form_element['#form_builder']['parent_id']);
+
+    $component['weight'] = $parent['#weight'] + 1;
+    $component['pid'] = 0;
+  }
+
+  return $component;
 }
 
 /**
