@@ -147,7 +147,7 @@ function form_builder_field_palette() {
     $groups = module_invoke_all('form_builder_palette_groups');
     // TODO: We shouldn't have to clear the cache here.
     $form = form_builder_cache_load($active['form_type'], $active['form_id'], NULL, TRUE);
-    $active_fields = form_builder_get_element_ids($form);
+    $active_fields = form_builder_get_element_types($form);
     foreach ($fields as $key => $field) {
       if ($field['unique'] && in_array($key, $active_fields)) {
         $fields[$key]['in_use'] = TRUE;
