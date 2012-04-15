@@ -883,7 +883,7 @@ function _form_builder_webform_form_builder_map_time() {
         'storage_parents' => array('extra', 'timezone'),
       ),
       'hourformat' => array(
-        'storage_parents' => array('display', 'hourformat'),
+        'form_parents' => array('display', 'hourformat'),
         'storage_parents' => array('extra', 'hourformat'),
       ),
     ),
