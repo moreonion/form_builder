@@ -387,6 +387,17 @@ function _form_builder_webform_form_builder_types_hidden() {
 }
 
 /**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_hidden($form_element) {
+  // Hidden elements may be #type "value" or "hidden". Set the internal property
+  // to keep track of hidden fields.
+  $form_element['#form_builder']['element_type'] = 'hidden';
+
+  return $form_element;
+}
+
+/**
  * Implements _form_builder_webform_form_builder_preview_alter_component().
  */
 function _form_builder_webform_form_builder_preview_alter_hidden($form_element) {
@@ -397,6 +408,7 @@ function _form_builder_webform_form_builder_preview_alter_hidden($form_element) 
 
   // Display the title of the hidden field as regular markup.
   $form_element['#value'] = t('@title - <em>hidden field</em>', array('@title' => $form_element['#title']));
+  $form_element['#title'] = NULL;
 
   return $form_element;
 }
