@@ -82,22 +82,36 @@ function form_builder_webform_save_node($node) {
   $form_cache = form_builder_cache_load('webform', $node->nid);
   $element_ids = form_builder_preview_prepare($form_cache, 'webform', $node->nid);
 
-  // Save modified or created components.
-  foreach ($element_ids as $id) {
-    form_builder_webform_save_component($node, $id, $form_cache);
-  }
-
-  // Delete components that have been removed.
+  // Remove components if deleted and calculate the highest in-use CID.
+  $max_cid = 0;
   foreach ($node->webform['components'] as $component) {
     $element_id = 'cid_' . $component['cid'];
+    $cid = $component['cid'];
+
+    // Max CID is used in the creation of new components, preventing conflicts.
+    $max_cid = max($max_cid, $cid);
+
+    // Remove components from the $node that have been removed in the UI.
     if (!in_array($element_id, $element_ids)) {
-      webform_component_delete($node, $component);
+      if (isset($node->webform['components'][$cid])) {
+        unset($node->webform['components'][$cid]);
+      }
     }
   }
 
-  // Reset the node cache, since $node->webform['components'] has changed.
-  // @todo: Decide if this belongs in the above Webform API functions instead?
-  node_load(NULL, NULL, TRUE);
+  // Update any new/updated components in the node record.
+  foreach ($element_ids as $id) {
+    $component = form_builder_webform_get_component($node, $id, $form_cache);
+    if ($component) {
+      $cid = isset($component['cid']) ? $component['cid'] : ++$max_cid;
+      $node->webform['components'][$cid] = $component;
+    }
+  }
+
+  // Save the node itself to update components and allow other modules to
+  // respond to any changes. The Form Builder cache is intentionally left in
+  // place so other modules can check it for changes also.
+  node_save($node);
 
   // Remove the cached form_builder form.
   form_builder_cache_delete('webform', $node->nid);
@@ -106,7 +120,7 @@ function form_builder_webform_save_node($node) {
 /**
  * Save the contents of a form component into Webform's database tables.
  */
-function form_builder_webform_save_component($node, $element_id, $form) {
+function form_builder_webform_get_component($node, $element_id, $form) {
   module_load_include('inc', 'form_builder_webform', 'form_builder_webform.components');
 
   $element = form_builder_get_element($form, $element_id);
@@ -177,12 +191,7 @@ function form_builder_webform_save_component($node, $element_id, $form) {
     $component = $saved_component;
   }
 
-  if (!isset($component['cid'])) {
-    webform_component_insert($component);
-  }
-  elseif ($component != $node->webform['components'][$component['cid']]) {
-    webform_component_update($component);
-  }
+  return $component;
 }
 
 /**
