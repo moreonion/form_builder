@@ -52,11 +52,14 @@ function form_builder_webform_save_form($form, &$form_state, $nid) {
     '#type' => 'value',
     '#value' => $nid,
   );
-  $form['save'] = array(
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['save'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
   );
-  $form['cancel'] = array(
+  $form['actions']['cancel'] = array(
     '#type' => 'submit',
     '#value' => t('Cancel'),
     '#submit' => array('form_builder_webform_cancel'),
