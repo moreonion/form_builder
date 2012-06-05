@@ -1018,7 +1018,7 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   // The most up-to-date configuration data stored by Form Builder for the
   // part of the component we are editing is also stored in the passed-in
   // element, and should always take precedence.
-  if (isset($element["#$property"])) {
+  if (array_key_exists("#$property", $element)) {
     // This code is based on drupal_array_set_nested_value() in Drupal 7 and
     // sets the part of the $component array specified by the provided keys.
     $ref = &$component;
