@@ -360,7 +360,7 @@ function form_builder_webform_form_builder_preview_alter(&$element, $form_type, 
     }
 
     // A #title_display property of 0 (as stored by Webform) means no setting.
-    if (isset($element['#title_display']) && $element['#title_display'] == 0) {
+    if (isset($element['#title_display']) && strcmp('0', $element['#title_display']) === 0) {
       unset($element['#title_display']);
     }
   }
