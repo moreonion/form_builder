@@ -447,6 +447,8 @@ function _form_builder_webform_property_map($component_type) {
     // All components support the key property.
     $map['properties']['key'] = array();
 
+    drupal_alter('form_builder_webform_property_map', $map, $component_type);
+
     $maps[$component_type] = $map;
   }
 
