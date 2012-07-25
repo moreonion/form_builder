@@ -349,7 +349,7 @@ function form_builder_add_default_properties($form, $form_type, $key = NULL, $pa
       else {
         // If the type cannot be found, prevent editing of this field.
         unset($form['#form_builder']);
-        return;
+        return $form;
       }
     }
 
