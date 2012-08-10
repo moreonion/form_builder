@@ -160,8 +160,7 @@ function _form_builder_webform_form_builder_types_file() {
     'title' => t('File'),
     'weight' => 6,
   );
-  $file_element = _form_builder_webform_default('file');
-  $fields['file']['default'] = $file_element['default'];
+  $fields['file']['default'] = _form_builder_webform_default('file');
   $fields['file']['default']['#title'] = t('New file');
 
   return $fields;
@@ -965,6 +964,9 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
   // Call the loading function to make sure that the default element gets the
   // same treatment as an existing one.
   $default_element = _form_builder_webform_set_mapped_type($default_element);
+  if ($element = form_builder_webform_component_invoke($component_type, 'form_builder_load', $default_element)) {
+    $default_element = $element;
+  }
 
   return $default_element;
 }
