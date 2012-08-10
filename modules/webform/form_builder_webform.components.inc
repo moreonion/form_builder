@@ -37,13 +37,13 @@ function _form_builder_webform_form_builder_map_date() {
         'form_parents' => array('default', 'timezone'),
         'storage_parents' => array('extra', 'timezone'),
       ),
-      'year_start' => array(
-        'form_parents' => array('validation', 'year_start'),
-        'storage_parents' => array('extra', 'year_start'),
+      'start_date' => array(
+        'form_parents' => array('validation', 'start_date'),
+        'storage_parents' => array('extra', 'start_date'),
       ),
-      'year_end' => array(
-        'form_parents' => array('validation', 'year_end'),
-        'storage_parents' => array('extra', 'year_end'),
+      'end_date' => array(
+        'form_parents' => array('validation', 'end_date'),
+        'storage_parents' => array('extra', 'end_date'),
       ),
       'year_textfield' => array(
         'form_parents' => array('display', 'year_textfield'),
