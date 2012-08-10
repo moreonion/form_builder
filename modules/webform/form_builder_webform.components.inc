@@ -205,6 +205,22 @@ function _form_builder_webform_form_builder_map_file() {
 }
 
 /**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_file($form_element) {
+  if (isset($form_element['#upload_validators'])) {
+    // Extension list and size comes from #upload_validators on load.
+    $form_element['#webform_file_extensions']['types'] = empty($form_element['#upload_validators']['file_validate_extensions'][0]) ? array() : explode(' ', $form_element['#upload_validators']['file_validate_extensions'][0]);
+    $form_element['#webform_file_size'] = empty($form_element['#upload_validators']['file_validate_size'][0]) ? '' : format_size($form_element['#upload_validators']['file_validate_size'][0]);
+    // File directory and scheme come from #upload_location on load.
+    $form_element['#webform_file_directory'] = preg_replace('/^webform[\/]?/', '', file_uri_target($form_element['#upload_location']));
+    $form_element['#webform_file_scheme'] = file_uri_scheme($form_element['#upload_location']);
+  }
+
+  return $form_element;
+}
+
+/**
  * Implements _form_builder_webform_form_builder_preview_alter_component().
  */
 function _form_builder_webform_form_builder_preview_alter_file($form_element) {
@@ -991,6 +1007,9 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
   // Call the loading function to make sure that the default element gets the
   // same treatment as an existing one.
   $default_element = _form_builder_webform_set_mapped_type($default_element);
+  if ($element = form_builder_webform_component_invoke($component_type, 'form_builder_load', $default_element)) {
+    $default_element = $element;
+  }
 
   return $default_element;
 }
