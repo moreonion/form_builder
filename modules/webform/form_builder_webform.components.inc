@@ -786,7 +786,7 @@ function _form_builder_webform_form_builder_save_select($component, $form_elemen
  */
 function form_builder_webform_property_select_options_form(&$form_state, $form_type, $element) {
   // Use the default options form, but enhance to allow Webform tokens.
-  $form = form_builder_property_options_form($form_state, $form_type, $element);
+  $form = form_builder_property_options_form($form_state, $form_type, $element, 'options');
   $form['options']['#default_value_pattern'] = '^%.+\[.+\]$';
   return $form;
 }
