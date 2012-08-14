@@ -1016,6 +1016,7 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   // component.
   $defaults_function = '_webform_defaults_' . $component_type;
   $component = isset($element['#webform_component']) ? $element['#webform_component'] : $defaults_function();
+  $nid = isset($component['nid']) ? $component['nid'] : NULL;
 
   // The most up-to-date configuration data stored by Form Builder for the
   // part of the component we are editing is also stored in the passed-in
@@ -1033,7 +1034,9 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   // Build the entire _webform_edit_file() form based on the current state of
   // the component, and obtain the slice of it that we want.
   $empty_form_state = array();
-  $node = (object) array('nid' => NULL);
+  // The full node is needed here so that the "private" option can be access
+  // checked.
+  $node = !isset($nid) ? (object) array('nid' => NULL) : node_load($nid);
   $form = webform_component_edit_form($empty_form_state, $node, $component);
 
   // Obtain the slice using code based on drupal_array_set_nested_value() in
