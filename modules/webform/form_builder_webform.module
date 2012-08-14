@@ -478,7 +478,7 @@ function _form_builder_webform_property_map($component_type) {
     }
 
     if (webform_component_feature($component_type, 'private')) {
-      $map['properties']['private'] = array(
+      $map['properties']['webform_private'] = array(
         'form_parents' => array('display', 'private'),
         'storage_parents' => array('extra', 'private'),
       );
