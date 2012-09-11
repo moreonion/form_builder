@@ -956,8 +956,9 @@ function _form_builder_webform_mapped_form(&$form_state, $form_type, $element, $
 function _form_builder_webform_save_mapped_component($component, $element) {
   if ($map = _form_builder_webform_property_map($component['type'])) {
     foreach ($map['properties'] as $property => $property_map) {
-      if (isset($element['#' . $property]) && isset($property_map['storage_parents'])) {
-        _form_builder_webform_save_mapped_component_value($component, $element['#' . $property], $property_map['storage_parents']);
+      if (isset($property_map['storage_parents'])) {
+        $property_value = isset($element['#' . $property]) ? $element['#' . $property] : NULL;
+        _form_builder_webform_save_mapped_component_value($component, $property_value, $property_map['storage_parents']);
       }
     }
   }
