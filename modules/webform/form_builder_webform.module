@@ -102,10 +102,21 @@ function form_builder_webform_save_node($node) {
   }
 
   // Update any new/updated components in the node record.
-  foreach ($element_ids as $id) {
-    $component = form_builder_webform_get_component($node, $id, $form_cache);
+  foreach ($element_ids as $element_id) {
+    $component = form_builder_webform_get_component($node, $element_id, $form_cache);
     if ($component) {
-      $cid = isset($component['cid']) ? $component['cid'] : ++$max_cid;
+      if (empty($component['cid'])) {
+        $cid = ++$max_cid;
+        $component['cid'] = $cid;
+        // Reassign the component ID to the form so that future elements that
+        // may depend on this one set their parent ID (pid) properly.
+        $element = form_builder_get_element($form_cache, $element_id);
+        $element['#webform_component']['cid'] = $cid;
+        form_builder_set_element($form_cache, $element);
+      }
+      else {
+        $cid = $component['cid'];
+      }
       $node->webform['components'][$cid] = $component;
     }
   }
@@ -157,21 +168,9 @@ function form_builder_webform_get_component($node, $element_id, $form) {
   $component['pid'] = 0;
 
   // Set the parent ID for the component if it is nested inside another component.
-  // This must be done this way so that children of newly added components get a
-  // proper pid when the cid of the new component has just been generated.
   $parent = form_builder_get_element($form, $element['#form_builder']['parent_id']);
-  if ($parent) {
-    // If the parent is new, the database must be queried for the cid of the parent.
-    if (isset($parent['#webform_component']['is_new']) && $parent['#webform_component']['is_new']) {
-      $results = db_query('SELECT cid, form_key FROM {webform_component} WHERE form_key = :key AND nid = :nid', array(':key' => $element['#form_builder']['parent_id'], ':nid' => $node->nid));
-      foreach($results as $result) {
-        $component['pid'] = $result->cid;
-      }
-    }
-    // If the parent is already stored in the webform, grab its cid value.
-    elseif (isset($parent['#webform_component']['cid'])) {
-      $component['pid'] = $parent['#webform_component']['cid'];
-    }
+  if ($parent && isset($parent['#webform_component']['cid'])) {
+    $component['pid'] = $parent['#webform_component']['cid'];
   }
 
   // Set the component's value. If the form element doesn't have a default,
