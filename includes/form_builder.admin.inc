@@ -199,6 +199,9 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
   $form['#attached']['js'][] = 'misc/form.js';
   $form['#attached']['js'][] = 'misc/collapse.js';
 
+  $form['#attached']['js'][] = drupal_get_path('module', 'filter') . '/filter.js';
+  $form['#attached']['css'][] = drupal_get_path('module', 'filter') . '/filter.css';
+
   $form['#attached']['js'][] = array('data' => array('machineName' => array()), 'type' => 'setting');
   $form['#attached']['js'][] = 'misc/machine-name.js';
 
