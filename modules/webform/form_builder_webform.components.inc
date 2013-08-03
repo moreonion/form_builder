@@ -282,6 +282,9 @@ function _form_builder_webform_form_builder_map_grid() {
         'form_parents' => array('display', 'qrand'),
         'storage_parents' => array('extra', 'qrand'),
       ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
     ),
   );
 }
@@ -299,6 +302,9 @@ function _form_builder_webform_form_builder_properties_grid() {
       'form' => 'form_builder_webform_property_grid_questions_form',
       'submit' => array('form_builder_webform_property_grid_form_submit'),
     ),
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
   );
 }
 
@@ -309,6 +315,7 @@ function _form_builder_webform_form_builder_load_grid($element) {
   // Convert properties used only in Form Builder.
   $element['#custom_grid_option_keys'] = !empty($element['#webform_component']['extra']['custom_option_keys']);
   $element['#custom_grid_question_keys'] = !empty($element['#webform_component']['extra']['custom_question_keys']);
+  $element['#unique'] = !empty($element['#webform_component']['extra']['unique']);
 
   return $element;
 }
