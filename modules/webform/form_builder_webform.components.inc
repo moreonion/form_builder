@@ -6,6 +6,23 @@
  */
 
 /**
+ * Configuration form for the "unique" property.
+ */
+function form_builder_webform_property_unique_form(&$form_state, $form_type, $element, $property) {
+  $form = array();
+
+  $form['unique'] = array(
+    '#form_builder' => array('property_group' => 'validation'),
+    '#title' => t('Unique'),
+    '#description' => t('Check that all entered values for this field are unique. The same value is not allowed to be used twice.'),
+    '#type' => 'checkbox',
+    '#default_value' => $element['#unique'],
+  );
+
+  return $form;
+}
+
+/**
  * @defgroup form-builder-webform-date-callbacks Callbacks for the Date component
  * @{
  */
@@ -95,8 +112,31 @@ function _form_builder_webform_form_builder_map_email() {
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
       ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
     ),
   );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_email() {
+  return array(
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_email($element) {
+  $element['#unique'] = !empty($element['#webform_component']['extra']['unique']);
+
+  return $element;
 }
 
 /**
@@ -589,8 +629,31 @@ function _form_builder_webform_form_builder_map_number() {
         'form_parents' => array('analysis', 'excludezero'),
         'storage_parents' => array('extra', 'excludezero'),
       ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
     ),
   );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_number() {
+  return array(
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_number($element) {
+  $element['#unique'] = !empty($element['#webform_component']['extra']['unique']);
+
+  return $element;
 }
 
 /**
@@ -890,8 +953,31 @@ function _form_builder_webform_form_builder_map_textfield() {
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
       ),
+      'unique' => array(
+        'storage_parents' => array('extra', 'unique'),
+      ),
     ),
   );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_properties_component().
+ */
+function _form_builder_webform_form_builder_properties_textfield() {
+  return array(
+    'unique' => array(
+      'form' => 'form_builder_webform_property_unique_form',
+    ),
+  );
+}
+
+/**
+ * Implements _form_builder_webform_form_builder_load_component().
+ */
+function _form_builder_webform_form_builder_load_textfield($element) {
+  $element['#unique'] = !empty($element['#webform_component']['extra']['unique']);
+
+  return $element;
 }
 
 /**
