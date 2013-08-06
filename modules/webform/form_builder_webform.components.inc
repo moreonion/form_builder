@@ -1037,7 +1037,7 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   $empty_form_state = array();
   // The full node is needed here so that the "private" option can be access
   // checked.
-  $node = !isset($nid) ? (object) array('nid' => NULL) : node_load($nid);
+  $node = !isset($nid) ? (object) array('nid' => NULL, 'webform' => webform_node_defaults()) : node_load($nid);
   $form = webform_component_edit_form($empty_form_state, $node, $component);
 
   // Obtain the slice using code based on drupal_array_set_nested_value() in
