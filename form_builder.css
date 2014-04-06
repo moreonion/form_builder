@@ -251,7 +251,7 @@ span.form-builder-links a.progress:hover {
   margin: 0 0 10px;
 }
 
-#form-builder-field-configure .form-submit {
+#form-builder-field-configure #edit-form-builder-submit {
   display: none;
 }
 
