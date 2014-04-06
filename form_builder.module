@@ -24,6 +24,17 @@ function form_builder_menu() {
     'file path' => drupal_get_path('module', 'form_builder') . '/includes',
   );
 
+  $items['admin/build/form-builder/clone'] = array(
+    'title' => 'Clone field',
+    'description' => 'Clone a field within a form.',
+    'page callback' => 'form_builder_clone_page',
+    'access callback' => 'form_builder_menu_field_access',
+    'access arguments' => array('clone', 4, 5, 6),
+    'type' => MENU_CALLBACK,
+    'file' => 'form_builder.admin.inc',
+    'file path' => drupal_get_path('module', 'form_builder') . '/includes',
+  );
+
   $items['admin/build/form-builder/configure'] = array(
     'title' => 'Configure field',
     'description' => 'Configure a field within a form.',
@@ -137,6 +148,12 @@ function form_builder_menu_field_access($op, $form_type, $form_id, $element_id) 
 
   if ($op == 'add' || $op == 'view') {
     $access = TRUE;
+  }
+  if ($op == 'clone') {
+    // Unique fields cannot be cloned (or otherwise they would not be unique).
+    // Cloning fieldsets is also not currently supported.
+    $fields = form_builder_get_form_type($form_type);
+    $access = !empty($element['#form_builder']['element_type']) && empty($fields[$element['#form_builder']['element_type']]['unique']) && $element['#form_builder']['element_type'] != 'fieldset';
   }
   if ($op == 'configure' && !empty($element['#form_builder']['configurable'])) {
     $access = TRUE;

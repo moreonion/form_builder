@@ -36,6 +36,9 @@ Drupal.behaviors.formBuilderElement.attach = function(context) {
   // Add AJAX to remove links.
   $wrappers.find('span.form-builder-links a.remove').click(Drupal.formBuilder.editField);
 
+  // Add AJAX to clone links.
+  $wrappers.find('span.form-builder-bottom-links a.clone').click(Drupal.formBuilder.cloneField);
+
   // Add AJAX to entire field for easy editing.
   $elements.each(function() {
     if ($(this).children('fieldset.form-builder-fieldset').length == 0) {
@@ -366,6 +369,32 @@ Drupal.formBuilder.editField = function() {
 };
 
 /**
+ * Clone a field and insert it in the form immediately after the current field.
+ */
+Drupal.formBuilder.cloneField = function() {
+  var $cloneLink = $(this);
+  var name = Drupal.formBuilder.newFieldName();
+  var $placeholder = Drupal.formBuilder.ajaxPlaceholder(name);
+
+  $.ajax({
+    url: $cloneLink.attr('href'),
+    type: 'GET',
+    dataType: 'json',
+    data: 'js=1&element_id=' + name,
+    success: Drupal.formBuilder.addElement
+  });
+
+  $placeholder.insertAfter($cloneLink.closest('.form-builder-wrapper'));
+
+  Drupal.formBuilder.updatingElement = true;
+
+  // Scroll the palette into view.
+  $(window).triggerHandler('scroll');
+
+  return false;
+};
+
+/**
  * Click handler for deleting a field.
  */
 Drupal.formBuilder.deleteField = function() {
@@ -646,13 +675,13 @@ Drupal.formBuilder.dropElement = function (event, ui) {
   
   // If the element is a new field from the palette, update it with a real field.
   if ($element.is('.form-builder-palette-element')) {
-    var name = 'new_' + new Date().getTime();
+    var name = Drupal.formBuilder.newFieldName();
     // If this is a "unique" element, its element ID is hard-coded.
     if ($element.is('.form-builder-unique')) {
       name = $element.get(0).className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
     }
 
-    var $ajaxPlaceholder = $('<div class="form-builder-wrapper form-builder-new-field"><div id="form-builder-element-' + name + '" class="form-builder-element"><span class="progress">' + Drupal.t('Please wait...') + '</span></div></div>');
+    var $ajaxPlaceholder = Drupal.formBuilder.ajaxPlaceholder(name);
 
     $.ajax({
       url: $element.find('a').attr('href'),
@@ -826,6 +855,26 @@ Drupal.formBuilder.closeActive = function(callback) {
   }
 
   return false;
+};
+
+/**
+ * Returns a unique machine name that can be used for a new form field.
+ */
+Drupal.formBuilder.newFieldName = function() {
+  return 'new_' + new Date().getTime();
+};
+
+/**
+ * Returns HTML to use as an AJAX placeholder when a new field is being added.
+ *
+ * @param name
+ *   The machine name for the new field. See Drupal.formBuilder.newFieldName().
+ *
+ * @return
+ *   The placeholder HTML.
+ */
+Drupal.formBuilder.ajaxPlaceholder = function(name) {
+  return $('<div class="form-builder-wrapper form-builder-new-field"><div id="form-builder-element-' + name + '" class="form-builder-element"><span class="progress">' + Drupal.t('Please wait...') + '</span></div></div>');
 };
 
 /**

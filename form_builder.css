@@ -142,11 +142,13 @@ div.form-builder-title-bar {
   border-bottom: none;
 }
 
-div.ui-draggable div.form-builder-title-bar {
+div.ui-draggable div.form-builder-title-bar,
+div.ui-draggable div.form-builder-bottom-title-bar {
   display: none;
 }
 
-div.ui-draggable div.form-builder-title-bar {
+div.ui-draggable div.form-builder-title-bar,
+div.ui-draggable div.form-builder-bottom-title-bar {
   cursor: move;
 }
 
@@ -157,13 +159,25 @@ span.form-builder-links {
 }
 
 div.form-builder-hover div.form-builder-title-bar,
+div.form-builder-hover div.form-builder-bottom-title-bar,
 div.form-builder-active div.form-builder-title-bar {
   display: block;
 }
 
 div.form-builder-hover div.form-builder-wrapper div.form-builder-title-bar,
-div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar {
+div.form-builder-hover div.form-builder-wrapper div.form-builder-bottom-title-bar,
+div.form-builder-active div.form-builder-wrapper div.form-builder-title-bar,
+div.form-builder-active div.form-builder-bottom-title-bar {
   display: none;
+}
+
+div.form-builder-bottom-title-bar a.clone {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 2px 6px;
+  cursor: pointer;
+  z-index: 40;
 }
 
 span.form-builder-links a.remove,
