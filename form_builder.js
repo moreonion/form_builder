@@ -371,12 +371,19 @@ Drupal.formBuilder.cloneField = function() {
   var name = Drupal.formBuilder.newFieldName();
   var $placeholder = Drupal.formBuilder.ajaxPlaceholder(name);
 
+  // Show loading indicators.
+  $cloneLink.addClass('progress');
+
   $.ajax({
     url: $cloneLink.attr('href'),
     type: 'GET',
     dataType: 'json',
     data: 'js=1&element_id=' + name,
-    success: Drupal.formBuilder.addElement
+    success: function(response) {
+      var $new = Drupal.formBuilder.addElement(response);
+      $cloneLink.removeClass('progress');
+      $new.hide().fadeIn();
+    }
   });
 
   $placeholder.insertAfter($cloneLink.closest('.form-builder-wrapper'));
@@ -577,6 +584,8 @@ Drupal.formBuilder.addElement = function(response) {
 
   // Submit the new positions form to save the new element position.
   Drupal.formBuilder.updateElementPosition($new.get(0));
+
+  return $new;
 };
 
 /**
