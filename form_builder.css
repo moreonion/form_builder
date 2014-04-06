@@ -39,6 +39,11 @@ div.form-builder-wrapper {
   padding: 1px;
   margin-top: 4px; /* Match this to the Sortable drag threshold option. */
   position: relative;
+  transition: background 1s;
+}
+
+div.form-builder-wrapper.highlighted {
+  background-color: #FEFC78;
 }
 
 div.form-builder-element {
@@ -184,8 +189,8 @@ span.form-builder-bottom-links a.clone {
   float: right;
   display: block;
   text-decoration: none;
-  height: 17px;
-  width: 17px;
+  height: 16px;
+  width: 16px;
   padding: 2px 8px;
   cursor: pointer;
 }
@@ -197,21 +202,21 @@ span.form-builder-bottom-links a.clone span {
 }
 
 span.form-builder-links a.remove {
-  background: url(images/delete.png) no-repeat 0 1px;
+  background: url(images/delete.png) no-repeat 0 0;
 }
 
 span.form-builder-links a.configure {
-  background: url(images/configure.png) no-repeat 0 1px;
+  background: url(images/configure.png) no-repeat 0 0;
 }
 
 span.form-builder-bottom-links a.clone {
-  background: url(images/clone.png) no-repeat 0 1px;
+  background: url(images/clone.png) no-repeat 0 0;
 }
 
 span.form-builder-links a.remove:hover,
 span.form-builder-links a.configure:hover,
 span.form-builder-bottom-links a.clone:hover {
-  background-position: 0 -19px;
+  background-position: 0 -20px;
 }
 
 span.form-builder-links a.progress,
@@ -329,6 +334,18 @@ div.form-builder-new-field span.progress {
   display: block;
 }
 
+/* Make inside links fill the entire LI element */
+#form-builder-field-palette ul li a {
+  padding: 4px 4px 4px 28px;
+  margin: -4px -4px -4px -28px;
+  width: 100%;
+  display: inline-block;
+}
+#form-builder-field-palette ul li a.progress {
+  background: url(images/status-active.gif) no-repeat 94% 7px;
+  font-weight: normal;
+}
+
 #form-builder-field-palette ul li a,
 #form-builder-field-palette ul li a:hover,
 #form-builder-field-palette ul li a:active,
@@ -385,4 +402,8 @@ div.form-builder-new-field span.progress {
 }
 #form-builder-field-palette ul li.field-textfield {
   background-image: url(images/fields/textfield.png);
+}
+
+#form-builder-webform-save-form {
+  margin-bottom: 200px;
 }
