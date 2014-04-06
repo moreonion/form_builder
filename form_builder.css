@@ -154,7 +154,14 @@ div.ui-draggable div.form-builder-bottom-title-bar {
 
 span.form-builder-links {
   position: absolute;
-  right: 0;
+  right: -4px;
+  z-index: 40;
+}
+
+span.form-builder-bottom-links {
+  position: absolute;
+  right: -4px;
+  bottom: -10px;
   z-index: 40;
 }
 
@@ -171,29 +178,21 @@ div.form-builder-active div.form-builder-bottom-title-bar {
   display: none;
 }
 
-div.form-builder-bottom-title-bar a.clone {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 2px 6px;
-  cursor: pointer;
-  z-index: 40;
-}
-
 span.form-builder-links a.remove,
-span.form-builder-links a.configure {
+span.form-builder-links a.configure,
+span.form-builder-bottom-links a.clone {
   float: right;
   display: block;
-  height: 1.7em;
   text-decoration: none;
-  height: 13px;
-  width: 13px;
-  padding: 2px 3px;
+  height: 17px;
+  width: 17px;
+  padding: 2px 8px;
   cursor: pointer;
 }
 
 span.form-builder-links a.remove span,
-span.form-builder-links a.configure span {
+span.form-builder-links a.configure span,
+span.form-builder-bottom-links a.clone span {
   display: none;
 }
 
@@ -205,14 +204,21 @@ span.form-builder-links a.configure {
   background: url(images/configure.png) no-repeat 0 1px;
 }
 
+span.form-builder-bottom-links a.clone {
+  background: url(images/clone.png) no-repeat 0 1px;
+}
+
 span.form-builder-links a.remove:hover,
-span.form-builder-links a.configure:hover {
+span.form-builder-links a.configure:hover,
+span.form-builder-bottom-links a.clone:hover {
   background-position: 0 -19px;
 }
 
 span.form-builder-links a.progress,
-span.form-builder-links a.progress:hover {
-  background: url(images/status-active.gif) no-repeat 0 1px;
+span.form-builder-links a.progress:hover,
+span.form-builder-bottom-links a.progress,
+span.form-builder-bottom-links a.progress:hover {
+  background: url(images/status-active.gif) no-repeat 2px 3px;
 }
 
 /* Field form tabs */
@@ -263,6 +269,10 @@ span.form-builder-links a.progress:hover {
 #form-builder fieldset.form-builder-group .form-item {
   padding: 0;
   margin: 0 0 10px;
+}
+
+#form-builder-field-configure .form-item-title small {
+  display: block;
 }
 
 #form-builder-field-configure #edit-form-builder-submit {
