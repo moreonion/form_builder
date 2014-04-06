@@ -496,7 +496,7 @@ Drupal.formBuilder.updateElement = function(response) {
   if (response.errors) {
     for (var elementName in response.errors) {
       elementName = elementName.replace(/([a-z0-9_]+)\](.*)/, '$1$2]');
-      $configureForm.find('[name=' + elementName + ']').addClass('error');
+      $configureForm.find('[name="' + elementName + '"]').addClass('error');
     }
   }
 
