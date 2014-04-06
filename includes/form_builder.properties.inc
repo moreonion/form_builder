@@ -76,6 +76,7 @@ function form_builder_property_title_form(&$form_state, $form_type, $element, $p
     '#title' => t('Title'),
     '#type' => 'textfield',
     '#default_value' => $element['#title'],
+    '#maxlength' => 255,
     '#required' => TRUE,
     '#weight' => -10,
   );
