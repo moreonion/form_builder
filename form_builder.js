@@ -429,7 +429,10 @@ Drupal.formBuilder.elementChange = function() {
   if (!Drupal.formBuilder.updatingElement) {
     $(this).parents('form:first').ajaxSubmit({
       success: Drupal.formBuilder.updateElement,
-      dataType: 'json'
+      dataType: 'json',
+      data: {
+        '_triggering_element_name': 'op',
+      },
     });
   }
 
