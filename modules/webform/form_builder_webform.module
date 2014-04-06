@@ -333,6 +333,9 @@ function form_builder_webform_form_builder_add_element_alter(&$element, $form_ty
   if ($form_type == 'webform') {
     $element['#webform_component']['nid'] = is_numeric($form_id) ? $form_id : NULL;
     $element['#webform_component']['is_new'] = TRUE;
+    $element['#webform_component']['pid'] = 0;
+    $element['#webform_component']['form_key'] = NULL;
+    unset($element['#webform_component']['cid']);
   }
 }
 
