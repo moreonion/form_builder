@@ -208,7 +208,8 @@ function _form_builder_webform_form_builder_load_file($form_element) {
   // directly.
   $form_element['#type'] = 'file';
   unset($form_element['#theme']);
-  $element_key = reset(element_children($form_element));
+  $element_child = element_children($form_element);
+  $element_key = reset($element_child);
   $form_element = array_merge($form_element, $form_element[$element_key]);
   foreach (element_children($form_element) as $key) {
     unset($form_element[$key]);
