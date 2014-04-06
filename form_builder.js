@@ -95,12 +95,8 @@ Drupal.behaviors.formBuilder.attach = function(context) {
   });
 
   // This sets the height of the drag target to be at least as high as the field
-  // palette so that field can be more easily dropped into an empty form.  IE6
-  // does not respect min-height but does treat height in the same manner that
-  // min-height would be expected.  So a check for browser and version is needed
-  // here.
-  var property = $.browser.msie && $.browser.version < 7 ? 'height' : 'min-height';
-  $formbuilder.css(property, $('#form-builder-fields').height());
+  // palette so that field can be more easily dropped into an empty form.
+  $formbuilder.css('min-height', $('#form-builder-fields').height());
 
   // Add the placeholder for an empty form.
   Drupal.formBuilder.checkForm();
@@ -501,7 +497,7 @@ Drupal.formBuilder.updateElement = function(response) {
   if (response.errors) {
     for (var elementName in response.errors) {
       elementName = elementName.replace(/([a-z0-9_]+)\](.*)/, '$1$2]');
-      $configureForm.find('[name=' + elementName + ']').addClass('error');
+      $configureForm.find('[name="' + elementName + '"]').addClass('error');
     }
   }
 
