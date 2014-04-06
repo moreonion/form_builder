@@ -242,6 +242,8 @@ Drupal.behaviors.formBuilderNewField = function(context) {
       start: Drupal.formBuilder.startDrag,
       stop: Drupal.formBuilder.stopDrag
     });
+
+    $list.click(Drupal.formBuilder.addField);
   }
 };
 
@@ -330,6 +332,9 @@ Drupal.formBuilder.editField = function() {
     return false;
   }
 
+  // Remove any highlight on this wrapper.
+  $element.removeClass('highlighted');
+
   // Show loading indicators.
   $link.addClass('progress');
 
@@ -397,6 +402,48 @@ Drupal.formBuilder.cloneField = function() {
 };
 
 /**
+ * Add a field and insert it at the end of the form.
+ */
+Drupal.formBuilder.addField = function(e) {
+  var $link = $(e.target);
+  if (!$link.parent().is('.form-builder-palette-element')) {
+    return;
+  }
+
+  var name = Drupal.formBuilder.newFieldName();
+  var $placeholder = Drupal.formBuilder.ajaxPlaceholder(name);
+
+  // Show loading indicators.
+  $link.addClass('progress');
+
+  $.ajax({
+    url: $link.attr('href'),
+    type: 'GET',
+    dataType: 'json',
+    data: 'js=1&element_id=' + name,
+    success: function(response) {
+      var $new = Drupal.formBuilder.addElement(response);
+      var scrollOffset = $new.offset().top;
+      $link.removeClass('progress');
+      $new.css('visible', 'hidden');
+      if ($.fn.scrollTo) {
+        $(window).scrollTo(scrollOffset);
+      }
+      else {
+        $(window).scrollTop(scrollOffset);
+      }
+      $new.fadeIn();
+    }
+  });
+
+  $placeholder.insertAfter($('#form-builder').find('.form-builder-wrapper:last'));
+
+  Drupal.formBuilder.updatingElement = true;
+
+  return false;
+};
+
+/**
  * Click handler for deleting a field.
  */
 Drupal.formBuilder.deleteField = function() {
@@ -418,6 +465,23 @@ Drupal.formBuilder.clickCancel = function() {
   Drupal.formBuilder.unsetActive();
   return false;
 };
+
+/**
+ * Highlight a particular field, i.e after cloning or adding a new field.
+ */
+Drupal.formBuilder.highlightField = function(timeout) {
+  if (Drupal.formBuilder.highlightedField) {
+    $(Drupal.formBuilder.highlightedField).removeClass('highlighted');
+  }
+  var $wrapper = $(this).closest('.form-builder-wrapper');
+  $wrapper.addClass('highlighted');
+  Drupal.formBuilder.highlightedField = $wrapper;
+  if (timeout) {
+    setTimeout(function() {
+      $wrapper.removeClass('highlighted');
+    }, timeout);
+  }
+}
 
 /**
  * Display the edit form from the server.
@@ -572,6 +636,8 @@ Drupal.formBuilder.addElement = function(response) {
   var $new = $(response.html).find('div.form-builder-element:first').parent();
   $exisiting.replaceWith($new);
   Drupal.attachBehaviors($new.get(0));
+
+  Drupal.formBuilder.highlightField.apply($new.get(0));
 
   // Set the variable stating we're done updating.
   Drupal.formBuilder.updatingElement = false;
