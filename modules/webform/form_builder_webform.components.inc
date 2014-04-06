@@ -541,7 +541,7 @@ function _form_builder_webform_form_builder_preview_alter_markup($form_element) 
     $form_element['#markup'] = t('Empty markup field');
   }
 
-  // This runs after drupal_pre_render_markup so the changed markup 
+  // This runs after drupal_pre_render_markup so the changed markup
   // needs to be copied to #children.
   $form_element['#children'] = $form_element['#markup'];
 
@@ -835,16 +835,32 @@ function _form_builder_webform_form_builder_load_select($form_element) {
 }
 
 /**
+ * Serializes the value of a select component.
+ *
+ * @param array $options
+ *   Select component options.
+ *
+ * @return string
+ */
+function _form_builder_serialize_select(array $options) {
+  $serialized = '';
+  foreach ($options as $key => $option_value) {
+    if (is_array($option_value)) {
+      $serialized .= "<{$key}>\n" . _form_builder_serialize_select($option_value) . "<>\n";
+    }
+    else {
+      $serialized .= "{$key}|{$option_value}\n";
+    }
+  }
+
+  return $serialized;
+}
+
+/**
  * Implements _form_builder_webform_form_builder_save_component().
  */
 function _form_builder_webform_form_builder_save_select($component, $form_element) {
-  $options = '';
-
-  foreach ($form_element['#options'] as $key => $option_value) {
-    $options .= $key . '|' . $option_value . "\n";
-  }
-
-  $component['extra']['items'] = $options;
+  $component['extra']['items'] = _form_builder_serialize_select($form_element['#options']);
   $component['extra']['multiple'] = $form_element['#form_builder']['element_type'] == 'checkboxes';
   $component['extra']['aslist'] = $form_element['#form_builder']['element_type'] == 'select';
 
@@ -1200,8 +1216,8 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
  *   The form array to modify.
  */
 function _form_builder_webform_force_tree(&$form) {
-  unset($form['#parents']); 
-  $form['#tree'] = TRUE; 
+  unset($form['#parents']);
+  $form['#tree'] = TRUE;
   foreach (element_children($form) as $key) {
     _form_builder_webform_force_tree($form[$key]);
   }
