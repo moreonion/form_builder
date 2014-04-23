@@ -531,8 +531,8 @@ Drupal.formBuilder.elementChange = function() {
       success: Drupal.formBuilder.updateElement,
       dataType: 'json',
       data: {
-        '_triggering_element_name': 'op',
-      },
+        '_triggering_element_name': 'op'
+      }
     });
   }
 
@@ -727,7 +727,7 @@ Drupal.formBuilder.createDropTargets = function(draggable, helper) {
     greedy: true,
     scope: 'form-builder',
     tolerance: 'pointer',
-    drop: Drupal.formBuilder.dropElement,
+    deactivate: Drupal.formBuilder.dropElement,
     over: Drupal.formBuilder.dropHover,
     out: Drupal.formBuilder.dropHover
   });
@@ -742,6 +742,12 @@ Drupal.formBuilder.createDropTargets = function(draggable, helper) {
 Drupal.formBuilder.dropElement = function (event, ui) {
   var $element = ui.draggable;
   var $placeholder = $(this);
+
+  // This callback is triggered for every placeholder, but only one should be
+  // active. For all other placeholders, we don't do any processing.
+  if (!$placeholder.is('.form-builder-placeholder-hover')) {
+    return;
+  }
 
   // If the element is a new field from the palette, update it with a real field.
   if ($element.is('.form-builder-palette-element')) {
@@ -803,7 +809,7 @@ Drupal.formBuilder.dropHover = function (event, ui) {
     // If there is a previous drop target that was hidden, restore it.
     if (Drupal.formBuilder.previousDropzones.length) {
       $(Drupal.formBuilder.previousDropzones).css('display', '');
-      Drupal.formBuilder.activeDropzone = Drupal.formBuilder.previousDropzones.pop;
+      Drupal.formBuilder.activeDropzone = Drupal.formBuilder.previousDropzones.pop();
     }
   }
 };
