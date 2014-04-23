@@ -112,6 +112,9 @@ div.form-builder-empty-placeholder span {
   display: block;
   margin: 40px;
 }
+div.form-builder-empty-form span {
+  margin: 120px 40px;
+}
 
 /* Placeholders for drop position */
 div.form-builder-placeholder {
@@ -119,6 +122,9 @@ div.form-builder-placeholder {
   margin-top: -30px;
   position: absolute;
   width: 100%;
+}
+div.form-builder-placeholder-last {
+  height: 200px;
 }
 
 div.form-builder-placeholder-hover {
