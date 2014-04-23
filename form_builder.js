@@ -724,7 +724,7 @@ Drupal.formBuilder.createDropTargets = function(draggable, helper) {
       }
     });
     // Add a class to the last placeholder so it can be larger.
-    $elements.filter(':last').next('.form-builder-placeholder').addClass('form-builder-placeholder-last');
+    $('#form-builder .form-builder-placeholder:last').addClass('form-builder-placeholder-last');
   }
 
   // Enable the drop targets
