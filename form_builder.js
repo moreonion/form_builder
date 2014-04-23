@@ -712,10 +712,8 @@ Drupal.formBuilder.createDropTargets = function(draggable, helper) {
   var $elements = $('#form-builder .form-builder-wrapper:not(.form-builder-empty-placeholder)').not(draggable).not(helper);
 
   if ($elements.length == 0) {
-    // There are no form elements, insert a placeholder
-    var $formBuilder = $('#form-builder');
-    $placeholder.height($formBuilder.height());
-    $placeholder.appendTo($formBuilder);
+    // There are no form elements, show the placeholder
+    $('#form-builder .form-builder-empty-form').show();
   }
   else {
     $elements.each(function(i) {
@@ -725,6 +723,8 @@ Drupal.formBuilder.createDropTargets = function(draggable, helper) {
         $placeholder.clone().insertBefore(this);
       }
     });
+    // Add a class to the last placeholder so it can be larger.
+    $elements.filter(':last').next('.form-builder-placeholder').addClass('form-builder-placeholder-last');
   }
 
   // Enable the drop targets
@@ -794,6 +794,8 @@ Drupal.formBuilder.dropElement = function (event, ui) {
  * Adjusts the placeholder height for drop targets as they are hovered-over.
  */
 Drupal.formBuilder.dropHover = function (event, ui) {
+  var $placeholder = $(this);
+
   if (event.type == 'dropover') {
     // In the event that two droppables overlap, the latest one acts as the drop
     // target. If there is previous active droppable hide it temporarily.
@@ -801,11 +803,14 @@ Drupal.formBuilder.dropHover = function (event, ui) {
       $(Drupal.formBuilder.activeDropzone).css('display', 'none');
       Drupal.formBuilder.previousDropzones.push(Drupal.formBuilder.activeDropzone);
     }
-    $(this).css({ height: ui.helper.height() + 'px', display: ''}).addClass('form-builder-placeholder-hover');
+    if (!$placeholder.hasClass('form-builder-empty-placeholder')) {
+      $placeholder.css({ height: ui.helper.height() + 'px', display: ''});
+    }
+    $placeholder.addClass('form-builder-placeholder-hover');
     Drupal.formBuilder.activeDropzone = this;
   }
   else {
-    $(this).css({ height: '', display: '' }).removeClass('form-builder-placeholder-hover');
+    $placeholder.css({ height: '', display: '' }).removeClass('form-builder-placeholder-hover');
 
     // If this was active drop target, we remove the active state.
     if (Drupal.formBuilder.activeDropzone && Drupal.formBuilder.activeDropzone == this) {
