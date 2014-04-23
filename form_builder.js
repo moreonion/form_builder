@@ -858,7 +858,7 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
  *   checking if the fieldset is empty.
  */
 Drupal.formBuilder.checkFieldsets = function(exclusions, animate) {
-  var $wrappers = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset > div.fieldset-wrapper');
+  var $wrappers = $('#form-builder div.form-builder-element > fieldset.form-builder-fieldset');
 
   // Make sure exclusions is an array and always skip any description.
   exclusions = exclusions ? exclusions : [];
