@@ -841,6 +841,7 @@ Drupal.formBuilder.stopDrag = function(e, ui) {
     if ($this.hasClass('form-builder-unique') || $this.hasClass('form-builder-wrapper')) {
       $this.show();
     }
+    Drupal.formBuilder.activeDragUi = false;
   }
 
   // Remove the placeholders and reset the hover state for all for elements
