@@ -414,6 +414,10 @@ Drupal.formBuilder.addField = function(e) {
   if (!$link.parent().is('.form-builder-palette-element')) {
     return;
   }
+  var $palette = $link.parent();
+  if ($palette.hasClass('form-builder-unique') || $palette.hasClass('form-builder-wrapper')) {
+    $palette.hide();
+  }
 
   var name = Drupal.formBuilder.newFieldName($link.parent());
   var $placeholder = Drupal.formBuilder.ajaxPlaceholder(name);
