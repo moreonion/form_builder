@@ -434,7 +434,7 @@ function theme_form_builder_element_wrapper($variables) {
  */
 function theme_form_builder_empty_form($variables) {
   $output = '';
-  $output .= '<div class="form-builder-empty-form form-builder-empty-placeholder">';
+  $output .= '<div class="form-builder-wrapper form-builder-empty-form form-builder-empty-placeholder">';
   $output .= '<span>' . t('Drag a field from the palette to add it to this form.') . '</span>';
   $output .= '</div>';
   return $output;

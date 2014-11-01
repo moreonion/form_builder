@@ -415,8 +415,9 @@ Drupal.formBuilder.addField = function(e) {
     return;
   }
 
-  var name = Drupal.formBuilder.newFieldName();
+  var name = Drupal.formBuilder.newFieldName($link.parent());
   var $placeholder = Drupal.formBuilder.ajaxPlaceholder(name);
+  var $lastWrapper = $('#form-builder').find('.form-builder-wrapper:last');
 
   // Show loading indicators.
   $link.addClass('progress');
@@ -441,7 +442,12 @@ Drupal.formBuilder.addField = function(e) {
     }
   });
 
-  $placeholder.insertAfter($('#form-builder').find('.form-builder-wrapper:last'));
+  if ($lastWrapper.is('.form-builder-empty-placeholder')) {
+    $lastWrapper.replaceWith($placeholder);
+  }
+  else {
+    $placeholder.insertAfter($lastWrapper);
+  }
 
   Drupal.formBuilder.updatingElement = true;
 
@@ -756,11 +762,7 @@ Drupal.formBuilder.dropElement = function (event, ui) {
 
   // If the element is a new field from the palette, update it with a real field.
   if ($element.is('.form-builder-palette-element')) {
-    var name = Drupal.formBuilder.newFieldName();
-    // If this is a "unique" element, its element ID is hard-coded.
-    if ($element.is('.form-builder-unique')) {
-      name = $element.get(0).className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
-    }
+    var name = Drupal.formBuilder.newFieldName($element);
 
     var $ajaxPlaceholder = Drupal.formBuilder.ajaxPlaceholder(name);
 
@@ -946,8 +948,14 @@ Drupal.formBuilder.closeActive = function(callback) {
 /**
  * Returns a unique machine name that can be used for a new form field.
  */
-Drupal.formBuilder.newFieldName = function() {
-  return 'new_' + new Date().getTime();
+Drupal.formBuilder.newFieldName = function($element) {
+  // If this is a "unique" element, its element ID is hard-coded.
+  if ($element && $element.is('.form-builder-unique')) {
+    return $element.get(0).className.replace(/^.*?form-builder-element-([a-z0-9_]+).*?$/, '$1');
+  }
+  else {
+    return 'new_' + new Date().getTime();
+  }
 };
 
 /**
