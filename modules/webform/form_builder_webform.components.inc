@@ -764,10 +764,13 @@ function _form_builder_webform_form_builder_types_select() {
     ),
     'weight' => -5,
   );
-  $fields['select']['default'] = _form_builder_webform_default('select', array('aslist' => TRUE, 'multiple' => FALSE));
-  $fields['select']['default']['#options'] = array('1' => t('one'), '2' => t('two'), '3' => t('three'));
-  $fields['select']['default']['#default_value'] = 1;
-  $fields['select']['default']['#title'] = t('New select');
+  $items['items'] = "1|" . t('one') . "\n2|" . t('two') . "\n3|" . t('three');
+  $fields['select']['default'] = _form_builder_webform_default('select', array(
+    'name' => t('New select'),
+    'aslist' => TRUE,
+    'multiple' => FALSE,
+    'value' => '1',
+  ) + $items);
 
   $fields['checkboxes'] = array(
     'title' => t('Checkboxes'),
@@ -778,10 +781,12 @@ function _form_builder_webform_form_builder_types_select() {
     ),
     'weight' => -6,
   );
-  $fields['checkboxes']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => TRUE));
-  $fields['checkboxes']['default']['#options'] = array('1' => t('one'), '2' => t('two'), '3' => t('three'));
-  $fields['checkboxes']['default']['#default_value'] = array(1, 2);
-  $fields['checkboxes']['default']['#title'] = t('New checkboxes');
+  $fields['checkboxes']['default'] = _form_builder_webform_default('select', array(
+    'name' => t('New checkboxes'),
+    'aslist' => FALSE,
+    'multiple' => TRUE,
+    'value' => '1,2',
+  ) + $items);
 
   $fields['radios'] = array(
     'title' => t('Radios'),
@@ -791,10 +796,12 @@ function _form_builder_webform_form_builder_types_select() {
     ),
     'weight' => -7,
   );
-  $fields['radios']['default'] = _form_builder_webform_default('select', array('aslist' => FALSE, 'multiple' => FALSE));
-  $fields['radios']['default']['#options'] = array('1' => t('one'), '2' => t('two'), '3' => t('three'));
-  $fields['radios']['default']['#default_value'] = 1;
-  $fields['radios']['default']['#title'] = t('New radios');
+  $fields['radios']['default'] = _form_builder_webform_default('select', array(
+    'name' => t('New radios'),
+    'aslist' => FALSE,
+    'multiple' => FALSE,
+    'value' => '1',
+  ) + $items);
 
   return $fields;
 }
