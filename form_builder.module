@@ -383,7 +383,7 @@ function form_validate_email(&$element, &$form_state) {
     return;
   }
 
-  if (valid_email_address($element['#value'])) {
+  if (!valid_email_address($element['#value'])) {
     form_error($element, t('The %title field value must be a valid e-mail address.', array('%title' => $element['#title'])));
   }
 }
@@ -396,7 +396,7 @@ function form_validate_url(&$element, &$form_state) {
     return;
   }
 
-  if (valid_url($element['#value'], isset($element['#absolute_url']) ? $element['#absolute_url'] : TRUE)) {
+  if (!valid_url($element['#value'], isset($element['#absolute_url']) ? $element['#absolute_url'] : TRUE)) {
     form_error($element, t('The %title field value must be a valid URL.', array('%title' => $element['#title'])));
   }
 }
