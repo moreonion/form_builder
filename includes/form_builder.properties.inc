@@ -44,26 +44,32 @@ function form_builder_property_key_form_validate($element, $form_state) {
   if ($element['#value'] != $element['#default_value']) {
     $active_form = form_builder_active_form();
     $form = form_builder_cache_load($active_form['form_type'], $active_form['form_id']);
-    $parents = $element['#parents'];
-    array_pop($parents);
-    $parents[] = $element['#value'];
-    $key_exists = FALSE;
-    foreach ($parents as $key) {
-      if (isset($form[$key])) {
-        $form = $form[$key];
-        $key_exists = TRUE;
-      }
-      else {
-        $key_exists = FALSE;
-        break;
-      }
-    }
-
-    if ($key_exists) {
-      form_error($element, t('The form key %key is already in use.', array('%key' => $element['#value'])));
+    $element_id = $form_state['complete form']['#_edit_element_id'];
+    $parent = _form_builder_get_element_parent($form, $element_id);
+    $new_key = $form_state['values']['key'];
+    if (isset($parent[$new_key])) {
+      form_set_error('key', t('The form key %key is already in use.', array('%key' => $new_key)));
     }
   }
+}
 
+/**
+ * Get the parent element of an element from the form.
+ */
+function _form_builder_get_element_parent(&$form, $element_id) {
+  $q = array(&$form);
+  // Do a depth-first search for the element.
+  while ($q) {
+    $parent = array_pop($q);
+    foreach (element_children($parent) as $k) {
+      if ($parent[$k]['#form_builder']['element_id'] == $element_id) {
+        return $parent;
+      }
+      else {
+        $q[] = &$parent[$k];
+      }
+    }
+  }
 }
 
 /**
