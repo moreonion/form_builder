@@ -502,7 +502,21 @@ function _form_builder_webform_property_map($component_type) {
         'storage_parents' => array('extra', 'private'),
       );
     }
-  
+
+    if (webform_component_feature($component_type, 'css_classes')) {
+      $map['properties']['css_classes'] = array(
+        'form_parents' => array('display', 'css_classes'),
+        'storage_parents' => array('extra', 'css_classes'),
+      );
+    }
+
+    if (webform_component_feature($component_type, 'wrapper_classes')) {
+      $map['properties']['wrapper_classes'] = array(
+        'form_parents' => array('display', 'wrapper_classes'),
+        'storage_parents' => array('extra', 'wrapper_classes'),
+      );
+    }
+
     if (webform_component_feature($component_type, 'required')) {
       $map['properties']['required'] = array();
     }
