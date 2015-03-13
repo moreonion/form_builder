@@ -454,6 +454,9 @@ function _form_builder_webform_form_builder_load_hidden($form_element) {
   // Hidden elements may be #type "value" or "hidden". Set the internal property
   // to keep track of hidden fields.
   $form_element['#form_builder']['element_type'] = 'hidden';
+  if (!isset($form_element['#default_value'])) {
+    $form_element['#default_value'] = $form_element['#value'];
+  }
 
   return $form_element;
 }
