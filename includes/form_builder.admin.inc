@@ -59,7 +59,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
-  $fields = form_builder_get_form_type($form_type);
+  $fields = form_builder_form_type($form_type)->getElementTypes();
   $cache = form_builder_cache_load($form_type, $form_id);
   $element = NULL;
 
@@ -188,8 +188,9 @@ function form_builder_field_palette() {
   $active = form_builder_active_form();
   $output = NULL;
   if (isset($active)) {
-    $fields = form_builder_get_form_type($active['form_type']);
-    $groups = module_invoke_all('form_builder_palette_groups');
+    $form_type = form_builder_form_type($active['form_type']);
+    $fields = $form_type->getElementTypes();
+    $groups = $form_type->getPaletteGroups();
     // TODO: We shouldn't have to clear the cache here.
     $form = form_builder_cache_load($active['form_type'], $active['form_id'], NULL, TRUE);
     $active_fields = form_builder_get_element_types($form);
@@ -653,17 +654,14 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
   $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+  $element_type = $element['#form_builder']['element_type'];
+  $form_type_obj = form_builder_form_type($form_type);
 
   // Assemble a form made up of all the configurable properties that this type
   // of form supports.
   $form = array();
-  foreach (form_builder_get_element_properties($form_type, $element['#form_builder']['element_type']) as $property => $property_settings) {
-    if (isset($property_settings['form']) && function_exists($property_settings['form'])) {
-      $function = $property_settings['form'];
-      // Set a default value on the property to avoid notices.
-      $element['#' . $property] = isset($element['#' . $property]) ? $element['#' . $property] : NULL;
-      $form = array_merge($form, $function($form_state, $form_type, $element, $property));
-    }
+  foreach ($form_type_obj->getElementTypeProperties($element_type) as $property) {
+    $form = array_merge($form, $property->form($form_state, $form_type, $element));
   }
 
   $form['#_edit_form_type'] = $form_type;
@@ -724,16 +722,12 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   $form_id = $form['#_edit_form_id'];
   $element_id = $form['#_edit_element_id'];
   $element = $form['#_edit_element'];
+  $element_type = $element['#form_builder']['element_type'];
+  $form_type_obj = form_builder_form_type($form_type);
 
   // Allow each element to do any necessary submission handling.
-  foreach (form_builder_get_element_properties($form_type, $element['#form_builder']['element_type']) as $property => $property_settings) {
-    if (isset($property_settings['submit'])) {
-      foreach ($property_settings['submit'] as $function) {
-        if (function_exists($function)) {
-          $function($form, $form_state);
-        }
-      }
-    }
+  foreach ($form_type_obj->getElementTypeProperties($element_type) as $property) {
+    $property->submit($form, $form_state);
   }
 
   // Allow the element to be updated in a hard-coded fashion by altering the
@@ -741,18 +735,13 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   $element = $form['#_edit_element'];
 
   // Update the field according to the settings in $form_state['values'].
-  $saveable = form_builder_get_saveable_properties($form_type, $element);
+  $saveable = $form_type_obj->getElementSaveableProperties($element_type);
   foreach ($form_state['values'] as $property => $value) {
     if (in_array($property, $saveable)) {
-      // Remove empty properties entirely.
-      if ($value === '' || is_null($value)) {
-        unset($element['#'. $property]);
-      }
-      else {
-        $element['#'. $property] = $value;
-      }
+      $form_type_obj->storeProperty($element, $property, $value);
     }
   }
+  $element = $form_type_obj->renderElement($element);
 
   // Update the form builder cache.
   form_builder_cache_field_save($form_type, $form_id, $element);

@@ -11,6 +11,29 @@
  */
 
 /**
+ * Define form builder form types and their element types.
+ *
+ * @return
+ *   An associative array of form type definitions. Each definition is an
+ *   associative array:
+ *    - class: This has to be the fully qualified name of an autoloadable class
+ *      implementing the FormBuilderFormTypeInterface. If no class is passed it
+ *      defaults to 'FormBuilderFormTypeBase'.
+ *    - property class: The default class used for properties.
+ *   The full definition is passed to the constructor of the class, so other
+ *   array keys can be used to pass additional parameters.
+ */
+function hook_form_builder_form_types() {
+  $types['example'] = array(
+    'class' => 'ExampleFormBuilderFormType',
+    'property class' => 'ExampleFormBuilderProperty',
+    'parameter1' => 'test',
+  );
+  return $types;
+}
+
+
+/**
  * Define the fields and properties supported by a form type.
  *
  * All modules that wish to create an configurable form need implement this hook. It
@@ -95,9 +118,17 @@ function hook_form_builder_types_alter(&$types) {
  *   the value of this parameter if your properties apply globally to all forms.
  *
  * @return
- *   An array of properties, each containing the name of a function for a form
- *   to editing that property. If needed additional submit and validate
- *   handlers may also be added.
+ *   An array of properties mapped to their configuration:
+ *   - 'class' (optional): Specifies the class that defines the property
+ *     behavior. It defaults to the default 'property class' defined in
+ *     @see hook_form_builder_form_types().
+ *   Additional parameters may be specified. Their semantics is defined and
+ *   implemented by their property class. Usually the following keys may be
+ *   used:
+ *   - 'form': Form callback that generates the form elements for configuring
+ *     this property.
+ *   - 'validate': Array of validate callbacks.
+ *   - 'submit': Array of submit callbacks.
  *
  * @ingroup form_builder
  */

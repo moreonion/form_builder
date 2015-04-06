@@ -6,81 +6,44 @@
  */
 
 /**
+ * Get a form type instance by name.
+ */
+function form_builder_form_type($form_type) {
+  return FormBuilderLoader::instance()->getFormType($form_type);
+}
+
+/**
  * Get a list of all properties that are supported within a form type.
+ *
+ * @deprecated This function is deprecated since 1.8 and will be removed
+ *   in 2.0. Use form_builder_form_type($form_type)->getProperties() instead.
+ * @see FormBuilderFormTypeInterface::getProperties()
  */
 function form_builder_get_properties($form_type, $reset = FALSE) {
-  static $properties = array();
-
-  if ($reset) {
-    $properties = array();
-  }
-
-  if (!isset($properties[$form_type])) {
-    // Get the list of all properties for all elements.
-    foreach (module_implements('form_builder_properties') as $module) {
-      $properties = array_merge($properties, module_invoke($module, 'form_builder_properties', $form_type));
-    }
-    drupal_alter('form_builder_properties', $properties, $form_type);
-  }
-
-  return $properties;
+  return form_builder_form_type($form_type)->getProperties($reset);
 }
 
 /**
  * Get a list of all properties that are supported by a particular form type.
+ *
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use FormBuilderFormType::getElementTypes() directly.
  */
 function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
-  static $types;
-
-  if (!isset($types) || $reset) {
-    $types = array();
-    // Get the list of all properties for all elements.
-    $types = module_invoke_all('form_builder_types');
-
-    // Add default values for undefined properties.
-    foreach ($types as $type_key => &$type) {
-      $groups = module_invoke_all('form_builder_palette_groups', $type_key);
-
-      foreach ($type as $field_key => &$field) {
-        $field['unique'] = isset($field['unique']) && $field['unique'];
-        $field['configurable'] = isset($field['configurable']) ? $field['configurable'] : TRUE;
-        $field['removable'] = isset($field['removable']) ? $field['removable'] : TRUE;
-        $field['addable'] = isset($field['addable']) ? $field['addable'] : $field['removable'] && isset($field['default']);
-        $field['palette_group'] = isset($field['palette_group']) && isset($groups[$field['palette_group']]) ? $field['palette_group'] : 'default';
-        $field['properties'] = isset($field['properties']) ? $field['properties'] : array();
-
-        // All fields must support weight.
-        if (!in_array('weight', $field['properties'])) {
-          $field['properties'][] = 'weight';
-        }
-
-        // Update the default elements with some defaults.
-        // Note that if a field is not removable, it doesn't have a default.
-        if ($field['addable']) {
-          if ($field['unique']) {
-            $field['default']['#form_builder']['element_id'] = $field_key;
-            if (!isset($field['default']['#form_builder']['element_type'])) {
-              $field['default']['#form_builder']['element_type'] = $field_key;
-            }
-          }
-          elseif (!isset($field['default']['#form_builder']['element_type'])) {
-            $field['default']['#form_builder']['element_type'] = $field_key;
-          }
-        }
-      }
-
-      // Sort fields by weight and title.
-      uasort($type, '_form_builder_sort');
-    }
-
-    drupal_alter('form_builder_types', $types);
+  if ($form_type) {
+    return form_builder_form_type($form_type)->getElementTypes();
   }
-
-  return isset($form_type) ? $types[$form_type] : $types;
+  else {
+    return FormBuilderLoader::instance()->getElementTypeInfo();
+  }
 }
 
 /**
  * Given an element type, return properties that are supported by Form builder.
+ *
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use the form_type directly instead.
+ * @see FormBuilderFormType::getElementTypeProperties()
  *
  * @param $form_type
  *   The type of form being edited (profile, node, webform, etc.)
@@ -92,21 +55,7 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
  *   validate functions (if any).
  */
 function form_builder_get_element_properties($form_type, $element_type) {
-  // Get the list of all properties for this type.
-  $properties = form_builder_get_properties($form_type);
-  // Get the list of supported properties per field in this form type.
-  $form_type = form_builder_get_form_type($form_type);
-
-  $element_properties = array();
-  if (isset($form_type[$element_type]['properties'])) {
-    foreach ($form_type[$element_type]['properties'] as $property) {
-      if (isset($properties[$property])) {
-        $element_properties[$property] = $properties[$property];
-      }
-    }
-  }
-
-  return $element_properties;
+  return form_builder_form_type($form_type)->getElementTypeProperties($element_type);
 }
 
 /**
@@ -117,6 +66,9 @@ function form_builder_get_element_properties($form_type, $element_type) {
  * only used internally by the module providing the form type this element
  * is being saved in.
  *
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use FormBuilderFormType::getSavaeableProperties() instead.
+ *
  * @param $form_type
  *   The type of form being edited (profile, node, webform, etc.)
  * @param $element
@@ -125,15 +77,9 @@ function form_builder_get_element_properties($form_type, $element_type) {
  *   A non-indexed list of properties that may be saved for this element.
  * */
 function form_builder_get_saveable_properties($form_type, $element) {
-  // Get the list of supported properties on each element.
-  $form_type = form_builder_get_form_type($form_type);
-
-  $saveable = array();
-  if (isset($form_type[$element['#form_builder']['element_type']]['properties'])) {
-    $saveable = $form_type[$element['#form_builder']['element_type']]['properties'];
-  }
-
-  return $saveable;
+  $element_type = $element['#form_builder']['element_type'];
+  return form_builder_form_type($form_type)
+    ->getElementSaveableProperties($element_type);
 }
 
 /**
@@ -324,7 +270,7 @@ function form_builder_save_form(&$form, $form_type, $form_id) {
  * Helper function to add default #form_builder properties to a form.
  */
 function form_builder_add_default_properties($form, $form_type, $key = NULL, $parent_id = FORM_BUILDER_ROOT) {
-  $form_type_fields = form_builder_get_form_type($form_type);
+  $form_type_fields = form_builder_form_type($form_type)->getElementTypes();
 
   // Add properties to this element.
   if (isset($form['#form_builder']['element_id'])) {
