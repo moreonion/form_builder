@@ -1126,13 +1126,15 @@ function _form_builder_webform_set_mapped_type($element) {
  * Helper function; Generate a default FAPI element for any component type.
  */
 function _form_builder_webform_default($component_type, $merge_extras = array()) {
-  $default_component = webform_component_invoke($component_type, 'defaults');
-  $default_component['extra'] = isset($default_component['extra']) ? array_merge($default_component['extra'], $merge_extras) : $merge_extras;
-  $default_element = webform_component_invoke($component_type, 'render', $default_component, NULL, FALSE);
-
-  // Set a bare-minimum component for identification of the component type.
-  $default_element['#webform_component'] = $default_component;
-  $default_element['#webform_component']['type'] = $component_type;
+  module_load_include('inc', 'webform', 'includes/webform.components');
+  $component = array(
+    'type' => $component_type,
+    'extra' => array(),
+  );
+  webform_component_defaults($component);
+  $component['extra'] = array_merge($component['extra'], $merge_extras);
+  $default_element = webform_component_invoke($component_type, 'render', $component, NULL, FALSE);
+  $default_element['#webform_component'] = $component;
 
   // Call the loading function to make sure that the default element gets the
   // same treatment as an existing one.
