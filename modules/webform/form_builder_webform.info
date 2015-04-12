@@ -3,3 +3,5 @@ description = Form builder integration for the Webform module.
 core = 7.x
 dependencies[] = form_builder
 dependencies[] = webform
+
+files[] = 'form_builder_webform.classes.inc'

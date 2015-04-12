@@ -137,31 +137,9 @@ function form_builder_webform_get_component($node, $element_id, $form) {
   module_load_include('inc', 'form_builder_webform', 'form_builder_webform.components');
 
   $element = form_builder_get_element($form, $element_id);
-  $type = isset($element['#webform_component']['type']) ? $element['#webform_component']['type'] : $element['#form_builder']['element_type'];
+  $component = $element['#webform_component'];
+  $type = $component['type'];
 
-  // Check for existing components.
-  $cid = substr($element_id, 4);
-  if (isset($node->webform['components'][$cid])) {
-    $component = $node->webform['components'][$cid];
-  }
-  // Populate a new default component.
-  elseif (isset($element['#webform_component']['is_new'])) {
-    if ($component = webform_component_invoke($type, 'defaults')) {
-      $component['type'] = $type;
-    }
-  }
-
-  // If the component type isn't found, don't try to save anything.
-  if (!isset($component)) {
-    return;
-  }
-
-  // Set typical component settings.
-  $component['name'] = $element['#title'];
-  $component['weight'] = $element['#weight'];
-  $component['form_key'] = $element['#key'];
-  // Mandatory/required backwards compatibility. http://drupal.org/node/2020723
-  $component['required'] = $component['mandatory'] = isset($element['#required']) ? $element['#required'] : 0;
   $component['email'] = 0;
   $component['nid'] = $node->nid;
 
@@ -174,19 +152,9 @@ function form_builder_webform_get_component($node, $element_id, $form) {
     $component['pid'] = $parent['#webform_component']['cid'];
   }
 
-  // Set the component's value. If the form element doesn't have a default,
-  // then new components should not be modified (they should use whatever the
-  // component default is), but existing components should have their stored
-  // value removed.
-  if (isset($element['#default_value'])) {
-    $component['value'] = is_array($element['#default_value']) ? implode(',', $element['#default_value']) : $element['#default_value'];
+  if (is_array($component['value'])) {
+    $component['value'] = implode(',', $component['value']);
   }
-  elseif (empty($element['#webform_component']['is_new'])) {
-    $component['value'] = NULL;
-  }
-
-  // Set all properties based on property maps.
-  $component = _form_builder_webform_save_mapped_component($component, $element);
 
   // Allow each component to set any specific settings that can't be mapped.
   if ($saved_component = form_builder_webform_component_invoke($type, 'form_builder_save', $component, $element)) {
@@ -216,6 +184,17 @@ function form_builder_webform_form_builder_property_groups($form_type) {
     );
   }
   return $groups;
+}
+
+/**
+ * Implements hook_form_builder_form_types().
+ */
+function form_builder_webform_form_builder_form_types() {
+  $types['webform'] = array(
+    'class' => 'FormBuilderWebformType',
+    'property class' => 'FormBuilderWebformProperty',
+  );
+  return $types;
 }
 
 /**
@@ -254,12 +233,11 @@ function form_builder_webform_form_builder_properties($form_type) {
     foreach ($components as $component_type => $component) {
       // Components providing a map to automatically list properties.
       if ($map = _form_builder_webform_property_map($component_type)) {
-        foreach ($map['properties'] as $property_name => $property_map) {
+        foreach ($map['properties'] as $name => $property_map) {
           if (isset($property_map['form_parents'])) {
-            $properties[$property_name] = array(
-              'form' => '_form_builder_webform_mapped_form',
-            );
+            $property_map['form'] = '_form_builder_webform_mapped_form';
           }
+          $properties[$name] = $property_map;
         }
       }
 
@@ -476,7 +454,9 @@ function _form_builder_webform_property_map($component_type) {
     $map = $map ? $map : array();
 
     if (webform_component_feature($component_type, 'title')) {
-      $map['properties']['title'] = array();
+      $map['properties']['title'] = array(
+        'storage_parents' => array('name'),
+      );
     }
 
     if (webform_component_feature($component_type, 'title_display')) {
@@ -487,7 +467,9 @@ function _form_builder_webform_property_map($component_type) {
     }
 
     if (webform_component_feature($component_type, 'default_value')) {
-      $map['properties']['default_value'] = array();
+      $map['properties']['default_value'] = array(
+        'storage_parents' => array('value'),
+      );
     }
 
     if (webform_component_feature($component_type, 'description')) {
@@ -518,11 +500,15 @@ function _form_builder_webform_property_map($component_type) {
     }
 
     if (webform_component_feature($component_type, 'required')) {
-      $map['properties']['required'] = array();
+      $map['properties']['required'] = array(
+        'class'  => 'FormBuilderWebformPropertyRequired',
+      );
     }
 
     // All components support the key property.
-    $map['properties']['key'] = array();
+    $map['properties']['key'] = array(
+      'storage_parents' => array('form_key'),
+    );
 
     drupal_alter('form_builder_webform_property_map', $map, $component_type);
 
