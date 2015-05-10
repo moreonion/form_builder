@@ -769,11 +769,10 @@ function _form_builder_webform_form_builder_types_select() {
   );
   $items['items'] = "1|" . t('one') . "\n2|" . t('two') . "\n3|" . t('three');
   $fields['select']['default'] = _form_builder_webform_default('select', array(
-    'name' => t('New select'),
     'aslist' => TRUE,
     'multiple' => FALSE,
     'value' => '1',
-  ) + $items);
+  ) + $items, array('name' => t('New select')));
 
   $fields['checkboxes'] = array(
     'title' => t('Checkboxes'),
@@ -785,11 +784,10 @@ function _form_builder_webform_form_builder_types_select() {
     'weight' => -6,
   );
   $fields['checkboxes']['default'] = _form_builder_webform_default('select', array(
-    'name' => t('New checkboxes'),
     'aslist' => FALSE,
     'multiple' => TRUE,
     'value' => '1,2',
-  ) + $items);
+  ) + $items, array('name' => t('New checkboxes')));
 
   $fields['radios'] = array(
     'title' => t('Radios'),
@@ -800,11 +798,10 @@ function _form_builder_webform_form_builder_types_select() {
     'weight' => -7,
   );
   $fields['radios']['default'] = _form_builder_webform_default('select', array(
-    'name' => t('New radios'),
     'aslist' => FALSE,
     'multiple' => FALSE,
     'value' => '1',
-  ) + $items);
+  ) + $items, array('name' => t('New radios')));
 
   return $fields;
 }
@@ -1125,7 +1122,7 @@ function _form_builder_webform_set_mapped_type($element) {
 /**
  * Helper function; Generate a default FAPI element for any component type.
  */
-function _form_builder_webform_default($component_type, $merge_extras = array()) {
+function _form_builder_webform_default($component_type, $merge_extras = array(), $merge_component = array()) {
   module_load_include('inc', 'webform', 'includes/webform.components');
   $component = array(
     'type' => $component_type,
@@ -1133,6 +1130,7 @@ function _form_builder_webform_default($component_type, $merge_extras = array())
   );
   webform_component_defaults($component);
   $component['extra'] = array_merge($component['extra'], $merge_extras);
+  $component = array_merge($component, $merge_component);
   $default_element = webform_component_invoke($component_type, 'render', $component, NULL, FALSE);
   $default_element['#webform_component'] = $component;
 
