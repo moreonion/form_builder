@@ -33,7 +33,7 @@ class FormBuilderLoader {
 
   protected function loadFormTypeInfo() {
     $defaults = array(
-      'class' => 'FormBuilderFormTypeBase',
+      'class' => 'FormBuilderFormBase',
       'property class' => 'FormBuilderPropertyBase',
     );
 
@@ -143,7 +143,7 @@ class FormBuilderLoader {
 }
 
 
-interface FormBuilderFormTypeInterface {
+interface FormBuilderFormInterface {
 
   /**
    * Construct a new instance of this form type class..
@@ -225,7 +225,7 @@ interface FormBuilderFormTypeInterface {
 
 }
 
-class FormBuilderFormTypeBase {
+class FormBuilderFormBase {
 
   protected $formType;
   protected $params;

@@ -1,6 +1,6 @@
 <?php
 
-class FormBuilderWebformType extends FormBuilderFormTypeBase {
+class FormBuilderWebformType extends FormBuilderFormBase {
 
   /**
    * {@inheritdoc}

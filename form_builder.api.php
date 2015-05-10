@@ -17,15 +17,15 @@
  *   An associative array of form type definitions. Each definition is an
  *   associative array:
  *    - class: This has to be the fully qualified name of an autoloadable class
- *      implementing the FormBuilderFormTypeInterface. If no class is passed it
- *      defaults to 'FormBuilderFormTypeBase'.
+ *      implementing the FormBuilderFormInterface. If no class is passed it
+ *      defaults to 'FormBuilderFormBase'.
  *    - property class: The default class used for properties.
  *   The full definition is passed to the constructor of the class, so other
  *   array keys can be used to pass additional parameters.
  */
 function hook_form_builder_form_types() {
   $types['example'] = array(
-    'class' => 'ExampleFormBuilderFormType',
+    'class' => 'ExampleFormBuilderForm',
     'property class' => 'ExampleFormBuilderProperty',
     'parameter1' => 'test',
   );
