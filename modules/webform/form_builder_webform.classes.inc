@@ -46,7 +46,7 @@ class FormBuilderWebformProperty extends FormBuilderPropertyBase {
 }
 
 /**
- * Special handling for he mandatory -> required rename in webform4.
+ * Special handling for the mandatory -> required rename in webform4.
  */
 class FormBuilderWebformPropertyRequired extends FormBuilderPropertyBase {
   public function setValue(&$component, $value) {

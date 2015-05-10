@@ -781,42 +781,18 @@ function _form_builder_webform_form_builder_properties_select() {
     'options' => array(
       'form' => 'form_builder_webform_property_select_options_form',
       'submit' => array('form_builder_property_options_form_submit'),
+      'storage_parents' => array('extra', 'items'),
     ),
   );
 }
 
 /**
- * Serializes the value of a select component.
- *
- * @param array $options
- *   Select component options.
- *
- * @return string
+ * Implements _form_builder_webform_form_builder_load_component().
  */
-function _form_builder_serialize_select(array $options) {
-  $serialized = '';
-  foreach ($options as $key => $option_value) {
-    if (is_array($option_value)) {
-      $serialized .= "<{$key}>\n" . _form_builder_serialize_select($option_value) . "<>\n";
-    }
-    else {
-      $serialized .= "{$key}|{$option_value}\n";
-    }
-  }
-
-  return $serialized;
-}
-
-/**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_select($component, $form_element) {
-  $component['extra']['items'] = _form_builder_serialize_select($form_element['#options']);
-  $component['extra']['multiple'] = $form_element['#form_builder']['element_type'] == 'checkboxes';
-  $component['extra']['aslist'] = $form_element['#form_builder']['element_type'] == 'select';
-  $component['extra']['other_option'] = !empty($form_element['#other_option']);
-  $component['extra']['other_text'] = !empty($form_element['#other_text']) ? $form_element['#other_text'] : '';
-  return $component;
+function _form_builder_webform_form_builder_load_select($form_element) {
+  // Properties that are only used by Form Builder and not in the normal form.
+  $form_element['#key_type_toggled'] = !empty($form_element['#webform_component']['extra']['custom_keys']);
+  return $form_element;
 }
 
 /**

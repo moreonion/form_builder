@@ -221,7 +221,7 @@ function form_builder_property_options_form(&$form_state, $form_type, $element, 
 }
 
 function form_builder_property_options_form_submit(&$form, &$form_state) {
-  $options = $form_state['values']['options']['options'];
+  $options = $form_state['values']['options']['options_field'];
   $default_value = $form_state['values']['options']['default_value'];
 
   if (isset($form_state['values']['options']['multiple'])) {

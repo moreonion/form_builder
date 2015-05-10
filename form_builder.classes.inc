@@ -105,7 +105,16 @@ class FormBuilderLoader {
 
   public function getPropertyInfo($form_type, $reset = FALSE) {
     if (!isset($this->propertyInfo[$form_type]) || $reset) {
-      $properties = module_invoke_all('form_builder_properties', $form_type);
+      // Don't use module_invoke_all here as it uses array_merge_recursive()
+      // which creates sub-arrays for duplicate array keys.
+      $properties = array();
+      foreach (module_implements('form_builder_properties') as $module) {
+        $new_properties = module_invoke($module, 'form_builder_properties', $form_type);
+        $properties += $new_properties;
+        foreach ($new_properties as $k => $v) {
+          $properties[$k] = array_merge($properties[$k], $new_properties[$k]);
+        }
+      }
       drupal_alter('form_builder_properties', $properties, $form_type);
       $defaults['class'] = $this->formTypeInfo[$form_type]['property class'];
       foreach ($properties as $property => &$params) {
