@@ -654,21 +654,10 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
 function form_builder_field_configure($form, $form_state, $form_type, $form_id, $element_id) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
-  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
-  $element_type = $element['#form_builder']['element_type'];
-  $form_type_obj = form_builder_form_type($form_type);
+  $form_obj = FormBuilderFormBase::fromCache($form_type, $form_id);
+  $element_obj = $form_obj->getElement($element_id);
 
-  // Assemble a form made up of all the configurable properties that this type
-  // of form supports.
-  $form = array();
-  foreach ($form_type_obj->getElementTypeProperties($element_type) as $property) {
-    $form = array_merge($form, $property->form($form_state, $form_type, $element));
-  }
-
-  $form['#_edit_form_type'] = $form_type;
-  $form['#_edit_form_id'] = $form_id;
-  $form['#_edit_element_id'] = $element_id;
-  $form['#_edit_element'] = $element;
+  $form = $element_obj->configurationForm($form, $form_state);
   $form['#pre_render'][] = 'form_builder_field_configure_pre_render';
 
   $form['form_builder_submit'] = array(
@@ -719,33 +708,14 @@ function form_builder_field_configure_pre_render($form) {
 }
 
 function form_builder_field_configure_submit(&$form, &$form_state) {
-  $form_type = $form['#_edit_form_type'];
-  $form_id = $form['#_edit_form_id'];
-  $element_id = $form['#_edit_element_id'];
-  $element = $form['#_edit_element'];
-  $element_type = $element['#form_builder']['element_type'];
-  $form_type_obj = form_builder_form_type($form_type);
+  list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
+  $form_obj = FormBuilderFormBase::fromCache($form_type, $form_id);
+  $element_obj = $form_obj->getElement($element_id);
 
-  // Allow each element to do any necessary submission handling.
-  foreach ($form_type_obj->getElementTypeProperties($element_type) as $property) {
-    $property->submit($form, $form_state);
-  }
-
-  // Allow the element to be updated in a hard-coded fashion by altering the
-  // $form['#element'] item. Using this approach skips the property check.
-  $element = $form['#_edit_element'];
-
-  // Update the field according to the settings in $form_state['values'].
-  $saveable = $form_type_obj->getElementSaveableProperties($element_type);
-  foreach ($form_state['values'] as $property => $value) {
-    if (in_array($property, $saveable)) {
-      $form_type_obj->storeProperty($element, $property, $value);
-    }
-  }
-  $element = $form_type_obj->renderElement($element);
+  $element_obj->configurationSubmit($form, $form_state);
 
   // Update the form builder cache.
-  form_builder_cache_field_save($form_type, $form_id, $element);
+  form_builder_cache_field_save($form_type, $form_id, $element_obj->render());
 
   if (isset($_GET['js'])) {
     // Option A: Use the destination variable to do a drupal_goto(). Allows
@@ -768,11 +738,6 @@ function form_builder_field_remove($form, $form_state, $form_type, $form_id, $el
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
   $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
 
-  $form = array();
-  $form['#_edit_form_type'] = $form_type;
-  $form['#_edit_form_id'] = $form_id;
-  $form['#_edit_element_id'] = $element_id;
-
   $question = t('Remove the field %title?', array('%title' => $element['#title']));
   $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
   $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => isset($element['#title']) ? $element['#title'] : $element['#form_builder']['element_id']));
@@ -782,9 +747,7 @@ function form_builder_field_remove($form, $form_state, $form_type, $form_id, $el
 }
 
 function form_builder_field_remove_submit(&$form, &$form_state) {
-  $form_type = $form['#_edit_form_type'];
-  $form_id = $form['#_edit_form_id'];
-  $element_id = $form['#_edit_element_id'];
+  list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
 
   // Update the form builder cache.
   form_builder_cache_field_delete($form_type, $form_id, $element_id);

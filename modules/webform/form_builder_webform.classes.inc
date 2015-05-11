@@ -1,19 +1,21 @@
 <?php
 
-class FormBuilderWebformType extends FormBuilderFormBase {
+class FormBuilderWebformElement extends FormBuilderElementBase {
 
   /**
    * {@inheritdoc}
    */
-  public function storeProperty(&$element, $property, $value) {
-    $component = &$element['#webform_component'];
-    $this->properties[$property]->setValue($component, $value);
+  protected function setProperty($property, $value) {
+    $component = &$this->element['#webform_component'];
+    $properties = $this->getProperties();
+    $properties[$property]->setValue($component, $value);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function renderElement($element) {
+  public function render() {
+    $element = &$this->element;
     if (isset($element['#webform_component'])) {
       $component = &$element['#webform_component'];
       $new_element = webform_component_invoke($component['type'], 'render', $component, NULL, FALSE);
@@ -31,9 +33,9 @@ class FormBuilderWebformProperty extends FormBuilderPropertyBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct($property, $params) {
+  public function __construct($property, $params, $form_type_name) {
     $params += array('storage_parents' => array($property));
-    parent::__construct($property, $params);
+    parent::__construct($property, $params, $form_type_name);
     $this->storageParents = $params['storage_parents'];
   }
 

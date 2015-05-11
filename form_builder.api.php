@@ -19,6 +19,7 @@
  *    - class: This has to be the fully qualified name of an autoloadable class
  *      implementing the FormBuilderFormInterface. If no class is passed it
  *      defaults to 'FormBuilderFormBase'.
+ *    - element class: The default class used for elements.
  *    - property class: The default class used for properties.
  *   The full definition is passed to the constructor of the class, so other
  *   array keys can be used to pass additional parameters.
@@ -26,6 +27,7 @@
 function hook_form_builder_form_types() {
   $types['example'] = array(
     'class' => 'ExampleFormBuilderForm',
+    'element class' => 'ExampleFormBuilderElement',
     'property class' => 'ExampleFormBuilderProperty',
     'parameter1' => 'test',
   );
@@ -45,6 +47,8 @@ function hook_form_builder_form_types() {
  *   An array of form types that this module may edit. Within each form type,
  *   a list of fields that can be edited. Each field contains the following
  *   properties:
+ *   - class: The class used to handle this element type. Defaults to the
+ *     'element class' attribute of the form type.
  *   - title: The name of the field type that is displayed in the new fields
  *     block.
  *   - properties: An array of properties that are configurable. Configuration

@@ -192,8 +192,8 @@ function form_builder_webform_form_builder_property_groups($form_type) {
  */
 function form_builder_webform_form_builder_form_types() {
   $types['webform'] = array(
-    'class' => 'FormBuilderWebformType',
     'property class' => 'FormBuilderWebformProperty',
+    'element class' => 'FormBuilderWebformElement',
   );
   return $types;
 }

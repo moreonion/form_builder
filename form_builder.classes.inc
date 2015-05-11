@@ -35,6 +35,7 @@ class FormBuilderLoader {
     $defaults = array(
       'class' => 'FormBuilderFormBase',
       'property class' => 'FormBuilderPropertyBase',
+      'element class' => 'FormBuilderElementBase',
     );
 
     $form_types = module_invoke_all('form_builder_form_types');
@@ -46,6 +47,9 @@ class FormBuilderLoader {
     foreach ($form_types as $form_type => &$info) {
       $info += $defaults;
       $element_types += array($form_type => array());
+      foreach ($element_types[$form_type] as &$element_type) {
+        $element_type += array('class' => $info['element class']);
+      }
     }
 
     $this->formTypeInfo = $form_types;
@@ -129,16 +133,25 @@ class FormBuilderLoader {
   /**
    * Get a form type object.
    */
-  public function getFormType($form_type) {
+  public function getFormType($form_type, $form = array()) {
     if (!isset($this->formTypes[$form_type])) {
       if (!isset($this->formTypeInfo[$form_type])) {
         return FALSE;
       }
       $info = $this->formTypeInfo[$form_type];
       $class = $info['class'];
-      $this->formTypes[$form_type] = new $class($form_type, $info, $this);
+      $this->formTypes[$form_type] = new $class($form_type, $info, $form, $this);
     }
     return $this->formTypes[$form_type];
+  }
+
+  /**
+   * Get element instance.
+   */
+  public function getElement($form_type, $element_type, $form, &$element) {
+    $info = $this->elementTypeInfo[$form_type][$element_type];
+    $class = $info['class'];
+    return new $class($form, $info, $element, $this);
   }
 }
 
@@ -153,63 +166,18 @@ interface FormBuilderFormInterface {
    * @param array $params
    *   Additional parameters passed to hook_form_builder_properties().
    */
-  public function __construct($form_type, $params, $loader);
+  public function __construct($form_type, $params, $form, $loader);
 
   /**
+   * Get a specific element from the form.
+   *
+   * @param string $elment_id
+   *   Unique ID of the element.
+   *
+   * @return FormBuilderElementInterface
+   *   Object representing the form element.
    */
-
-  /**
-   * Get a list of properties available for an element type.
-   *
-   * @param string $element_type
-   *   Form builder element-type (ie. FAPI #type).
-   * @return
-   *   An associative array of properties supported for editing, keyed by
-   *   the property name. All properties must be instances of a class
-   *   implementing FormBuilderPropertyInterface.
-   */
-  public function getElementTypeProperties($element_type, $reset = FALSE);
-
-  /**
-   * Get a list of properties that are supported in any way by an element.
-   *
-   * This returns a list of all supported properties within an element, even
-   * if some of those properties do not have an interface for editing or are
-   * only used internally by the module providing the form type this element
-   * is being saved in.
-   *
-   * @param $element_type
-   *   The element.
-   * @return
-   *   A non-indexed list of properties that may be saved for this element.
-   **/
-  public function getElementSaveableProperties($element_type);
-
-  /**
-   * Store a properties value into the element-array.
-   *
-   * This method must update the $element for rendering as well as for
-   * later storage.
-   *
-   * @param array $element
-   *   FAPI array representing the element.
-   * @param string $property
-   *   Key of the property.
-   * @param mixed $value
-   *   New value for the property.
-   */
-  public function storeProperty(&$element, $property, $value);
-
-  /**
-   * (Re-)Render an element.
-   *
-   * @param array $element
-   *   FAPI array representing the element.
-   * @return array
-   *   New FAPI array reflecting all the changes made prior to callig this
-   *   method.
-   */
-  public function renderElement($element);
+  public function getElement($element_id);
 
 }
 
@@ -218,16 +186,50 @@ class FormBuilderFormBase {
   protected $formType;
   protected $params;
   protected $properties;
+  protected $form;
   protected $loader;
+  protected $elementArrays = array();
+
+  /**
+   * Shortcut for loading a form-object from the cache.
+   */
+  public static function fromCache($form_type, $form_id, $sid = NULL) {
+    $form = form_builder_cache_load($form_type, $form_id, $sid = NULL);
+    if ($form !== FALSE) {
+      return FormBuilderLoader::instance()->getFormType($form_type, $form);
+    }
+    return FALSE;
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function __construct($form_type, $params, $loader) {
+  public function __construct($form_type, $params, $form, $loader) {
     $this->formType = $form_type;
     $this->params = $params;
     $this->properties = NULL;
+    $this->form = &$form;
     $this->loader = $loader;
+
+    $q = array(&$form);
+    while ($q) {
+      $element = &array_pop($q);
+      foreach (element_children($element) as $key) {
+        $q[] = &$element[$key];
+        if (isset($element[$key]['#form_builder']['element_id'])) {
+          $this->elementArrays[$element[$key]['#form_builder']['element_id']] = &$element[$key];
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getElement($element_id) {
+    $element = &$this->elementArrays[$element_id];
+    return $this->loader
+      ->getElement($this->formType, $element['#form_builder']['element_type'], $this, $element);
   }
 
   /**
@@ -238,63 +240,151 @@ class FormBuilderFormBase {
       $properties = $this->loader->getPropertyInfo($this->formType, $reset);
       foreach ($properties as $property => $params) {
         $class = $params['class'];
-        $this->properties[$property] = new $class($property, $params);
+        $this->properties[$property] = new $class($property, $params, $this->formType);
       }
     }
 
     return $this->properties;
   }
 
+}
+
+
+interface FormBuilderElementInterface {
+  public function __construct($form_type, $params, &$element, $loader);
+
+  /**
+   * (Re-)Render an element.
+   *
+   * @return array
+   *   New FAPI array reflecting all the changes made prior to callig this
+   *   method.
+   */
+  public function render();
+
+  /**
+   * Get a list of properties available for this element.
+   *
+   * @return
+   *   An associative array of properties keyed by the property name.
+   *   Property classes must implementing FormBuilderPropertyInterface.
+   */
+  public function getProperties();
+
+  /**
+   * Get a list of properties that are supported in any way by this element.
+   *
+   * This returns a list of all supported properties within an element, even
+   * if some of those properties do not have an interface for editing or are
+   * only used internally by the module providing the form type this element
+   * is being saved in.
+   *
+   * @return
+   *   A non-indexed list of properties that may be saved for this element.
+   **/
+  public function getSaveableProperties();
+
+  /**
+   * Get the configuration form for this element.
+   */
+  public function configurationForm($form, &$form_state);
+
+  /**
+   * Submit handler for the configuration form.
+   */
+  public function configurationSubmit(&$form, &$form_state);
+}
+
+
+class FormBuilderElementBase implements FormBuilderElementInterface {
+  protected $formType;
+  protected $params;
+  protected $element;
+  protected $loader;
+  public function __construct($form_type, $params, &$element, $loader) {
+    $this->formType = $form_type;
+    $this->params = $params;
+    $this->element = &$element;
+    $this->loader = $loader;
+  }
+
   /**
    * {@inheritdoc}
    */
-  public function getElementTypeProperties($element_type, $reset = FALSE) {
-    // Get the list of all properties for this type.
-    $properties = $this->getProperties($reset);
-    // Get the list of supported properties per field in this form type.
-    $form_type = $this->loader->getElementTypeInfo($this->formType);
+  public function render() {
+    return $this->element;
+  }
 
-    $element_properties = array();
-    if (isset($form_type[$element_type]['properties'])) {
-      foreach ($form_type[$element_type]['properties'] as $property) {
-        if (isset($properties[$property])) {
-          $element_properties[$property] = $properties[$property];
-        }
+  /**
+   * {@inheritdoc}
+   */
+  public function getProperties() {
+    $return = array();
+    $properties = $this->formType->getProperties();
+    // Order of the properties is important because of a form-API bug.
+    // See: https://www.drupal.org/node/990218.
+    foreach ($this->params['properties'] as $name) {
+      if (isset($properties[$name])) {
+        $return[$name] = $properties[$name];
       }
     }
+    return $return;
+  }
 
-    return $element_properties;
+  /**
+   * Set the value of a property.
+   *
+   * This method must update the $element for rendering as well as for
+   * later storage.
+   *
+   * @param string $property
+   *   Key of the property.
+   * @param mixed $value
+   *   New value for the property.
+   */
+  protected function setProperty($property, $value) {
+    // Remove empty properties entirely.
+    if ($value === '' || is_null($value)) {
+      unset($this->element['#'. $property]);
+    }
+    else {
+      $this->element['#'. $property] = $value;
+    }
+  }
+
+  public function getSaveableProperties() {
+    return $this->params['properties'];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getElementSaveableProperties($element_type) {
-    $types = $this->loader->getElementTypeInfo($this->formType);
-    return $types[$element_type]['properties'];
+  public function configurationForm($form, &$form_state) {
+    foreach ($this->getProperties() as $property) {
+      $form = array_merge($form, $property->form($form_state, $this->element));
+    }
+    return $form;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function storeProperty(&$element, $property, $value) {
-      // Remove empty properties entirely.
-      if ($value === '' || is_null($value)) {
-        unset($element['#'. $property]);
+  public function configurationSubmit(&$form, &$form_state) {
+    // Allow each property to do any necessary submission handling.
+    foreach ($this->getProperties() as $property) {
+      $property->submit($form, $form_state);
+    }
+
+    // Update the field according to the settings in $form_state['values'].
+    $saveable = $this->getSaveableProperties();
+    foreach ($form_state['values'] as $property => $value) {
+      if (in_array($property, $saveable)) {
+        $this->setProperty($property, $value);
       }
-      else {
-        $element['#'. $property] = $value;
-      }
+    }
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function renderElement($element) {
-    return $element;
-  }
-
 }
+
 
 interface FormBuilderPropertyInterface {
 
@@ -306,23 +396,21 @@ interface FormBuilderPropertyInterface {
    * @param array $params
    *   Additional parameters passed to hook_form_builder_properties().
    */
-  public function __construct($poperty, $params);
+  public function __construct($property, $params, $form_type_name);
 
   /**
    * Generate form-API elements for editing this property.
    *
    * @param array $form_state
    *   Form API form_state of the field configure form.
-   * @param string $form_type
-   *   Name of the form_type.
    * @param array $element
    *   Form-API array representing the currently stored value of all properties
-   *   on this form $element. Use this to set form-elements' default values.
+   *   on this form $element. Use this to get the "current" values.
    *
    * @return array
    *   Form-API array that will be merged into the field configure form.
    */
-  public function form(&$form_state, $form_type, $element);
+  public function form(&$form_state, $element);
 
   /**
    * Submit handler for the editing form().
@@ -342,25 +430,27 @@ class FormBuilderPropertyBase implements FormBuilderPropertyInterface {
 
   protected $property;
   protected $params;
+  protected $form_type_name;
 
   /**
    * {@inheritdoc}
    */
-  public function __construct($property, $params) {
+  public function __construct($property, $params, $form_type_name) {
     $this->property = $property;
     $this->params = $params;
+    $this->formTypeName = $form_type_name;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function form(&$form_state, $form_type, $element) {
+  public function form(&$form_state, $element) {
     if (isset($this->params['form']) && function_exists($this->params['form'])) {
       $function = $this->params['form'];
       $p = $this->property;
       // Set a default value on the property to avoid notices.
       $element['#' . $p] = isset($element['#' . $p]) ? $element['#' . $p] : NULL;
-      return $function($form_state, $form_type, $element, $p);
+      return $function($form_state, $this->formTypeName, $element, $p);
     }
     return array();
   }

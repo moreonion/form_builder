@@ -36,8 +36,7 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
  * Given an element type, return properties that are supported by Form builder.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the form_type directly instead.
- * @see FormBuilderForm::getElementTypeProperties()
+ *   Use the FormBuilderElement class instead of the info-arrays.
  *
  * @param $form_type
  *   The type of form being edited (profile, node, webform, etc.)
@@ -49,7 +48,12 @@ function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
  *   validate functions (if any).
  */
 function form_builder_get_element_properties($form_type, $element_type) {
-  return form_builder_form_type($form_type)->getElementTypeProperties($element_type);
+  $properties = FormBuilderLoader::instance()->getPropertyInfo($form_type);
+  $elements = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
+  return array_intersect_key(
+    $properties,
+    array_flip($elements[$element_type]['properties'])
+  );
 }
 
 /**
@@ -61,7 +65,7 @@ function form_builder_get_element_properties($form_type, $element_type) {
  * is being saved in.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use FormBuilderForm::getSavaeableProperties() instead.
+ *   Use the FormBuilderElement class instead of the info-arrays.
  *
  * @param $form_type
  *   The type of form being edited (profile, node, webform, etc.)
@@ -72,8 +76,8 @@ function form_builder_get_element_properties($form_type, $element_type) {
  * */
 function form_builder_get_saveable_properties($form_type, $element) {
   $element_type = $element['#form_builder']['element_type'];
-  return form_builder_form_type($form_type)
-    ->getElementSaveableProperties($element_type);
+  $info = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
+  return $info[$element_type]['properties'];
 }
 
 /**
