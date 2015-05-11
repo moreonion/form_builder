@@ -15,27 +15,21 @@ function form_builder_form_type($form_type) {
 /**
  * Get a list of all properties that are supported within a form type.
  *
- * @deprecated This function is deprecated since 1.8 and will be removed
- *   in 2.0. Use form_builder_form_type($form_type)->getProperties() instead.
- * @see FormBuilderFormInterface::getProperties()
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use the Form / Element or Property classes instead of the info-arrays.
  */
 function form_builder_get_properties($form_type, $reset = FALSE) {
-  return form_builder_form_type($form_type)->getProperties($reset);
+  return FormBuilderLoader::instance()->getPropertyInfo($form_type, $reset);
 }
 
 /**
  * Get a list of all properties that are supported by a particular form type.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use FormBuilderForm::getElementTypes() directly.
+ *   Use the Form / Element or Property classes instead of the info-arrays.
  */
 function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
-  if ($form_type) {
-    return form_builder_form_type($form_type)->getElementTypes();
-  }
-  else {
-    return FormBuilderLoader::instance()->getElementTypeInfo();
-  }
+  return FormBuilderLoader::instance()->getElementTypeInfo($form_type);
 }
 
 /**
@@ -270,7 +264,7 @@ function form_builder_save_form(&$form, $form_type, $form_id) {
  * Helper function to add default #form_builder properties to a form.
  */
 function form_builder_add_default_properties($form, $form_type, $key = NULL, $parent_id = FORM_BUILDER_ROOT) {
-  $form_type_fields = form_builder_form_type($form_type)->getElementTypes();
+  $form_type_fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
 
   // Add properties to this element.
   if (isset($form['#form_builder']['element_id'])) {

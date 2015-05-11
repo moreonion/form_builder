@@ -156,24 +156,12 @@ interface FormBuilderFormInterface {
   public function __construct($form_type, $params, $loader);
 
   /**
-   * Get a list of properties available for this form type.
    */
-  public function getProperties($reset = FALSE);
-
-  /**
-   * Get a list of all element types for this form type.
-   */
-  public function getElementTypes();
-
-  /**
-   * Get a list of palette groups.
-   */
-  public function getPaletteGroups();
 
   /**
    * Get a list of properties available for an element type.
    *
-   * @param $element_type
+   * @param string $element_type
    *   Form builder element-type (ie. FAPI #type).
    * @return
    *   An associative array of properties supported for editing, keyed by
@@ -260,25 +248,11 @@ class FormBuilderFormBase {
   /**
    * {@inheritdoc}
    */
-  public function getElementTypes() {
-    return $this->loader->getElementTypeInfo($this->formType);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getPaletteGroups() {
-    return $this->loader->getPaletteGroupInfo($this->formType);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getElementTypeProperties($element_type, $reset = FALSE) {
     // Get the list of all properties for this type.
     $properties = $this->getProperties($reset);
     // Get the list of supported properties per field in this form type.
-    $form_type = $this->getElementTypes();
+    $form_type = $this->loader->getElementTypeInfo($this->formType);
 
     $element_properties = array();
     if (isset($form_type[$element_type]['properties'])) {
@@ -296,7 +270,7 @@ class FormBuilderFormBase {
    * {@inheritdoc}
    */
   public function getElementSaveableProperties($element_type) {
-    $types = $this->getElementTypes();
+    $types = $this->loader->getElementTypeInfo($this->formType);
     return $types[$element_type]['properties'];
   }
 
