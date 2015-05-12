@@ -133,7 +133,7 @@ class FormBuilderLoader {
   /**
    * Get a form type object.
    */
-  public function getFormType($form_type, $form = array()) {
+  public function getForm($form_type, $form = array()) {
     if (!isset($this->formTypes[$form_type])) {
       if (!isset($this->formTypeInfo[$form_type])) {
         return FALSE;
@@ -196,7 +196,7 @@ class FormBuilderFormBase {
   public static function fromCache($form_type, $form_id, $sid = NULL) {
     $form = form_builder_cache_load($form_type, $form_id, $sid = NULL);
     if ($form !== FALSE) {
-      return FormBuilderLoader::instance()->getFormType($form_type, $form);
+      return FormBuilderLoader::instance()->getForm($form_type, $form);
     }
     return FALSE;
   }
@@ -297,12 +297,12 @@ interface FormBuilderElementInterface {
 
 
 class FormBuilderElementBase implements FormBuilderElementInterface {
-  protected $formType;
+  protected $form;
   protected $params;
   protected $element;
   protected $loader;
-  public function __construct($form_type, $params, &$element, $loader) {
-    $this->formType = $form_type;
+  public function __construct($form, $params, &$element, $loader) {
+    $this->form = $form;
     $this->params = $params;
     $this->element = &$element;
     $this->loader = $loader;
@@ -320,7 +320,7 @@ class FormBuilderElementBase implements FormBuilderElementInterface {
    */
   public function getProperties() {
     $return = array();
-    $properties = $this->formType->getProperties();
+    $properties = $this->form->getProperties();
     // Order of the properties is important because of a form-API bug.
     // See: https://www.drupal.org/node/990218.
     foreach ($this->params['properties'] as $name) {

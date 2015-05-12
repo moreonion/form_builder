@@ -9,7 +9,7 @@
  * Get a form type instance by name.
  */
 function form_builder_form_type($form_type) {
-  return FormBuilderLoader::instance()->getFormType($form_type);
+  return FormBuilderLoader::instance()->getForm($form_type);
 }
 
 /**
