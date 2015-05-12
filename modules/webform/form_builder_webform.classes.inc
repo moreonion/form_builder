@@ -56,3 +56,19 @@ class FormBuilderWebformPropertyRequired extends FormBuilderPropertyBase {
     $component['mandatory'] = $value; // webform 3
   }
 }
+
+/**
+ * Special handling for $component['value'].
+ */
+class FormBuilderWebformPropertyValue extends FormBuilderWebformProperty {
+  /**
+   * {@inheritdoc}
+   */
+  public function setValue(&$component, $value) {
+    if (is_array($value)) {
+      $value = implode(',', $value);
+    }
+    parent::setValue($component, $value);
+  }
+}
+

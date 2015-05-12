@@ -153,10 +153,6 @@ function form_builder_webform_get_component($node, $element_id, $form) {
     $component['pid'] = $parent['#webform_component']['cid'];
   }
 
-  if (is_array($component['value'])) {
-    $component['value'] = implode(',', $component['value']);
-  }
-
   // Allow each component to set any specific settings that can't be mapped.
   if ($saved_component = form_builder_webform_component_invoke($type, 'form_builder_save', $component, $element)) {
     $component = $saved_component;
@@ -469,6 +465,7 @@ function _form_builder_webform_property_map($component_type) {
 
     if (webform_component_feature($component_type, 'default_value')) {
       $map['properties']['default_value'] = array(
+        'class' => 'FormBuilderWebformPropertyValue',
         'storage_parents' => array('value'),
       );
     }
