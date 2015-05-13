@@ -414,3 +414,15 @@ function form_builder_registry_files_alter(&$files, $module_cache) {
     $files[$file->uri]['weight'] = 0;
   }
 }
+
+/**
+ * Implement hook_cron().
+ *
+ * Remove stale form_builder_cache entries.
+ */
+function form_builder_cron() {
+  $limit = REQUEST_TIME - variable_get('form_builder_timeout', 21600);
+  db_delete('form_builder_cache')
+    ->condition('updated', $limit, '<')
+    ->execute();
+}
