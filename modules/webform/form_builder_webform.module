@@ -476,6 +476,13 @@ function _form_builder_webform_property_map($component_type) {
       );
     }
 
+    if (webform_component_feature($component_type, 'placeholder')) {
+      $map['properties']['placeholder'] = array(
+        'form_parents' => array('display', 'placeholder'),
+        'storage_parents' => array('extra', 'placeholder'),
+      );
+    }
+
     if (webform_component_feature($component_type, 'private')) {
       $map['properties']['webform_private'] = array(
         'form_parents' => array('display', 'private'),
