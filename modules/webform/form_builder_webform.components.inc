@@ -620,12 +620,10 @@ function _form_builder_webform_form_builder_properties_number() {
 function _form_builder_webform_form_builder_types_pagebreak() {
   $fields = array();
 
+  $component['name'] = t('Page break');
   $fields['pagebreak'] = array(
     'title' => t('Page break'),
-    'default' => array(
-      '#title' => t('Page break'),
-      '#type' => 'pagebreak',
-    ),
+    'default' => _form_builder_webform_default('pagebreak', array(), $component),
     'weight' => 20,
   );
 
