@@ -240,10 +240,14 @@ function form_builder_webform_form_builder_properties($form_type) {
 
       // Individual components manually providing properties.
       if ($additional_properties = form_builder_webform_component_invoke($component_type, 'form_builder_properties')) {
-        $properties = array_merge($properties, $additional_properties);
+        foreach ($additional_properties as $name => $property) {
+          $properties += array($name => array());
+          $properties[$name] = array_merge($properties[$name], $property);
+        }
       }
     }
   }
+  dpm($properties, 'properties');
 
   return $properties;
 }
