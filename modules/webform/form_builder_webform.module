@@ -247,7 +247,6 @@ function form_builder_webform_form_builder_properties($form_type) {
       }
     }
   }
-  dpm($properties, 'properties');
 
   return $properties;
 }
