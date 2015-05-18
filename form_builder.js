@@ -662,6 +662,7 @@ Drupal.formBuilder.addElement = function(response) {
   var positionAction = $('#form-builder-positions').attr('action');
   $('#form-builder-positions').replaceWith(response.positionForm);
   $('#form-builder-positions').attr('action', positionAction);
+  Drupal.attachBehaviors($('#form-builder-positions'));
 
   // Submit the new positions form to save the new element position.
   Drupal.formBuilder.updateElementPosition($new.get(0));
@@ -688,7 +689,7 @@ Drupal.formBuilder.updateElementPosition = function(element) {
   $('#form-builder-positions input.form-builder-parent').filter('.' + child_id).val(parent_id);
 
   // Submit the position form via AJAX to save the new weights and parents.
-  $('#form-builder-positions').ajaxSubmit();
+  $('#form-builder-positions input[type=submit]').triggerHandler('mousedown');
 };
 
 /**

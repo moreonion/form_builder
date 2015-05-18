@@ -271,6 +271,7 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
  * Form containing all the current weights and parents of elements.
  */
 function form_builder_positions($form, &$form_state, $form_cache, $form_type, $form_id) {
+  form_load_include($form_state, 'inc', 'form_builder', 'includes/form_builder.admin');
   $form = array(
     '#tree' => TRUE,
     '#form_builder' => array(
@@ -287,9 +288,24 @@ function form_builder_positions($form, &$form_state, $form_cache, $form_type, $f
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Update'),
+    '#ajax' => array(
+      'callback' => 'form_builder_positions_ajax',
+      'wrapper' => 'form_builder_positions',
+    ),
   );
 
   return $form;
+}
+
+/**
+ * AJAX callback for form_builder_positions.
+ */
+function form_builder_positions_ajax($form, &$form_state) {
+  // We don't want to change anything in the form.
+  return array(
+    '#type' => 'ajax',
+    '#commands' => array(),
+  );
 }
 
 /**
