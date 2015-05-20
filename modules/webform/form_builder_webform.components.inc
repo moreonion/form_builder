@@ -290,6 +290,18 @@ function _form_builder_webform_form_builder_map_grid() {
   return array(
     'form_builder_type' => 'grid',
     'properties' => array(
+      'custom_grid_option_keys' => array(
+        'storage_parents' => array('extra', 'custom_option_keys'),
+      ),
+      'custom_grid_question_keys' => array(
+        'storage_parents' => array('extra', 'custom_question_keys'),
+      ),
+      'grid_options' => array(
+        'storage_parents' => array('extra', 'options'),
+      ),
+      'grid_questions' => array(
+        'storage_parents' => array('extra', 'questions'),
+      ),
       'optrand' => array(
         'form_parents' => array('display', 'optrand'),
         'storage_parents' => array('extra', 'optrand'),
@@ -325,28 +337,11 @@ function _form_builder_webform_form_builder_properties_grid() {
 }
 
 /**
- * Implements _form_builder_webform_form_builder_save_component().
- */
-function _form_builder_webform_form_builder_save_grid($component, $form_element) {
-  $component['extra']['options'] = _webform_select_options_to_text($component['extra']['options']);
-  $component['extra']['questions'] = _webform_select_options_to_text($component['extra']['questions']);
-  $component['extra'] += array(
-    'custom_option_keys' => FALSE,
-    'custom_question_keys' => FALSE,
-  );
-
-  return $component;
-}
-
-/**
  * Configuration form for the "grid_options" property.
  */
 function form_builder_webform_property_grid_options_form(&$form_state, $form_type, $element) {
   $component = &$element['#webform_component'];
   $form = _form_builder_webform_build_edit_form('grid', $element, 'grid_options', 'options', array('options'), array('extra', 'options'));
-  // The _form_builder_webform_build_edit_form() function can only pull in one
-  // property at a time, so we have to set the key toggle manually.
-  $form['grid_options']['options']['#key_type_toggled'] = !empty($component['extra']['custom_option_keys']);
   return $form;
 }
 
@@ -356,9 +351,6 @@ function form_builder_webform_property_grid_options_form(&$form_state, $form_typ
 function form_builder_webform_property_grid_questions_form(&$form_state, $form_type, $element) {
   $component = &$element['#webform_component'];
   $form = _form_builder_webform_build_edit_form('grid', $element, 'grid_questions', 'options', array('questions'), array('extra', 'questions'));
-  // The _form_builder_webform_build_edit_form() function can only pull in one
-  // property at a time, so we have to set the key toggle manually.
-  $form['grid_questions']['options']['#key_type_toggled'] = !empty($component['extra']['custom_question_keys']);
   return $form;
 }
 
@@ -366,13 +358,14 @@ function form_builder_webform_property_grid_questions_form(&$form_state, $form_t
  * Submit handler for the "grid_options" and "grid_questions" properties.
  */
 function form_builder_webform_property_grid_form_submit(&$form, &$form_state) {
+  // _webform_edit_validate_options() hardcodes the #parents for values.
   if (empty($form_state['values']['grid_options'])) {
-    $form_state['values']['grid_options'] = _webform_select_options_from_text($form_state['values']['extra']['grid_options']);
+    $form_state['values']['grid_options'] = $form_state['values']['extra']['grid_options'];
     $form_state['values']['custom_grid_option_keys'] = $form_state['values']['extra']['custom_grid_option_keys'];
   }
 
   if (empty($form_state['values']['grid_questions'])) {
-    $form_state['values']['grid_questions'] = _webform_select_options_from_text($form_state['values']['extra']['grid_questions']);
+    $form_state['values']['grid_questions'] = $form_state['values']['extra']['grid_questions'];
     $form_state['values']['custom_grid_question_keys'] = $form_state['values']['extra']['custom_grid_question_keys'];
   }
 }
