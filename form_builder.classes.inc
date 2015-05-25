@@ -92,7 +92,7 @@ class FormBuilderLoader {
       // Sort fields by weight and title.
       uasort($element_types, '_form_builder_sort');
     }
-    drupal_alter('form_builder_types', $element_types);
+    drupal_alter('form_builder_types', $form_types);
     return $form_types;
   }
 
