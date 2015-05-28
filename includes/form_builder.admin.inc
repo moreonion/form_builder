@@ -674,6 +674,7 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
   $element_obj = $form_obj->getElement($element_id);
 
   $form = $element_obj->configurationForm($form, $form_state);
+  $form['#_edit_form_type'] = $form_type;
   $form['#pre_render'][] = 'form_builder_field_configure_pre_render';
 
   $form['form_builder_submit'] = array(
