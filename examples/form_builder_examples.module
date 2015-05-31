@@ -140,6 +140,8 @@ function form_builder_examples_form_builder_field_access($op, $form_type, $form_
  * Implementation of hook_form_builder_types().
  *
  * Define the supported fields and properties supported by CCK.
+ *
+ * @todo port this to the new API.
  */
 function form_builder_examples_form_builder_types() {
   $fields = array();

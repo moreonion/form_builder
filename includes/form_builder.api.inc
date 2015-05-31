@@ -94,14 +94,16 @@ function form_builder_get_saveable_properties($form_type, $element) {
  *   A single Form API element array.
  *
  * @see form_builder_get_elements().
+ *
+ * @deprecated Use FormBuilderFormInterface::getElement() instead.
+ *   Will be removed in 2.0.
  */
 function form_builder_get_element(&$form, $element_id) {
-  $elements = form_builder_get_elements($form, array($element_id));
-  return isset($elements[$element_id]) ? $elements[$element_id] : FALSE;
+  return FormBuilderFormBase::fromArray($form)->getElementArray($element_id);
 }
 
 /**
- * Recursive function to retrieve multiple elements within a form structure.
+ * Retrieve multiple elements within a form structure.
  *
  * @param $form
  *   A complete hierarchical FAPI structure.
@@ -120,128 +122,60 @@ function form_builder_get_element(&$form, $element_id) {
  *   A single Form API element array.
  */
 function form_builder_get_elements(&$form, $element_ids) {
-  $elements = array();
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_id']) && in_array($form[$key]['#form_builder']['element_id'], $element_ids)) {
-      $elements[$form[$key]['#form_builder']['element_id']] = $form[$key];
-    }
-    $additional_elements = form_builder_get_elements($form[$key], $element_ids);
-    $elements = array_merge($elements, $additional_elements);
-  }
-  return $elements;
+  return FormBuilderFormBase::fromArray($form)->getFormArray();
 }
 
 /**
- * Recursive function to set an element within a form structure.
+ * Set an element within a form structure.
+ *
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use the FormBuilderElement class instead of the info-arrays.
  *
  * @return
  *   TRUE if an element was updated, FALSE if it was not found.
  */
 function form_builder_set_element(&$form, $element, &$entire_form = NULL, $parent_id = FORM_BUILDER_ROOT) {
-  $return = FALSE;
-
-  if (!isset($entire_form)) {
-    $entire_form = &$form;
-  }
-
-  // Add new elements into the current parent.
-  if (isset($element['#form_builder']['is_new']) && strcmp($element['#form_builder']['parent_id'], $parent_id) == 0) {
-    unset($element['#form_builder']['is_new']);
-    unset($element['#form_builder']['parent_id']);
-    $new_key = $element['#key'];
-    $form[$new_key] = $element;
-    return TRUE;
-  }
-
-  foreach (element_children($form) as $key) {
-    // Update an existing element if it lives in the current parent.
-    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element['#form_builder']['element_id']) {
-
-      // If the parent has changed, re-parent the element to a new fieldset.
-      if (isset($element['#form_builder']['parent_id']) && strcmp($element['#form_builder']['parent_id'], $parent_id) != 0) {
-        // Remove the current element from the form.
-        unset($form[$key]);
-        // Recurse again through the entire form to insert into the new position.
-        $element['#form_builder']['is_new'] = TRUE;
-        $return = form_builder_set_element($entire_form, $element);
-      }
-      // Handle key changes and replace the existing element in place.
-      elseif (isset($element['#key']) && $key != $element['#key']) {
-        $new_key = $element['#key'];
-        $index = array_search($key, array_keys($form));
-        $before = array_slice($form, 0, $index, TRUE);
-        $after = array_slice($form, $index + 1, NULL, TRUE);
-        $form = $before + array($new_key => $element) + $after;
-        unset($form[$key]);
-        $return = TRUE;
-      }
-      // Or, most common case scenario, just update the element, no key changes.
-      else {
-        $form[$key] = $element;
-        $return = TRUE;
-      }
-    }
-
-    // Recurse into this element to look for the target element.
-    if (!$return && isset($form[$key]['#form_builder'])) {
-      $return = form_builder_set_element($form[$key], $element, $entire_form, $form[$key]['#form_builder']['element_id']);
-    }
-
-    if ($return) {
-      return $return;
-    }
-  }
-
-  return $return;
+  $form_obj = FormBuilderFormBase::fromArray($form);
+  $r = $form_obj->setElementArray($element);
+  $form = $form_obj->getFormArray();
+  return $r;
 }
 
 /**
- * Recursive function to unset an element within a form structure.
+ * Unset an element within a form structure.
+ *
+ * @deprecated Deprecated since 1.8 and will be removed in 2.0.
+ *   Use the FormBuilderElement class instead of the info-arrays.
  */
 function form_builder_unset_element(&$form, $element_id) {
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_id']) && $form[$key]['#form_builder']['element_id'] == $element_id) {
-      unset($form[$key]);
-      break;
-    }
-    form_builder_unset_element($form[$key], $element_id);
-  }
+  $form_obj = FormBuilderFormBase::fromArray($form);
+  $r = $form_obj->unsetElement($element_id);
+  $form = $form_obj->getFormArray();
+  return $r;
 }
 
 /**
  * Recursive function to check if an element exists at all within a form.
+ *
+ * @deprecated Use FormBuilderFormInterface::getElementIds() instead.
  */
 function form_builder_get_element_ids($form) {
-  $element_ids = array();
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_id'])) {
-      $element_ids[] = $form[$key]['#form_builder']['element_id'];
-    }
-    $additional_ids = form_builder_get_element_ids($form[$key]);
-    $element_ids = array_merge($element_ids, $additional_ids);
-  }
-
-  return $element_ids;
+  return FormBuilderFormBase::fromArray($form)->getElementIds();
 }
 
 /**
  * Recursive function to get the types of all element within a form.
+ *
+ * @deprecated Use FormBuilderFormInterface::getElementTypes() instead.
  */
 function form_builder_get_element_types($form) {
-  $element_types = array();
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_type'])) {
-      $element_types[] = $form[$key]['#form_builder']['element_type'];
-    }
-    $additional_types = form_builder_get_element_types($form[$key]);
-    $element_types = array_merge($element_types, $additional_types);
-  }
-
-  return $element_types;
+  return FormBuilderFormBase::fromArray($form)->getElementTypes();
 }
 
 /**
  * Loader function to retrieve a form builder configuration array.
+ *
+ * @deprecated Use FormBuilderLoader::fromStorage() instead.
  *
  * @param $form_type
  *   The type of form being edited. Usually the name of the providing module.
@@ -249,26 +183,30 @@ function form_builder_get_element_types($form) {
  *   The unique identifier for the form being edited with the type.
  */
 function form_builder_load_form($form_type, $form_id) {
-  $form = module_invoke_all('form_builder_load', $form_type, $form_id);
-  drupal_alter('form_builder_load', $form, $form_type, $form_id);
-
-  // Convert the form array keys to #key properties for editing.
-  return form_builder_add_default_properties($form, $form_type);
+  return FormBuilderLoader::instance()
+    ->fromStorage($form_type, $form_id)
+    ->getFormArray();
 }
 
 /**
  * Execute the save methods for a form array.
  */
 function form_builder_save_form(&$form, $form_type, $form_id) {
-  module_invoke_all('form_builder_save', $form, $form_type, $form_id);
-  form_builder_cache_delete($form_type, $form_id);
+  FormBuilderFormBase::fromArray($form)->saveToStorage();
 }
 
 /**
  * Helper function to add default #form_builder properties to a form.
+ *
+ * @todo implement this in the form object.
  */
 function form_builder_add_default_properties($form, $form_type, $key = NULL, $parent_id = FORM_BUILDER_ROOT) {
   $form_type_fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
+
+  // Add the form type to the form so we can use it for later object creation.
+  if ($parent_id === FORM_BUILDER_ROOT) {
+    $form['#form_builder']['form_type'] = $form_type;
+  }
 
   // Add properties to this element.
   if (isset($form['#form_builder']['element_id'])) {

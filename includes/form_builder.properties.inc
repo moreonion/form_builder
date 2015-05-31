@@ -34,6 +34,8 @@ function form_builder_property_key_form(&$form_state, $form_type, $element, $pro
 
 /**
  * Element validate function for the "key" property. Ensure safe characters.
+ *
+ * @todo make part of this a form method.
  */
 function form_builder_property_key_form_validate($element, $form_state) {
   if (!preg_match('/^[a-z0-9_]+$/', $element['#value'])) {
@@ -42,9 +44,9 @@ function form_builder_property_key_form_validate($element, $form_state) {
 
   // Check that the new key does not conflict with an existing key.
   if ($element['#value'] != $element['#default_value']) {
-    $active_form = form_builder_active_form();
-    $form = form_builder_cache_load($active_form['form_type'], $active_form['form_id']);
-    $element_id = $form_state['complete form']['#_edit_element_id'];
+    // Assuming to be called from form_builder_field_configure().
+    list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
+    $form = form_builder_cache_load($form_type, $form_id);
     $parent = _form_builder_get_element_parent($form, $element_id);
     $new_key = $form_state['values']['key'];
     if (isset($parent[$new_key])) {

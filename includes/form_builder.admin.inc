@@ -68,6 +68,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   if (isset($element_id)) {
     $element = form_builder_get_elements($cache, array($element_id));
     if ($element) {
+      // @todo implement cloning is an element method.
       // We expect a one-element array since we only passed one element ID to
       // form_builder_get_elements().
       $element = array_shift($element);
@@ -85,10 +86,12 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   }
   // Otherwise, create a new default field.
   elseif (isset($fields[$element_type]['default'])) {
+    // @todo make this an element static method.
     $element = $fields[$element_type]['default'];
   }
 
   if ($element) {
+    // @todo make this part of the element object's initialization.
     $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
 
     // Set the element ID to a hard-coded value if a unique field type.
@@ -193,8 +196,8 @@ function form_builder_field_palette() {
     $fields = $loader->getElementTypeInfo($form_type);
     $groups = $loader->getPaletteGroupInfo($form_type);
     // TODO: We shouldn't have to clear the cache here.
-    $form = form_builder_cache_load($form_type, $active['form_id'], NULL, TRUE);
-    $active_fields = form_builder_get_element_types($form);
+    $form = $loader->fromCache($form_type, $active['form_id'], NULL, TRUE);
+    $active_fields = $form->getElementTypes();
     foreach ($fields as $key => $field) {
       if ($field['unique'] && in_array($key, $active_fields)) {
         $fields[$key]['in_use'] = TRUE;
@@ -626,6 +629,8 @@ function form_builder_after_build($element) {
  *
  * @return
  *   A list of all element_ids currently used within this form.
+ *
+ * @todo make this a form method.
  */
 function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id = FORM_BUILDER_ROOT) {
   $element_ids = array();
@@ -670,7 +675,7 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
 function form_builder_field_configure($form, $form_state, $form_type, $form_id, $element_id) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
-  $form_obj = FormBuilderFormBase::fromCache($form_type, $form_id);
+  $form_obj = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
   $element_obj = $form_obj->getElement($element_id);
 
   $form = $element_obj->configurationForm($form, $form_state);
@@ -728,13 +733,14 @@ function form_builder_field_configure_pre_render($form) {
 
 function form_builder_field_configure_submit(&$form, &$form_state) {
   list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
-  $form_obj = FormBuilderFormBase::fromCache($form_type, $form_id);
+  $form_obj = FormBUilderLoader::instance()->fromCache($form_type, $form_id);
   $element_obj = $form_obj->getElement($element_id);
 
   $element_obj->configurationSubmit($form, $form_state);
 
   // Update the form builder cache.
-  form_builder_cache_field_save($form_type, $form_id, $element_obj->render());
+  $form_obj->setElementArray($element_obj->render());
+  $form_obj->save();
 
   if (isset($_GET['js'])) {
     // Option A: Use the destination variable to do a drupal_goto(). Allows
@@ -781,17 +787,21 @@ function form_builder_field_remove_submit(&$form, &$form_state) {
 
 /**
  * Render a single field independent of other settings.
+ *
+ * @todo form rendering a form method.
  */
 function form_builder_field_render($form_type, $form_id, $element_id, $wrapper = FALSE) {
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
   // Load the current state of the form and prepare it for rendering.
-  $form = form_builder_cache_load($form_type, $form_id);
-  if (!$form) {
-    $form = form_builder_load_form($form_type, $form_id);
-    form_builder_cache_save($form_type, $form_id, $form);
+  $loader = FormBuilderLoader::instance();
+  $form_obj = $loader->fromCache($form_type, $form_id);
+  if (!$form_obj) {
+    $form_obj = $loader->fromStorage($form_type, $form_id);
+    $form_obj->save();
   }
+  $form = $form_obj->getFormArray();
   $form_state = array('submitted' => FALSE, 'build_info' => array('args' => array($form, $form_type, $form_id)), 'values' => array(), 'method' => 'get');
   $form = drupal_retrieve_form('form_builder_preview', $form_state);
   drupal_prepare_form('form_builder_preview', $form, $form_state);
