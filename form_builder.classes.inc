@@ -211,15 +211,20 @@ class FormBuilderFormBase {
     $this->form = &$form;
     $this->loader = $loader;
 
-    $q = array(&$form);
-    while ($q) {
-      $element = &array_pop($q);
-      foreach (element_children($element) as $key) {
-        $q[] = &$element[$key];
-        if (isset($element[$key]['#form_builder']['element_id'])) {
-          $this->elementArrays[$element[$key]['#form_builder']['element_id']] = &$element[$key];
-        }
-      }
+    $this->form += ['#form_builder' => []];
+    $this->form['#form_builder'] += ['element_id' => FORM_BUILDER_ROOT];
+    $this->indexElementIds($this->form);
+  }
+
+  /**
+   * Recurse through the form array and create an element_id -> element index.
+   */
+  protected function indexElementIds(&$element) {
+    if (isset($element['#form_builder']['element_id'])) {
+      $this->elementArrays[$element['#form_builder']['element_id']] = &$element;
+    }
+    foreach (element_children($element) as $key) {
+      $this->indexElementIds($element[$key]);
     }
   }
 
