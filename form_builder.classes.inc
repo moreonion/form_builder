@@ -360,6 +360,7 @@ class FormBuilderElementBase implements FormBuilderElementInterface {
    * {@inheritdoc}
    */
   public function configurationForm($form, &$form_state) {
+    $form['#_edit_element'] = $this->element;
     foreach ($this->getProperties() as $property) {
       $form = array_merge($form, $property->form($form_state, $this->element));
     }
