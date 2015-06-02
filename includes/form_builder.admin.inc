@@ -59,19 +59,17 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   module_load_include('inc', 'form_builder', 'includes/form_builder.api');
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
-  $fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
-  $cache = form_builder_cache_load($form_type, $form_id);
+  $loader = FormBuilderLoader::instance();
+  $fields = $loader->getElementTypeInfo($form_type);
+  $form_obj = $loader->fromCache($form_type, $form_id);
   $element = NULL;
 
   // If the field is being cloned, copy the original from the current form
   // structure.
   if (isset($element_id)) {
-    $element = form_builder_get_elements($cache, array($element_id));
+    $element = $form_obj->getElementArray($element_id);
     if ($element) {
-      // @todo implement cloning is an element method.
-      // We expect a one-element array since we only passed one element ID to
-      // form_builder_get_elements().
-      $element = array_shift($element);
+      // @todo implement cloning as an element method.
       // Remove the key so that a new one will be generated.
       unset($element['#key']);
       // Change the title to avoid confusion, and to avoid duplicate
@@ -103,18 +101,19 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
     $element['#form_builder']['is_new'] = TRUE;
     $element = form_builder_add_default_properties($element, $form_type, $element_id);
 
-    $element['#weight'] = count(element_children($cache));
+    $f = $form_obj->getFormArray();
+    $element['#weight'] = count(element_children($f));
 
     drupal_alter('form_builder_add_element', $element, $form_type, $form_id);
 
     // Save any element ID set by the hook_form_builder_add_element_alter().
     $element_id = $element['#form_builder']['element_id'];
 
-    form_builder_cache_field_save($form_type, $form_id, $element);
+    $form_obj->setElementArray($element);
+    $form_obj->save();
 
     if (isset($_REQUEST['js'])) {
-      $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
-      $form_cache = form_builder_cache_load($form_type, $form_id);
+      $form_cache = $form_obj->getFormArray();
       $form = drupal_get_form('form_builder_positions', $form_cache, $form_type, $form_id);
 
       $data = array(
