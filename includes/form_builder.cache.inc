@@ -31,13 +31,9 @@ function form_builder_cache_save($form_type, $form_id, $form, $sid = NULL) {
 }
 
 function form_builder_cache_delete($form_type, $form_id, $sid = NULL) {
-  $sid = isset($sid) ? $sid : session_id();
-
-  return db_delete('form_builder_cache')
-    ->condition('sid', $sid)
-    ->condition('type', $form_type)
-    ->condition('form_id', $form_id)
-    ->execute();
+  $form = FormBuilderLoader::instance()
+    ->fromCache($form_type, $form_id, $sid)
+    ->delete();
 }
 
 /**

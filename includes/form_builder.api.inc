@@ -6,13 +6,6 @@
  */
 
 /**
- * Get a form type instance by name.
- */
-function form_builder_form_type($form_type) {
-  return FormBuilderLoader::instance()->getForm($form_type);
-}
-
-/**
  * Get a list of all properties that are supported within a form type.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
@@ -190,6 +183,8 @@ function form_builder_load_form($form_type, $form_id) {
 
 /**
  * Execute the save methods for a form array.
+ *
+ * @deprecated Use FormBuilderFormInterface::saveToStorage().
  */
 function form_builder_save_form(&$form, $form_type, $form_id) {
   FormBuilderFormBase::fromArray($form)->saveToStorage();

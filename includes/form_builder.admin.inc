@@ -21,12 +21,14 @@ function form_builder_interface($form_type, $form_id) {
   form_builder_active_form($form_type, $form_id);
 
   // Load the current state of the form, or create a new cache if needed.
-  $form_structure = form_builder_cache_load($form_type, $form_id);
-  if (!$form_structure) {
-    $form_structure = form_builder_load_form($form_type, $form_id);
-    form_builder_cache_save($form_type, $form_id, $form_structure);
+  $loader = FormBuilderLoader::instance();
+  $form_obj = $loader->fromCache($form_type, $form_id);
+  if (!$form_obj) {
+    $form_obj = $loader->fromStorage($form_type, $form_id);
+    $form_obj->save();
   }
 
+  $form_structure = $form_obj->getFormArray();
   $output = array();
   $output[] = drupal_get_form('form_builder_preview', $form_structure, $form_type, $form_id);
   $output[] = drupal_get_form('form_builder_positions', $form_structure, $form_type, $form_id);
@@ -350,7 +352,7 @@ function form_builder_positions_submit(&$form, &$form_state) {
 
   $form_type = $form['#form_builder']['form_type'];
   $form_id = $form['#form_builder']['form_id'];
-  $form_cache = $form['#form_builder']['form'];
+  $form_cache = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
 
   foreach (element_children($form) as $element_id) {
     // Skip items without weight value (like the form token, build_id, etc).
@@ -359,14 +361,14 @@ function form_builder_positions_submit(&$form, &$form_state) {
     }
 
     // Check for changed weights or parents.
-    $element = form_builder_get_element($form_cache, $element_id);
+    $element = $form_cache->getElementArray($element_id);
     $element['#weight'] = $form_state['values'][$element_id]['weight'];
     $element['#form_builder']['parent_id'] = $form_state['values'][$element_id]['parent'];
-    form_builder_set_element($form_cache, $element);
+    $form_cache->setElementArray($element);
   }
 
   // Save all the changes made.
-  form_builder_cache_save($form_type, $form_id, $form_cache);
+  $form_cache->save();
 
   // Don't redirect, which will cause an unnecessary HTTP request.
   $form_state['redirect'] = FALSE;

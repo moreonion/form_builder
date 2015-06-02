@@ -46,8 +46,8 @@ function form_builder_property_key_form_validate($element, $form_state) {
   if ($element['#value'] != $element['#default_value']) {
     // Assuming to be called from form_builder_field_configure().
     list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
-    $form = form_builder_cache_load($form_type, $form_id);
-    $parent = _form_builder_get_element_parent($form, $element_id);
+    $form_obj = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
+    $parent = _form_builder_get_element_parent($form_obj, $element_id);
     $new_key = $form_state['values']['key'];
     if (isset($parent[$new_key])) {
       form_set_error('key', t('The form key %key is already in use.', array('%key' => $new_key)));
@@ -58,20 +58,10 @@ function form_builder_property_key_form_validate($element, $form_state) {
 /**
  * Get the parent element of an element from the form.
  */
-function _form_builder_get_element_parent(&$form, $element_id) {
-  $q = array(&$form);
-  // Do a depth-first search for the element.
-  while ($q) {
-    $parent = array_pop($q);
-    foreach (element_children($parent) as $k) {
-      if ($parent[$k]['#form_builder']['element_id'] == $element_id) {
-        return $parent;
-      }
-      else {
-        $q[] = &$parent[$k];
-      }
-    }
-  }
+function _form_builder_get_element_parent($form_obj, $element_id) {
+  $element = $form_obj->getElementArray($element_id);
+  $parent_id = $element['#form_builder']['parent_id'];
+  return $form_obj->getElementArray($parent_id);
 }
 
 /**

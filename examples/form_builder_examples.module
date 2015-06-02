@@ -396,7 +396,9 @@ function form_builder_examples_export_form() {
 
   $form = array();
 
-  $current = form_builder_cache_load('example', 'sample');
+  $current = FormBuilderLoader::instance()
+    ->fromCache('example', 'sample')
+    ->getFormArray();
 
   $form['export'] = array(
     '#type' => 'textarea',

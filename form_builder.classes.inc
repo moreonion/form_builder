@@ -247,6 +247,11 @@ interface FormBuilderFormInterface {
    */
   public function save();
 
+  /**
+   * Delete this cache entry from the form_builder_cache table.
+   */
+  public function delete();
+
  /**
    * Get a specific element from the form.
    *
@@ -362,7 +367,7 @@ class FormBuilderFormBase implements Serializable {
    */
   public function saveToStorage() {
     module_invoke_all('form_builder_save', $this->form, $this->formType, $this->formId);
-    form_builder_cache_delete($this->formType, $this->formId);
+    $this->delete();
   }
 
   /**
@@ -461,6 +466,17 @@ class FormBuilderFormBase implements Serializable {
     // Ensure caches are fresh for any retrievals made this request.
     FormBuilderLoader::instance()->fromCache(NULL, NULL, NULL, TRUE);
     return $result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function delete() {
+    return db_delete('form_builder_cache')
+      ->condition('sid', $this->sid)
+      ->condition('type', $this->formType)
+      ->condition('form_id', $this->formId)
+      ->execute();
   }
 
   /**

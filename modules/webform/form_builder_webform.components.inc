@@ -646,8 +646,9 @@ function _form_builder_webform_form_builder_save_pagebreak($component, $form_ele
   if ($component['pid'] !== 0) {
     drupal_set_message(t('Page breaks may not be nested inside fieldsets. Each pagebreak has been moved outside of fieldsets.'), 'status', FALSE);
 
-    $form_cache = form_builder_cache_load('webform', $form_element['#form_builder']['form_id']);
-    $parent = form_builder_get_element($form_cache, $form_element['#form_builder']['parent_id']);
+    $parent = FormBuilderLoader::instance()
+      ->fromCache('webform', $form_element['#form_builder']['form_id'])
+      ->getElementArray($form_element['#form_builder']['parent_id']);
 
     $component['weight'] = $parent['#weight'] + 1;
     $component['pid'] = 0;
