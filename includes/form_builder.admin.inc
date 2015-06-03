@@ -28,10 +28,9 @@ function form_builder_interface($form_type, $form_id) {
     $form_obj->save();
   }
 
-  $form_structure = $form_obj->getFormArray();
   $output = array();
-  $output[] = drupal_get_form('form_builder_preview', $form_structure, $form_type, $form_id);
-  $output[] = drupal_get_form('form_builder_positions', $form_structure, $form_type, $form_id);
+  $output[] = drupal_get_form('form_builder_preview', $form_obj, $form_type, $form_id);
+  $output[] = drupal_get_form('form_builder_positions', $form_obj, $form_type, $form_id);
 
   return $output;
 }
@@ -115,8 +114,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
     $form_obj->save();
 
     if (isset($_REQUEST['js'])) {
-      $form_cache = $form_obj->getFormArray();
-      $form = drupal_get_form('form_builder_positions', $form_cache, $form_type, $form_id);
+      $form = drupal_get_form('form_builder_positions', $form_obj, $form_type, $form_id);
 
       $data = array(
         'formType' => $form_type,
@@ -215,15 +213,16 @@ function form_builder_field_palette() {
 /**
  * Form. Given a form array, present it for editing in a preview.
  */
-function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
+function form_builder_preview($f, &$form_state, $form_obj, $form_type, $form_id) {
 
   // @todo: think about this more. We basically get the form from outside, so
   // while normally the first argument would be $form, we use the third, which
   // is provided by the caller.
 
   // Make modifications to all form elements recursively.
-  $element_ids = form_builder_preview_prepare($form, $form_type, $form_id);
+  $element_ids = $form_obj->getElementIds();
 
+  $form = $form_obj->getFormArray();
   // Record all the element IDs within the entire form.
   $form['#form_builder']['element_ids'] = $element_ids;
   $form['#form_builder']['form_type'] = $form_type;
@@ -274,18 +273,29 @@ function form_builder_preview($f, &$form_state, $form, $form_type, $form_id) {
 /**
  * Form containing all the current weights and parents of elements.
  */
-function form_builder_positions($form, &$form_state, $form_cache, $form_type, $form_id) {
+function form_builder_positions($form, &$form_state, $form_obj, $form_type, $form_id) {
   form_load_include($form_state, 'inc', 'form_builder', 'includes/form_builder.admin');
   $form = array(
     '#tree' => TRUE,
     '#form_builder' => array(
       'form_type' => $form_type,
       'form_id' => $form_id,
-      'form' => $form_cache,
     ),
   );
 
-  _form_builder_positions_prepare($form, $form_cache);
+  foreach ($form_obj->getElementIds() as $element_id) {
+    $element = $form_obj->getElementArray($element_id);
+    $form[$element_id]['weight'] = array(
+      '#type' => 'hidden',
+      '#default_value' => isset($element['#weight']) ? $element['#weight'] : 0,
+      '#attributes' => array('class' => array('form-builder-weight form-builder-element-' . $element_id)),
+    );
+    $form[$element_id]['parent'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $element['#form_builder']['parent_id'],
+      '#attributes' => array('class' => array('form-builder-parent form-builder-element-' . $element_id)),
+    );
+  }
 
   // Drupal MUST have a button to register submissions.
   // Add a button even though the form is only submitted via AJAX.
@@ -310,37 +320,6 @@ function form_builder_positions_ajax($form, &$form_state) {
     '#type' => 'ajax',
     '#commands' => array(),
   );
-}
-
-/**
- * Recursive helper for form_builder_positions(). Add weight fields.
- */
-function _form_builder_positions_prepare(&$form, $form_cache, $parent_id = FORM_BUILDER_ROOT) {
-  foreach (element_children($form_cache) as $key) {
-    // Keep record of the current parent ID.
-    $previous_parent_id = $parent_id;
-
-    if (isset($form_cache[$key]['#form_builder']['element_id'])) {
-      // Set the parent ID for this element.
-      $form_cache[$key]['#form_builder']['parent_id'] = $parent_id;
-      $element_id = $form_cache[$key]['#form_builder']['element_id'];
-      $parent_id = $element_id;
-
-      $form[$element_id]['weight'] = array(
-        '#type' => 'hidden',
-        '#default_value' => isset($form_cache[$key]['#weight']) ? $form_cache[$key]['#weight'] : 0,
-        '#attributes' => array('class' => array('form-builder-weight form-builder-element-' . $element_id)),
-      );
-      $form[$element_id]['parent'] = array(
-        '#type' => 'hidden',
-        '#default_value' => $form_cache[$key]['#form_builder']['parent_id'],
-        '#attributes' => array('class' => array('form-builder-parent form-builder-element-' . $element_id)),
-      );
-    }
-
-    _form_builder_positions_prepare($form, $form_cache[$key], $parent_id);
-    $parent_id = $previous_parent_id;
-  }
 }
 
 /**
@@ -625,52 +604,6 @@ function form_builder_after_build($element) {
 }
 
 /**
- * Before editing a form, modify it slightly to add functionality used in
- * the preview and disable use of the actual form fields in any way.
- *
- * @return
- *   A list of all element_ids currently used within this form.
- *
- * @todo make this a form method.
- */
-function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id = FORM_BUILDER_ROOT) {
-  $element_ids = array();
-  foreach (element_children($form) as $key) {
-    // Keep record of the current parent ID.
-    $previous_parent_id = $parent_id;
-
-    if (isset($form[$key]['#form_builder']['element_id'])) {
-      $element_ids[] = $form[$key]['#form_builder']['element_id'];
-      $form[$key]['#pre_render'][] = 'form_builder_pre_render';
-      $form[$key]['#form_builder']['form_type'] = $form_type;
-      $form[$key]['#form_builder']['form_id'] = $form_id;
-      $form[$key]['#form_builder']['parent_id'] = $parent_id;
-      // Do not allow the #pre_render function we added above to force any
-      // #pre_render functions associated with the element itself to be
-      // skipped; we still want those to run whenever they otherwise would
-      // have.
-      // @todo: Revisit if there is a different way to do this after
-      //   http://drupal.org/node/914792 is committed to core.
-      if (count($form[$key]['#pre_render']) == 1) {
-        $info = element_info($form[$key]['#type']);
-        if (!empty($info['#pre_render'])) {
-          $form[$key]['#pre_render'] = array_merge($info['#pre_render'], $form[$key]['#pre_render']);
-        }
-      }
-
-      $parent_id = $form[$key]['#form_builder']['element_id'];
-    }
-
-    // Search within this element for further form elements.
-    $additional_ids = form_builder_preview_prepare($form[$key], $form_type, $form_id, $parent_id);
-    $element_ids = array_merge($element_ids, $additional_ids);
-    $parent_id = $previous_parent_id;
-  }
-
-  return $element_ids;
-}
-
-/**
  * Form for editing a field.
  */
 function form_builder_field_configure($form, $form_state, $form_type, $form_id, $element_id) {
@@ -802,8 +735,7 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
     $form_obj = $loader->fromStorage($form_type, $form_id);
     $form_obj->save();
   }
-  $form = $form_obj->getFormArray();
-  $form_state = array('submitted' => FALSE, 'build_info' => array('args' => array($form, $form_type, $form_id)), 'values' => array(), 'method' => 'get');
+  $form_state = array('submitted' => FALSE, 'build_info' => array('args' => array($form_obj, $form_type, $form_id)), 'values' => array(), 'method' => 'get');
   $form = drupal_retrieve_form('form_builder_preview', $form_state);
   drupal_prepare_form('form_builder_preview', $form, $form_state);
   $form['#post'] = array();
