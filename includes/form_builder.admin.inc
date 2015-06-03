@@ -98,19 +98,13 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
       $element_id = $element_type;
     }
 
+    $element['#key'] = $element_id;
     $element['#form_builder']['element_id'] = $element_id;
     $element['#form_builder']['is_new'] = TRUE;
-    $element = form_builder_add_default_properties($element, $form_type, $element_id);
-
     $f = $form_obj->getFormArray();
     $element['#weight'] = count(element_children($f));
 
-    drupal_alter('form_builder_add_element', $element, $form_type, $form_id);
-
-    // Save any element ID set by the hook_form_builder_add_element_alter().
-    $element_id = $element['#form_builder']['element_id'];
-
-    $form_obj->setElementArray($element);
+    $element_id = $form_obj->setElementArray($element, FORM_BUILDER_ROOT, TRUE);
     $form_obj->save();
 
     if (isset($_REQUEST['js'])) {

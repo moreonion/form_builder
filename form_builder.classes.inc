@@ -302,7 +302,7 @@ interface FormBuilderFormInterface {
    * @deprecated This is only here for backwards compatibility. It will be
    *   removed in 2.0.
    */
-  public function setElementArray($element_a, $parent_id);
+  public function setElementArray($element_a, $parent_id = FORM_BUILDER_ROOT, $alter = FALSE);
 
   /**
    * Remove an element from the form.
@@ -356,9 +356,6 @@ class FormBuilderFormBase implements Serializable {
   public static function loadFromStorage($form_type, $form_id, $sid, $params) {
     $form = module_invoke_all('form_builder_load', $form_type, $form_id);
     drupal_alter('form_builder_load', $form, $form_type, $form_id);
-
-    // Convert the form array keys to #key properties for editing.
-    $form = form_builder_add_default_properties($form, $form_type);
     return new static($form_type, $form_id, $sid, $params, $form);
   }
 
@@ -414,6 +411,7 @@ class FormBuilderFormBase implements Serializable {
     ];
     $this->elementArrays[FORM_BUILDER_ROOT] = &$this->form;
     $this->addDefaults($this->form);
+    $this->indexElements($this->form);
   }
 
   /**
@@ -445,6 +443,7 @@ class FormBuilderFormBase implements Serializable {
     $this->properties = [];
     $this->elementArrays[FORM_BUILDER_ROOT] = &$this->form;
     $this->addDefaults($this->form);
+    $this->indexElements($this->form);
   }
 
   /**
@@ -480,7 +479,7 @@ class FormBuilderFormBase implements Serializable {
   }
 
   /**
-   * Recurse through the form array, add defaults & create an element index.
+   * Recurse through the form array and add defaults to their element arrays.
    *
    * This function ensures the following properties:
    * $element['#pre_render'] includes 'form_builder_pre_render'
@@ -488,11 +487,11 @@ class FormBuilderFormBase implements Serializable {
    *   - 'form_type'
    *   - 'form_id'
    *   - 'parent_id'
-   *
-   * The index is stored in $this->elementArrays and used by all element_id
-   * based methods.
    */
-  protected function addDefaults(&$element, $parent_id = FORM_BUILDER_ROOT) {
+  protected function addDefaults(&$element, $parent_id = FORM_BUILDER_ROOT, $key = NULL, &$element_info = NULL) {
+    if (!$element_info) {
+      $element_info = FormBuilderLoader::instance()->getElementTypeInfo($this->formType);
+    }
     if (isset($element['#form_builder']['element_id'])) {
       $element_id = $element['#form_builder']['element_id'];
       if (isset($element['#type']) && (!isset($element['#pre_render']) || !in_array('form_builder_pre_render', $element['#pre_render']))) {
@@ -501,15 +500,56 @@ class FormBuilderFormBase implements Serializable {
           ['form_builder_pre_render']
         );
       }
+      $element += ['#key' => $key];
       $element['#form_builder']['form_type'] = $this->formType;
       $element['#form_builder']['form_id'] = $this->formId;
       $element['#form_builder']['parent_id'] = $parent_id;
-      $this->elementArrays[$element_id] = &$element;
+
+      // Set defaults based on the form type.
+      $settings = [];
+      if (isset($element_info[$element_id]) && $element_info[$element_id]['unique']) {
+        $element['#form_builder']['unique'] = TRUE;
+        $element['#form_builder'] += ['element_type' => $element_id];
+        $settings = $element_info[$element_id];
+      }
+      else {
+        $element['#form_builder'] += ['element_type' => $element['#type']];
+        if (isset($element_info[$element['#form_builder']['element_type']])) {
+          $settings = $element_info[$element['#form_builder']['element_type']];
+        }
+        else {
+          // If the type cannot be found, prevent editing of this field.
+          unset($element['#form_builder']);
+          return;
+        }
+      }
+
+      // Set defaults for configurable and removable.
+      $settings += ['configurable' => TRUE, 'removable' => TRUE];
+      $element['#form_builder'] += [
+        'configurable' => $settings['configurable'],
+        'removable' => $settings['removable'],
+      ];
       $parent_id = $element_id;
     }
-
     foreach (element_children($element) as $key) {
-      $this->addDefaults($element[$key], $parent_id);
+      $this->addDefaults($element[$key], $parent_id, $key, $element_info);
+    }
+  }
+
+  /**
+   * Add the element and it's subelements to the elementd index.
+   *
+   * The index is stored in $this->elementArrays and used by all element_id
+   * based methods.
+   */
+  protected function indexElements(&$element) {
+    if (isset($element['#form_builder']['element_id'])) {
+      $element_id = $element['#form_builder']['element_id'];
+      $this->elementArrays[$element_id] = &$element;
+    }
+    foreach (element_children($element) as $key) {
+      $this->indexElements($element[$key]);
     }
   }
 
@@ -555,13 +595,26 @@ class FormBuilderFormBase implements Serializable {
   /**
    * (@inheritdoc}
    */
-  public function setElementArray($element) {
+  public function setElementArray($element, $parent_id = FORM_BUILDER_ROOT, $alter = FALSE) {
     $return = FALSE;
     $element_id = $element['#form_builder']['element_id'];
-    $element['#form_builder'] += ['parent_id' => FORM_BUILDER_ROOT];
+    $element['#form_builder'] += ['parent_id' => $parent_id];
     $parent_id = $element['#form_builder']['parent_id'];
 
-    if(isset($this->elementArrays[$parent_id])) {
+    if ($alter) {
+      drupal_alter('form_builder_add_element', $element, $this->formType, $this->formId);
+      // Save any element ID set by the hook_form_builder_add_element_alter().
+      $element_id = $element['#form_builder']['element_id'];
+      $parent_id = $element['#form_builder']['parent_id'];
+      // Re-run addDefaults in case something has changed
+    }
+    $this->addDefaults($element, $parent_id);
+
+    if (!isset($element['#form_builder'])) {
+      return FALSE;
+    }
+
+    if (isset($this->elementArrays[$parent_id])) {
       $parent = &$this->elementArrays[$parent_id];
     }
     else {
@@ -597,9 +650,9 @@ class FormBuilderFormBase implements Serializable {
     else {
       $parent[$element['#key']] = &$element;
     }
-    $this->elementArrays[$element_id] = &$element;
+    $this->indexElements($element);
 
-    return TRUE;
+    return $element_id;
   }
 
   /**

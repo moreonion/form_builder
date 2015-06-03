@@ -191,67 +191,6 @@ function form_builder_save_form(&$form, $form_type, $form_id) {
 }
 
 /**
- * Helper function to add default #form_builder properties to a form.
- *
- * @todo implement this in the form object.
- */
-function form_builder_add_default_properties($form, $form_type, $key = NULL, $parent_id = FORM_BUILDER_ROOT) {
-  $form_type_fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
-
-  // Add the form type to the form so we can use it for later object creation.
-  if ($parent_id === FORM_BUILDER_ROOT) {
-    $form['#form_builder']['form_type'] = $form_type;
-  }
-
-  // Add properties to this element.
-  if (isset($form['#form_builder']['element_id'])) {
-    $element_id = $form['#form_builder']['element_id'];
-
-    // Add a #key property.
-    $form['#key'] = isset($form['#key']) ? $form['#key'] : $key;
-
-    // Add a #form_builder['parent_id'] property.
-    $form['#form_builder']['parent_id'] = $parent_id;
-    $parent_id = $element_id;
-
-    // Set defaults based on the form type.
-    if (isset($form_type_fields[$element_id]) && $form_type_fields[$element_id]['unique']) {
-      $form['#form_builder']['unique'] = TRUE;
-      $form['#form_builder']['element_type'] = isset($form['#form_builder']['element_type']) ? $form['#form_builder']['element_type'] : $element_id;
-      $settings = $form_type_fields[$element_id];
-    }
-    else {
-      $form['#form_builder']['element_type'] = isset($form['#form_builder']['element_type']) ? $form['#form_builder']['element_type'] : $form['#type'];
-      if (isset($form_type_fields[$form['#form_builder']['element_type']])) {
-        $settings = $form_type_fields[$form['#form_builder']['element_type']];
-      }
-      else {
-        // If the type cannot be found, prevent editing of this field.
-        unset($form['#form_builder']);
-        return $form;
-      }
-    }
-
-    // Set defaults for configurable and removable.
-    if (!isset($form['#form_builder']['configurable'])) {
-      $form['#form_builder']['configurable'] = isset($settings['configurable']) ? $settings['configurable'] : TRUE;
-    }
-    if (!isset($form['#form_builder']['removable'])) {
-      $form['#form_builder']['removable'] = isset($settings['removable']) ? $settings['removable'] : TRUE;
-    }
-  }
-
-  // Recurse into sub-elements.
-  foreach (element_children($form) as $key) {
-    if (isset($form[$key]['#form_builder']['element_id'])) {
-      $form[$key] = form_builder_add_default_properties($form[$key], $form_type, $key, $parent_id);
-    }
-  }
-
-  return $form;
-}
-
-/**
  * Helper function to sort elements by 'weight' and 'title'.
  */
 function _form_builder_sort($a, $b) {
