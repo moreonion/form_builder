@@ -28,6 +28,7 @@ class FormBuilderLoader {
   }
 
   public function __construct() {
+    module_load_include('api.inc', 'form_builder', 'includes/form_builder');
     $this->loadFormTypeInfo();
   }
 
