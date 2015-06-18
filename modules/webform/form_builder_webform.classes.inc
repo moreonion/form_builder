@@ -14,7 +14,6 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     module_load_include('inc', 'form_builder_webform', 'form_builder_webform.components');
 
     $element = $this->getElementArray($element_id);
-    dpm($element);
     $component = $element['#webform_component'];
     $type = $component['type'];
 
