@@ -30,51 +30,6 @@ function form_builder_requirements($phase) {
 }
 
 /**
- * Implementation of hook_schema().
- */
-function form_builder_schema() {
-  $schema = array();
-
-  $schema['form_builder_cache'] = array(
-    'fields' => array(
-      'sid' => array(
-        'type' => 'varchar',
-        'length' => '64',
-        'not null' => FALSE,
-        ),
-      'form_id' => array(
-        'type' => 'varchar',
-        'length' => '128',
-        'not null' => FALSE,
-      ),
-      'type' => array(
-          'type' => 'varchar',
-          'length' => '32',
-          'not null' => FALSE,
-      ),
-      'updated' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-        'disp-width' => '10',
-      ),
-      'data' => array(
-        'type' => 'blob',
-        'not null' => FALSE,
-        'size' => 'big',
-      ),
-    ),
-    'indexes' => array(
-       'sid_obj_name' => array('sid', 'type', 'form_id'),
-       'updated' => array('updated'),
-    ),
-  );
-
-  return $schema;
-}
-
-/**
  * Change the {form_builder_cache} table to use a 'longblob' data column.
  */
 function form_builder_update_7000() {
@@ -96,4 +51,19 @@ function form_builder_update_7001() {
     'not null' => FALSE,
   );
   db_change_field('form_builder_cache', 'form_id', 'form_id', $spec);
+}
+
+/**
+ * Migrate to ctools_object_cache.
+ */
+function form_builder_update_7002() {
+  module_enable(array('ctools'));
+  $sql = <<<SQL
+INSERT INTO {ctools_object_cache}
+  (sid, name, obj, updated, data)
+SELECT sid, 'form_builder_cache', CONCAT(type, ':', 'form_id), updated, data
+  FROM {form_builder_cache}
+SQL;
+  db_query($sql);
+  db_drop_table('form_builder_cache');
 }

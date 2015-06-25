@@ -321,7 +321,7 @@ interface FormBuilderFormInterface {
 }
 
 class FormBuilderFormBase implements Serializable {
-
+  const CACHE_NAME = 'form_builder_cache';
   protected $formType;
   protected $params;
   protected $properties;
@@ -361,25 +361,16 @@ class FormBuilderFormBase implements Serializable {
    * {@inheritdoc}
    */
   public static function load($form_type, $form_id, $sid, $params) {
-    $data = db_select('form_builder_cache', 'fc')
-      ->fields('fc', array('data'))
-      ->condition('type', $form_type)
-      ->condition('form_id', $form_id)
-      ->condition('sid', $sid)
-      ->execute()->fetchField();
-
-    if ($data) {
-      $form = unserialize($data);
-      // Support old non-object data from 1.8 and before.
-      if (is_array($form)) {
-        $form['#form_builder']['form_type'] = $form_type;
-        $form['#form_builder']['form_id'] = $form_id;
-        $form['#form_builder']['sid'] = $sid;
-        $form = new static($form_type, $form_id, $sid, $params, $form);
-      }
-      return $form;
+    ctools_include('object-cache');
+    $obj = "$form_type:$form_id";
+    $form = ctools_object_cache_get($obj, self::CACHE_NAME, FALSE, $sid);
+    if ($form && is_array($form)) {
+      $form['#form_builder']['form_type'] = $form_type;
+      $form['#form_builder']['form_id'] = $form_id;
+      $form['#form_builder']['sid'] = $sid;
+      $form = new static($form_type, $form_id, $sid, $params, $form);
     }
-    return FALSE;
+    return $form;
   }
 
   /**
@@ -440,32 +431,18 @@ class FormBuilderFormBase implements Serializable {
    * {@inheritdoc}
    */
   public function save() {
-    $keys = [
-      'sid' => $this->sid,
-      'type' => $this->formType,
-      'form_id' => $this->formId,
-    ];
-    $values = $keys + [
-      'updated' => REQUEST_TIME,
-      'data' => serialize($this),
-    ];
-    $result = db_merge('form_builder_cache')
-      ->key($keys)->fields($values)->execute();
-
-    // Ensure caches are fresh for any retrievals made this request.
-    FormBuilderLoader::instance()->fromCache(NULL, NULL, NULL, TRUE);
-    return $result;
+    ctools_include('object-cache');
+    $obj = "{$this->formType}:{$this->formId}";
+    ctools_object_cache_set($obj, self::CACHE_NAME, $this, $this->sid);
   }
 
   /**
    * {@inheritdoc}
    */
   public function delete() {
-    return db_delete('form_builder_cache')
-      ->condition('sid', $this->sid)
-      ->condition('type', $this->formType)
-      ->condition('form_id', $this->formId)
-      ->execute();
+    ctools_include('object-cache');
+    $obj = "{$this->formType}:{$this->formId}";
+    ctools_object_cache_clear($obj, self::CACHE_NAME, FALSE, $this->sid);
   }
 
   /**

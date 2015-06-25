@@ -45,9 +45,10 @@ function form_builder_cache_delete($form_type, $form_id, $sid = NULL) {
 function form_builder_cache_purge($expire_threshold = NULL) {
   $expire_threshold = isset($expire_threshold) ? $expire_threshold : ini_get('session.cache_expire');
 
-  return db_delete('form_builder_cache')
+  return db_delete('ctools_object_cache')
     ->condition('updated', REQUEST_TIME - $expire_threshold, '<')
     ->execute();
+  drupal_static_reset('ctools_object_cache_get');
 }
 
 /**
