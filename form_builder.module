@@ -421,9 +421,5 @@ function form_builder_registry_files_alter(&$files, $module_cache) {
  * Remove stale form_builder_cache entries.
  */
 function form_builder_cron() {
-  $limit = REQUEST_TIME - variable_get('form_builder_timeout', 21600);
-  db_delete('ctools_object_cache')
-    ->condition('name', 'form_builder_cache')
-    ->condition('updated', $limit, '<')
-    ->execute();
+  FormBuilderFormBase::purge(variable_get('form_builder_timeout', 21600));
 }

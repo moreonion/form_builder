@@ -446,6 +446,21 @@ class FormBuilderFormBase implements Serializable {
   }
 
   /**
+   * Purge old cache entries.
+   *
+   * @param int $max_age
+   *   All form_builder_cache entries older than $max_age seconds are purged.
+   */
+  public static function purge($max_age = NULL) {
+    $expire = isset($max_age) ? $max_age : ini_get('session.cache_expire');
+    return db_delete('ctools_object_cache')
+      ->condition('name', 'form_builder_cache')
+      ->condition('updated', REQUEST_TIME - $max_age, '<')
+      ->execute();
+    drupal_static_reset('ctools_object_cache_get');
+  }
+
+  /**
    * Recurse through the form array and add defaults to their element arrays.
    *
    * This function ensures the following properties:
