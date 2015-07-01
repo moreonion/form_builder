@@ -1,5 +1,11 @@
 <?php
 
+class FormBuilderFormBaseTest_LoaderMockup {
+  public function getElement($form_type, $form_type, $element_type, FormBuilderFormInterface $form, &$element) {
+    return new FormBuilderElementBase($this, [], $form, $element);
+  }
+}
+
 class FormBuilderFormBaseTest extends DrupalUnitTestCase {
 
   public static function getInfo() {
@@ -11,23 +17,29 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
   }
 
   protected function emptyForm() {
-    return new FormBuilderFormBase('webform', 'test', NULL, [], [], NULL);
+    $loader = new FormBuilderFormBaseTest_LoaderMockup();
+    return new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], [], NULL);
   }
 
   /**
    * @covers FormBuilderFormBase::setElementArray
+   * @covers FormBuilderFormBase::getElement
+   * @covers FormBuilderFormBase::getElementArray
+   * @covers FormBuilderFormBase::getFormArray
+   * @covers FormBuilderFormBase::addDefaults
+   * @covers FormBuilderFormBase::createElements
    */
   public function testSetElementArray() {
     $form = $this->emptyForm();
     $a['#form_builder']['element_id'] = 'A';
     $a['#key'] = 'a';
     $a['#type'] = 'textfield';
-    $this->assertEqual('A', $form->setElementArray($a));
+    $this->assertEqual('A', $form->setElementArray($a)->getId());
     $rform = $form->getFormArray();
     $this->assertArrayHasKey('a', $rform);
 
     $a['#key'] = 'x';
-    $this->assertEqual('A', $form->setElementArray($a));
+    $this->assertEqual('A', $form->setElementArray($a)->getId());
     $rform = $form->getFormArray();
     $this->assertArrayNotHasKey('a', $rform);
     $this->assertArrayHasKey('x', $rform);
@@ -35,7 +47,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $b['#key'] = 'b';
     $b['#type'] = 'textfield';
     $b['#form_builder'] = ['element_id' => 'B', 'parent_id' => 'A'];
-    $this->assertEqual('B', $form->setElementArray($b));
+    $this->assertEqual('B', $form->setElementArray($b)->getId());
     $this->assertArrayNotHasKey('b', $form->getFormArray());
     $this->assertArrayHasKey('b', $form->getElementArray('A'));
 
@@ -44,18 +56,54 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $this->assertArrayHasKey('b', $form->getElementArray('A'));
 
     $b['#form_builder']['parent_id'] = FORM_BUILDER_ROOT;
-    $this->assertEqual('B', $form->setElementArray($b));
+    $this->assertEqual('B', $form->setElementArray($b)->getId());
     $this->assertArrayHasKey('b', $form->getFormArray());
     $this->assertArrayNotHasKey('b', $form->getElementArray('A'));
   }
 
   /**
-   * @covers FormBuilderFormBase::indexElementIds
+   * @covers FormBuilderFormBase::addDefaults
+   * @covers FormBuilderFormBase::createElements
+   * @covers FormBuilderFormNode::getChildren
    */
-  public function testElementIdIndexing() {
+  public function test_setElementArray_nestedElement() {
+    $form = $this->emptyForm();
+    $element = ['#type' => 'textfield', '#title' => 'Test', '#key' => 'test'];
+    $element['child'] = ['#key' => 'a', '#type' => 'textfield'];
+    $element['child']['#form_builder']['element_id'] = 'A';
+    $obj = $form->setElementArray($element);
+    $this->assertInstanceOf('FormBuilderFormApiNode', $obj);
+    $this->assertArrayHasKey('test', $form->getFormArray());
+    $this->assertCount(1, $obj->getChildren());
+  }
+
+  /**
+   * @covers FormBuilderFormBase::indexElements
+   */
+  public function testElementIndexing() {
     $form['a']['#type'] = 'textfield';
     $form['a']['#form_builder'] = ['element_id' => 'A'];
-    $form_obj =  new FormBuilderFormBase('webform', 'test', NULL, [], $form);
+    $form['a']['b'] = ['#type' => 'textfield'];
+    $form['a']['b']['#form_builder'] = ['element_id' => 'B'];
+    $loader = new FormBuilderFormBaseTest_LoaderMockup();
+    $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], $form);
     $this->assertNotEmpty($form_obj->getElementArray('A'));
+    $this->assertNotEmpty($form_obj->getElementArray('B'));
+  }
+
+  /**
+   * Integration test _form_builder_add_element().
+   *
+   * @covers ::_form_builder_add_element
+   * @covers ::form_builder_field_render
+   * @covers FormBuilderFormNode::formParents
+   */
+  public function test_form_builder_add_element() {
+    module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
+    $loader = FormBuilderLoader::instance();
+    $form = $loader->getForm('webform', 'test', 'test', []);
+    $form->save();
+    $data = _form_builder_add_element('webform', 'test', 'email', NULL, 'test', TRUE);
+    $this->assertNotEmpty($data);
   }
 }
