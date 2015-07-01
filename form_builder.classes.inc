@@ -578,6 +578,18 @@ class FormBuilderFormBase implements FormBuilderFormInterface, Serializable {
   }
 
   /**
+   * Remove an element and it's children from the index.
+   */
+  protected function unindexElements($element) {
+    if ($element instanceof FormBuilderElementInterface) {
+      unset($this->elements[$element->getId()]);
+    }
+    foreach ($element->getChildren() as $child) {
+      $this->unindexElements($child);
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getElement($element_id) {
@@ -650,6 +662,7 @@ class FormBuilderFormBase implements FormBuilderFormInterface, Serializable {
             $old_parent->removeChild($old_element);
           }
         }
+        $this->unindexElements($old_element);
       }
     }
 
@@ -669,7 +682,7 @@ class FormBuilderFormBase implements FormBuilderFormInterface, Serializable {
     if ($parent = $element->getParent()) {
       $parent->removeChild($element);
     }
-    unset($this->elements[$element_id]);
+    $this->unindexElements($element);
   }
 
   /**

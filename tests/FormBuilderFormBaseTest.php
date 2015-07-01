@@ -28,6 +28,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
    * @covers FormBuilderFormBase::getFormArray
    * @covers FormBuilderFormBase::addDefaults
    * @covers FormBuilderFormBase::createElements
+   * @covers FormBuilderFormNode::insertChild
    */
   public function testSetElementArray() {
     $form = $this->emptyForm();
@@ -64,6 +65,8 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
   /**
    * @covers FormBuilderFormBase::addDefaults
    * @covers FormBuilderFormBase::createElements
+   * @covers FormBuilderFormNode::insertChild
+   * @covers FormBuilderFormNode::setParent
    * @covers FormBuilderFormNode::getChildren
    */
   public function test_setElementArray_nestedElement() {
@@ -78,6 +81,25 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
   }
 
   /**
+   * @covers FormBuilderFormBase::getElementIds
+   * @covers FormBuilderFormBase::unsetElement
+   * @covers FormBuilderFormBase::unindexElements
+   * @covers FormBuilderFormNode::removeChild
+   */
+  public function test_unsetElementArray() {
+    $form['a']['#type'] = 'textfield';
+    $form['a']['#form_builder'] = ['element_id' => 'A'];
+    $form['a']['b'] = ['#type' => 'textfield'];
+    $form['a']['b']['#form_builder'] = ['element_id' => 'B'];
+    $loader = new FormBuilderFormBaseTest_LoaderMockup();
+    $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], $form);
+    $this->assertEqual(['A', 'B'], $form_obj->getElementIds());
+    $form_obj->unsetElement('A');
+    $this->assertEqual([], $form_obj->getElementIds());
+  }
+
+  /**
+   * @covers FormBuilderFormBase::__construct
    * @covers FormBuilderFormBase::indexElements
    */
   public function testElementIndexing() {
@@ -97,6 +119,10 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
    * @covers ::_form_builder_add_element
    * @covers ::form_builder_field_render
    * @covers FormBuilderFormNode::formParents
+   * @covers FormBuilderFormBase::load
+   * @covers FormBuilderFormBase::save
+   * @covers FormBuilderFormBase::serialize
+   * @covers FormBuilderFormBase::unserialize
    */
   public function test_form_builder_add_element() {
     module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
@@ -105,5 +131,6 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $form->save();
     $data = _form_builder_add_element('webform', 'test', 'email', NULL, 'test', TRUE);
     $this->assertNotEmpty($data);
+    $this->assertNotEmpty($data['html']);
   }
 }

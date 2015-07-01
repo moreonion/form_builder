@@ -35,6 +35,9 @@
     <directory suffix=".inc">.</directory>
     <file>form_builder.module</file>
     <file>form_builder.install</file>
+    <exclude>
+      <directory suffix=".php">tests</directory>
+    </exclude>
   </whitelist>
 </filter>
 </phpunit>
