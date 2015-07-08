@@ -2,5 +2,6 @@ name = Form builder
 description = Form building framework.
 dependencies[] = options_element
 core = 7.x
+php = 5.4
 
 files[] = 'form_builder.classes.inc'
