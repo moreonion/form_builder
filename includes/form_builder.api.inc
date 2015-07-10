@@ -16,64 +16,6 @@ function form_builder_get_properties($form_type, $reset = FALSE) {
 }
 
 /**
- * Get a list of all properties that are supported by a particular form type.
- *
- * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the Form / Element or Property classes instead of the info-arrays.
- */
-function form_builder_get_form_type($form_type = NULL, $reset = FALSE) {
-  return FormBuilderLoader::instance()->getElementTypeInfo($form_type);
-}
-
-/**
- * Given an element type, return properties that are supported by Form builder.
- *
- * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the FormBuilderElement class instead of the info-arrays.
- *
- * @param $form_type
- *   The type of form being edited (profile, node, webform, etc.)
- * @param $element_type
- *   A the #type property of a FAPI element.
- * @param
- *   An associative array of properties supported for editing, keyed by
- *   the property name and containing an array of the form, submit, and
- *   validate functions (if any).
- */
-function form_builder_get_element_properties($form_type, $element_type) {
-  $properties = FormBuilderLoader::instance()->getPropertyInfo($form_type);
-  $elements = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
-  return array_intersect_key(
-    $properties,
-    array_flip($elements[$element_type]['properties'])
-  );
-}
-
-/**
- * Get a list of properties that are supported in any way by an element.
- *
- * This returns a list of all supported properties within an element, even
- * if some of those properties do not have an interface for editing or are
- * only used internally by the module providing the form type this element
- * is being saved in.
- *
- * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the FormBuilderElement class instead of the info-arrays.
- *
- * @param $form_type
- *   The type of form being edited (profile, node, webform, etc.)
- * @param $element
- *   A standard FAPI element whose properties are being checked.
- * @return
- *   A non-indexed list of properties that may be saved for this element.
- * */
-function form_builder_get_saveable_properties($form_type, $element) {
-  $element_type = $element['#form_builder']['element_type'];
-  $info = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
-  return $info[$element_type]['properties'];
-}
-
-/**
  * Function to retrieve a single element within a form structure.
  *
  * If needing to retreive multiple elements at once, use

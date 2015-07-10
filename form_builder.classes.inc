@@ -12,9 +12,9 @@ class FormBuilderLoader {
 
   protected static $instance = NULL;
   protected $formTypeInfo;
-  protected $elementTypeInfo = array();
-  protected $paletteGroupInfo = array();
-  protected $propertyInfo = array();
+  protected $paletteGroupInfo = [];
+  protected $elementTypeInfo = [];
+  protected $propertyInfo = [];
   protected $formCache = [];
 
   /**
@@ -40,30 +40,22 @@ class FormBuilderLoader {
     );
 
     $form_types = module_invoke_all('form_builder_form_types');
-    $element_types = $this->invokeElementTypeInfo();
-    foreach (array_keys($element_types) as $form_type) {
-      $form_types += array($form_type => array());
-    }
-
     foreach ($form_types as $form_type => &$info) {
       $info += $defaults;
-      $element_types += array($form_type => array());
-      foreach ($element_types[$form_type] as &$element_type) {
-        $element_type += array('class' => $info['element class']);
-      }
     }
+    drupal_alter('form_builder_form_types', $form_types);
 
     $this->formTypeInfo = $form_types;
-    $this->elementTypeInfo = $element_types;
   }
 
-  protected function invokeElementTypeInfo() {
-    $form_types = module_invoke_all('form_builder_types');
-    foreach ($form_types as $form_type => &$element_types) {
+  public function getElementTypeInfo($form_type, $form_id) {
+    if (!isset($this->elementTypeInfo[$form_type][$form_id])) {
+      $element_types = module_invoke_all('form_builder_element_types', $form_type, $form_id);
       $groups = $this->getPaletteGroupInfo($form_type);
       // Add default values for undefined properties.
       foreach ($element_types as $key => &$type) {
         $type += array(
+          'class' => $this->formTypeInfo[$form_type]['element class'],
           'configurable' => TRUE,
           'removable' => TRUE,
           'palette_group' => 'default',
@@ -92,13 +84,10 @@ class FormBuilderLoader {
       }
       // Sort fields by weight and title.
       uasort($element_types, '_form_builder_sort');
+      drupal_alter('form_builder_element_types', $element_types, $form_type, $form_id);
+      $this->elementTypeInfo[$form_type][$form_id] = $element_types;
     }
-    drupal_alter('form_builder_types', $form_types);
-    return $form_types;
-  }
-
-  public function getElementTypeInfo($form_type = NULL) {
-    return $form_type ? $this->elementTypeInfo[$form_type] : $this->elementTypeInfo;
+    return $this->elementTypeInfo[$form_type][$form_id];
   }
 
   public function getPaletteGroupInfo($form_type, $reset = FALSE) {
@@ -184,8 +173,8 @@ class FormBuilderLoader {
   /**
    * Get element instance.
    */
-  public function getElement($form_type, $element_type, $form, &$element) {
-    $info = $this->elementTypeInfo[$form_type][$element_type];
+  public function getElement($form_type, $form_id, $element_type, $form, &$element) {
+    $info = $this->getElementTypeInfo($form_type, $form_id)[$element_type];
     $class = $info['class'];
     return new $class($form, $info, $element, $this);
   }
@@ -491,7 +480,7 @@ class FormBuilderFormBase implements Serializable {
    */
   protected function addDefaults(&$element, $parent_id = FORM_BUILDER_ROOT, $key = NULL, &$element_info = NULL) {
     if (!$element_info) {
-      $element_info = FormBuilderLoader::instance()->getElementTypeInfo($this->formType);
+      $element_info = FormBuilderLoader::instance()->getElementTypeInfo($this->formType, $this->formId);
     }
     if (isset($element['#form_builder']['element_id'])) {
       $element_id = $element['#form_builder']['element_id'];
@@ -560,7 +549,7 @@ class FormBuilderFormBase implements Serializable {
   public function getElement($element_id) {
     $element = &$this->elementArrays[$element_id];
     return FormBuilderLoader::instance()
-      ->getElement($this->formType, $element['#form_builder']['element_type'], $this, $element);
+      ->getElement($this->formType, $this->formId, $element['#form_builder']['element_type'], $this, $element);
   }
 
   /**

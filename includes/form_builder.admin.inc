@@ -61,7 +61,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
 
   $loader = FormBuilderLoader::instance();
-  $fields = $loader->getElementTypeInfo($form_type);
+  $fields = $loader->getElementTypeInfo($form_type, $form_id);
   $form_obj = $loader->fromCache($form_type, $form_id);
   $element = NULL;
 
@@ -185,8 +185,9 @@ function form_builder_field_palette() {
   $output = NULL;
   if (isset($active)) {
     $form_type = $active['form_type'];
+    $form_id = $active['form_id'];
     $loader = FormBuilderLoader::instance();
-    $fields = $loader->getElementTypeInfo($form_type);
+    $fields = $loader->getElementTypeInfo($form_type, $form_id);
     $groups = $loader->getPaletteGroupInfo($form_type);
     // TODO: We shouldn't have to clear the cache here.
     $form = $loader->fromCache($form_type, $active['form_id'], NULL, TRUE);

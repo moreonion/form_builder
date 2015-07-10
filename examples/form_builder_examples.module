@@ -137,14 +137,21 @@ function form_builder_examples_form_builder_field_access($op, $form_type, $form_
 }
 
 /**
- * Implementation of hook_form_builder_types().
+ * Implements hook_form_builder_form_types().
+ */
+function form_builder_examples_form_types() {
+  return ['example' => []];
+}
+
+/**
+ * Implements of hook_form_builder_element_types().
  *
  * Define the supported fields and properties supported by CCK.
- *
- * @todo port this to the new API.
  */
-function form_builder_examples_form_builder_types() {
-  $fields = array();
+function form_builder_examples_form_builder_element_types($form_type, $form_id) {
+  if ($form_type != 'example') {
+    return;
+  }
 
   $fields['fieldset'] = array(
     'title' => t('Fieldset'),
@@ -329,9 +336,7 @@ function form_builder_examples_form_builder_types() {
     ),
   );
 
-  return array(
-    'example' => $fields,
-  );
+  return $fields;
 }
 
 /**

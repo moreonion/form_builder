@@ -152,7 +152,7 @@ function form_builder_menu_field_access($op, $form_type, $form_id, $element_id) 
   if ($op == 'clone') {
     // Unique fields cannot be cloned (or otherwise they would not be unique).
     // Cloning fieldsets is also not currently supported.
-    $fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type);
+    $fields = FormBuilderLoader::instance()->getElementTypeInfo($form_type, $form_id);
     $access = !empty($element['#form_builder']['element_type']) && empty($fields[$element['#form_builder']['element_type']]['unique']) && $element['#form_builder']['element_type'] != 'fieldset';
   }
   if ($op == 'configure' && !empty($element['#form_builder']['configurable'])) {
