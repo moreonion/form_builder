@@ -1,3 +1,5 @@
+[![Build Status (7.x-1.x)](https://travis-ci.org/torotil/form_builder.svg?branch=7.x-1.x)](https://travis-ci.org/torotil/form_builder)
+
 ## Overview
 
 This is a Drupal module that provides an interface for editing and configuring forms. It started out as a module to edit Drupal7 Form-API arrays but has been extended since then to edit [webforms](https://www.drupal.org/project/webform) and others. In theory it can manage every list of configurable items.
