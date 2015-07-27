@@ -2,7 +2,7 @@
 
 class FormBuilderFormBaseTest_LoaderMockup {
   public function getElement($form_type, $form_type, $element_type, FormBuilderFormInterface $form, &$element) {
-    return new FormBuilderElementBase($this, [], $form, $element);
+    return new FormBuilderElementBase($this, array(), $form, $element);
   }
 }
 
@@ -18,7 +18,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
 
   protected function emptyForm() {
     $loader = new FormBuilderFormBaseTest_LoaderMockup();
-    return new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], [], NULL);
+    return new FormBuilderFormBase($loader, 'webform', 'test', NULL, array(), array(), NULL);
   }
 
   /**
@@ -47,7 +47,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
 
     $b['#key'] = 'b';
     $b['#type'] = 'textfield';
-    $b['#form_builder'] = ['element_id' => 'B', 'parent_id' => 'A'];
+    $b['#form_builder'] = array('element_id' => 'B', 'parent_id' => 'A');
     $this->assertEqual('B', $form->setElementArray($b)->getId());
     $this->assertArrayNotHasKey('b', $form->getFormArray());
     $this->assertArrayHasKey('b', $form->getElementArray('A'));
@@ -71,8 +71,8 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
    */
   public function test_setElementArray_nestedElement() {
     $form = $this->emptyForm();
-    $element = ['#type' => 'textfield', '#title' => 'Test', '#key' => 'test'];
-    $element['child'] = ['#key' => 'a', '#type' => 'textfield'];
+    $element = array('#type' => 'textfield', '#title' => 'Test', '#key' => 'test');
+    $element['child'] = array('#key' => 'a', '#type' => 'textfield');
     $element['child']['#form_builder']['element_id'] = 'A';
     $obj = $form->setElementArray($element);
     $this->assertInstanceOf('FormBuilderFormApiNode', $obj);
@@ -88,12 +88,12 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
    */
   public function test_unsetElementArray() {
     $form['a']['#type'] = 'textfield';
-    $form['a']['#form_builder'] = ['element_id' => 'A'];
-    $form['a']['b'] = ['#type' => 'textfield'];
-    $form['a']['b']['#form_builder'] = ['element_id' => 'B'];
+    $form['a']['#form_builder'] = array('element_id' => 'A');
+    $form['a']['b'] = array('#type' => 'textfield');
+    $form['a']['b']['#form_builder'] = array('element_id' => 'B');
     $loader = new FormBuilderFormBaseTest_LoaderMockup();
-    $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], $form);
-    $this->assertEqual(['A', 'B'], $form_obj->getElementIds());
+    $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, array(), $form);
+    $this->assertEqual(array('A', 'B'), $form_obj->getElementIds());
     $form_obj->unsetElement('A');
     $this->assertEqual([], $form_obj->getElementIds());
   }
@@ -104,11 +104,11 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
    */
   public function testElementIndexing() {
     $form['a']['#type'] = 'textfield';
-    $form['a']['#form_builder'] = ['element_id' => 'A'];
-    $form['a']['b'] = ['#type' => 'textfield'];
-    $form['a']['b']['#form_builder'] = ['element_id' => 'B'];
+    $form['a']['#form_builder'] = array('element_id' => 'A');
+    $form['a']['b'] = array('#type' => 'textfield');
+    $form['a']['b']['#form_builder'] = array('element_id' => 'B');
     $loader = new FormBuilderFormBaseTest_LoaderMockup();
-    $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, [], $form);
+    $form_obj = new FormBuilderFormBase($loader, 'webform', 'test', NULL, array(), $form);
     $this->assertNotEmpty($form_obj->getElementArray('A'));
     $this->assertNotEmpty($form_obj->getElementArray('B'));
   }
@@ -127,7 +127,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
   public function test_form_builder_add_element() {
     module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
     $loader = FormBuilderLoader::instance();
-    $form = $loader->getForm('webform', 'test', 'test', []);
+    $form = $loader->getForm('webform', 'test', 'test', array());
     $form->save();
     $data = _form_builder_add_element('webform', 'test', 'email', NULL, 'test', TRUE);
     $this->assertNotEmpty($data);
