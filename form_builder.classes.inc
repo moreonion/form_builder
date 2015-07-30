@@ -417,14 +417,14 @@ class FormBuilderFormBase implements FormBuilderFormInterface, Serializable {
    * NOTE: This should only be used for short-term storage.
    */
   public function serialize() {
-    return serialize([
+    return serialize(array(
       'formType' => $this->formType,
       'formId' => $this->formId,
       'sid' => $this->sid,
       'params' => $this->params,
       'form' => $this->form,
       // Don't save element-arrays and the loader.
-    ]);
+    ));
   }
 
   /**
@@ -741,7 +741,7 @@ interface FormBuilderFormNodeInterface {
   public function render();
 }
 
-trait FormBuilderFormNode {
+class FormBuilderFormNode implements FormBuilderFormNodeInterface {
   protected $parent = NULL;
   protected $children = array();
   protected $element;
@@ -832,8 +832,7 @@ trait FormBuilderFormNode {
 
 }
 
-class FormBuilderFormApiNode implements FormBuilderFormNodeInterface {
-  use FormBuilderFormNode;
+class FormBuilderFormApiNode extends FormBuilderFormNode {
   public function __construct(&$element) {
     $this->element = $element;
   }
@@ -878,8 +877,7 @@ interface FormBuilderElementInterface {
 }
 
 
-class FormBuilderElementBase implements FormBuilderElementInterface, FormBuilderFormNodeInterface {
-  use FormBuilderFormNode;
+class FormBuilderElementBase extends FormBuilderFormNode implements FormBuilderElementInterface {
   protected $form;
   protected $params;
   protected $loader;

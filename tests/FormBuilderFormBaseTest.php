@@ -95,7 +95,7 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $form_obj =  new FormBuilderFormBase($loader, 'webform', 'test', NULL, array(), $form);
     $this->assertEqual(array('A', 'B'), $form_obj->getElementIds());
     $form_obj->unsetElement('A');
-    $this->assertEqual([], $form_obj->getElementIds());
+    $this->assertEqual(array(), $form_obj->getElementIds());
   }
 
   /**
