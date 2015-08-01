@@ -61,7 +61,7 @@ function form_builder_update_7002() {
   $sql = <<<SQL
 INSERT INTO {ctools_object_cache}
   (sid, name, obj, updated, data)
-SELECT sid, 'form_builder_cache', CONCAT(type, ':', 'form_id), updated, data
+SELECT sid, 'form_builder_cache', CONCAT(type, ':', form_id), updated, data
   FROM {form_builder_cache}
 SQL;
   db_query($sql);
