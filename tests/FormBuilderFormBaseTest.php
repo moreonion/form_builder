@@ -14,6 +14,11 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     return new FormBuilderFormBase('webform', 'test', NULL, array(), array(), NULL);
   }
 
+  public function tearDown() {
+    parent::tearDown();
+    FormBuilderFormBase::purge(0);
+    FormBuilderLoader::instance()->fromCache(NULL, NULL, NULL, TRUE);
+  }
 
   /**
    * @cover FormBuilderLoader::fromCache
@@ -118,5 +123,45 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $data = _form_builder_add_element('webform', 'test', 'email', NULL, 'test', TRUE);
     $this->assertNotEmpty($data);
     $this->assertNotEmpty($data['html']);
+  }
+
+  /**
+   * Integration test: Render textfield inside fieldset.
+   *
+   * @covers ::_form_builder_add_element
+   * @covers ::form_builder_field_render
+   * @covers FormBuilderFormBase::load
+   * @covers FormBuilderFormBase::fromArray
+   * @covers FormBuilderFormBase::setElementArray
+   */
+  public function test_render_fieldset() {
+    module_load_include('inc', 'form_builder', 'includes/form_builder.admin');
+    $loader = FormBuilderLoader::instance();
+    $form = $loader->getForm('webform', 'test', 'test', array());
+    $form->save();
+    drupal_static_reset('drupal_html_id');
+    $data = _form_builder_add_element('webform', 'test', 'fieldset', NULL, 'test', TRUE);
+    $wrapper = simplexml_load_string($data['html']);
+    // Test if element is properly wrapped.
+    $this->assertEqual('form-builder-wrapper', (string) $wrapper['class']);
+    $this->assertEqual('form-builder-title-bar', (string) $wrapper->div[0]['class']);
+    $element = $wrapper->div[1];
+    $this->assertEqual('form-builder-element form-builder-element-fieldset', (string) $element['class']);
+    $this->assertNotEmpty($element->fieldset);
+    $fieldset_id = $data['elementId'];
+
+    $data = _form_builder_add_element('webform', 'test', 'textfield', NULL, 'test', TRUE);
+    $this->assertNotEquals($fieldset_id, $data['elementId']);
+    $textfield_id = $data['elementId'];
+
+    $form = $loader->fromCache('webform', 'test', 'test');
+    $element = $form->getElementArray($textfield_id);
+    $element['#weight'] = 1;
+    $element['#form_builder']['parent_id'] = $fieldset_id;
+    $form->setElementArray($element);
+
+    $form_array = $form->getFormArray();
+    $this->assertEqual(array($fieldset_id), element_children($form_array));
+    $this->assertEqual(array($textfield_id), element_children($form_array[$fieldset_id]));
   }
 }

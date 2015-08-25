@@ -64,6 +64,8 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
   $fields = $loader->getElementTypeInfo($form_type, $form_id);
   $form_obj = $loader->fromCache($form_type, $form_id, $sid);
   $element = NULL;
+  // Keep track of the number of elements added this requests.
+  $i = &drupal_static(__FUNCTION__, 1);
 
   // If the field is being cloned, copy the original from the current form
   // structure.
@@ -91,7 +93,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
 
   if ($element) {
     // @todo make this part of the element object's initialization.
-    $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . time();
+    $element_id = isset($_REQUEST['element_id']) ? $_REQUEST['element_id'] : 'new_' . REQUEST_TIME . $i++;
 
     // Set the element ID to a hard-coded value if a unique field type.
     if (isset($fields[$element_type]['unique']) && $fields[$element_type]['unique']) {
