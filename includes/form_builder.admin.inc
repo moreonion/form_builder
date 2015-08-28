@@ -193,7 +193,7 @@ function form_builder_field_palette() {
     $form_id = $active['form_id'];
     $loader = FormBuilderLoader::instance();
     $fields = $loader->getElementTypeInfo($form_type, $form_id);
-    $groups = $loader->getPaletteGroupInfo($form_type);
+    $groups = $loader->getPaletteGroupInfo($form_type, $form_id);
     // TODO: We shouldn't have to clear the cache here.
     $form = $loader->fromCache($form_type, $active['form_id'], NULL, TRUE);
     $active_fields = $form->getElementTypes();

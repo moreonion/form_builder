@@ -51,7 +51,7 @@ class FormBuilderLoader {
   public function getElementTypeInfo($form_type, $form_id) {
     if (!isset($this->elementTypeInfo[$form_type][$form_id])) {
       $element_types = module_invoke_all('form_builder_element_types', $form_type, $form_id);
-      $groups = $this->getPaletteGroupInfo($form_type);
+      $groups = $this->getPaletteGroupInfo($form_type, $form_id);
       // Add default values for undefined properties.
       foreach ($element_types as $key => &$type) {
         $type += array(
@@ -90,9 +90,9 @@ class FormBuilderLoader {
     return $this->elementTypeInfo[$form_type][$form_id];
   }
 
-  public function getPaletteGroupInfo($form_type, $reset = FALSE) {
+  public function getPaletteGroupInfo($form_type, $form_id, $reset = FALSE) {
     if (!isset($this->paletteGroupInfo[$form_type]) || $reset) {
-      $this->paletteGroupInfo[$form_type] = module_invoke_all('form_builder_palette_groups', $form_type);
+      $this->paletteGroupInfo[$form_type] = module_invoke_all('form_builder_palette_groups', $form_type, $form_id);
     }
     return $this->paletteGroupInfo[$form_type];
   }
