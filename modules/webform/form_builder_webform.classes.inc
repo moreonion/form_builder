@@ -36,7 +36,7 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
    */
   public function getComponents($node) {
     // Max CID is used in the creation of new components, preventing conflicts.
-    $cids = [];
+    $cids = array();
     // Filter out all cids from removed components.
     foreach (array_keys($node->webform['components']) as $cid) {
       if ($this->getElement("cid_$cid")) {
@@ -45,9 +45,9 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     }
     $max_cid = max($cids);
 
-    $components = [];
+    $components = array();
     // Keep track of the element_id => cid mapping for assigning the pid.
-    $element_cid_map = [];
+    $element_cid_map = array();
     $page = 1;
     $elements = $this->getElementArraysInPreOrder();
     foreach ($elements as $element_id => $element) {
