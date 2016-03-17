@@ -48,6 +48,7 @@ function form_builder_webform_components_page($node) {
  * form_builder_webform_components_page() function.
  */
 function form_builder_webform_save_form($form, &$form_state, $nid) {
+  $form['#node'] = node_load($nid);
   $form['nid'] = array(
     '#type' => 'value',
     '#value' => $nid,
@@ -69,76 +70,36 @@ function form_builder_webform_save_form($form, &$form_state, $nid) {
 }
 
 /**
- * Submit handler; save the current Form Builder interface changes.
+ * Validate handler; Prepare the webform components for saving.
  */
-function form_builder_webform_save_form_submit($form, &$form_state) {
-  $node = node_load($form_state['values']['nid']);
-  form_builder_webform_save_node($node);
-  drupal_set_message(t('Changes to the form have been saved.'));
+function form_builder_webform_save_form_validate($form, &$form_state) {
+  $node = $form['#node'];
+  $form_obj = FormBuilderLoader::instance()->fromCache('webform', $node->nid);
+  $node->webform['components'] = $form_obj->getComponents($node);
 }
 
 /**
- * Save the current Form Builder interface changes for a webform node.
+ * Submit handler; save the current Form Builder interface changes.
  */
-function form_builder_webform_save_node($node) {
-  $form_obj = FormBuilderLoader::instance()->fromCache('webform', $node->nid);
-  $element_ids = $form_obj->getElementIds();
-
-  // Remove components if deleted and calculate the highest in-use CID.
-  $max_cid = 0;
-  foreach ($node->webform['components'] as $component) {
-    $element_id = 'cid_' . $component['cid'];
-    $cid = $component['cid'];
-
-    // Max CID is used in the creation of new components, preventing conflicts.
-    $max_cid = max($max_cid, $cid);
-
-    // Remove components from the $node that have been removed in the UI.
-    if (!$form_obj->getElementArray($element_id)) {
-      if (isset($node->webform['components'][$cid])) {
-        unset($node->webform['components'][$cid]);
-      }
-    }
-  }
-
-  // Update any new/updated components in the node record.
-  foreach ($element_ids as $element_id) {
-    $component = $form_obj->getComponent($element_id);
-    if ($component) {
-      if (empty($component['cid'])) {
-        $cid = ++$max_cid;
-        $component['cid'] = $cid;
-        // Reassign the component ID to the form so that future elements that
-        // may depend on this one set their parent ID (pid) properly.
-        $element = $form_obj->getElementArray($element_id);
-        $element['#webform_component']['cid'] = $cid;
-        $form_obj->setElementArray($element);
-        $form_obj->save();
-      }
-      else {
-        $cid = $component['cid'];
-      }
-      $node->webform['components'][$cid] = $component;
-    }
-  }
-
-  // Save the node itself to update components and allow other modules to
+function form_builder_webform_save_form_submit($form, &$form_state) {
+    // Save the node itself to update components and allow other modules to
   // respond to any changes. The Form Builder cache is intentionally left in
   // place so other modules can check it for changes also.
+  $node = $form['#node'];
   node_save($node);
 
   // Remove the cached form_builder form.
-  $form_obj->delete();
+  FormBuilderLoader::instance()->fromCache('webform', $node->nid)->delete();
+  drupal_set_message(t('Changes to the form have been saved.'));
 }
 
 /**
  * Submit handler for the "Cancel" button.
  */
 function form_builder_webform_cancel(&$form, &$form_state) {
+  $node = $form['#node'];
+  FormBuilderLoader::instance()->fromCache('webform', $node->nid)->delete();
   drupal_set_message(t('Changes to the form have been discarded.'));
-  FormBuilderLoader::instance()
-    ->fromCache('webform', $form_state['values']['nid'])
-    ->delete();
 }
 
 /**

@@ -164,4 +164,33 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $this->assertEqual(array($fieldset_id), element_children($form_array));
     $this->assertEqual(array($textfield_id), element_children($form_array[$fieldset_id]));
   }
+
+  public function testChangeElementKey() {
+    $a['#type'] = 'textfield';
+    $a['#form_builder'] = array('element_id' => 'A');
+    $form_obj = new FormBuilderFormBase('webform', 'test', NULL, array(), array('a' => $a));
+    $a['#key'] = 'b';
+    $form_obj->setElementArray($a);
+    $form = $form_obj->getFormArray();
+    $this->assertArrayHasKey('b', $form);
+    $this->assertArrayNotHasKey('a', $form);
+  }
+
+  protected function eArray($type, $id, $key, $weight = 0, $parent_id = FORM_BUILDER_ROOT) {
+    return array(
+      '#type' => $type,
+      '#key' => $key,
+      '#form_builder' => array('element_id' => $id, 'parent_id' => $parent_id),
+      '#weight' => $weight,
+    );
+  }
+
+  public function test_getElementArraysInPreOrder() {
+    $form['a'] = $this->eArray('textfield', 'a', 'a', 1);
+    $form['fieldset'] = $this->eArray('fieldset', 'fs', 'fieldset');
+    $form['fieldset']['b'] = $this->eArray('textfield', 'b', 'b', 0, 'fs');
+    $form_obj = new FormBuilderFormBase('webform', 'test', NULL, array(), $form);
+    $expected = array('fs', 'b', 'a');
+    $this->assertEqual($expected, array_keys($form_obj->getElementArraysInPreOrder()));
+  }
 }

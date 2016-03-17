@@ -20,15 +20,8 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     $component['email'] = 0;
     $component['nid'] = $this->formId;
     $component['weight'] = $element['#weight'];
-
-    // Set the parent ID to default to the form base.
-    $component['pid'] = FORM_BUILDER_ROOT;
-
-    // Set the parent ID for the component if it is nested inside another component.
-    $parent = $this->getElementArray($element['#form_builder']['parent_id']);
-    if ($parent && isset($parent['#webform_component']['cid'])) {
-      $component['pid'] = $parent['#webform_component']['cid'];
-    }
+    // The component can't decide this on it's own.
+    $component['pid'] = 0;
 
     // Allow each component to set any specific settings that can't be mapped.
     if ($saved_component = form_builder_webform_component_invoke($type, 'form_builder_save', $component, $element)) {
@@ -36,6 +29,46 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     }
 
     return $component;
+  }
+
+  /**
+   * Get a list of component-arrays just like in $node->webform['components'].
+   */
+  public function getComponents($node) {
+    // Max CID is used in the creation of new components, preventing conflicts.
+    $cids = [];
+    // Filter out all cids from removed components.
+    foreach (array_keys($node->webform['components']) as $cid) {
+      if ($this->getElement("cid_$cid")) {
+        $cids[] = $cid;
+      }
+    }
+    $max_cid = max($cids);
+
+    $components = [];
+    // Keep track of the element_id => cid mapping for assigning the pid.
+    $element_cid_map = [];
+    $page = 1;
+    $elements = $this->getElementArraysInPreOrder();
+    foreach ($elements as $element_id => $element) {
+      if ($component = $this->getComponent($element_id)) {
+        if (empty($component['cid'])) {
+          $component['cid'] = ++$max_cid;
+        }
+        $element_cid_map[$element_id] = $component['cid'];
+
+        // Set the possibly changed pid.
+        $parent_id = $element['#form_builder']['parent_id'];
+        $component['pid'] = ($parent_id === FORM_BUILDER_ROOT) ? 0 : $element_cid_map[$parent_id];
+        $component['page_num'] = $page;
+
+        $components[$component['cid']] = $component;
+        if ($component['type'] == 'pagebreak') {
+          $page++;
+        }
+      }
+    }
+    return $components;
   }
 }
 

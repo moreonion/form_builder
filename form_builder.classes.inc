@@ -668,6 +668,22 @@ class FormBuilderFormBase implements Serializable {
     unset($parent[$element['#key']]);
   }
 
+  private function preOrderElementArrays(&$elements, &$e) {
+    foreach (element_children($e, TRUE) as $key) {
+      $elements[$e[$key]['#form_builder']['element_id']] = $e[$key];
+      $this->preOrderElementArrays($elements, $e[$key]);
+    }
+  }
+
+  /**
+   * Get list of elements in depth-first pre-order.
+   */
+  public function getElementArraysInPreOrder() {
+    $elements = array();
+    $this->preOrderElementArrays($elements, $this->form);
+    return $elements;
+  }
+
   /**
    * {@inheritdoc}
    */
