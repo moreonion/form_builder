@@ -552,6 +552,9 @@ class FormBuilderFormBase implements Serializable {
    * {@inheritdoc}
    */
   public function getElement($element_id) {
+    if (!isset($this->elementArrays[$element_id])) {
+      return NULL;
+    }
     $element = &$this->elementArrays[$element_id];
     return FormBuilderLoader::instance()
       ->getElement($this->formType, $this->formId, $element['#form_builder']['element_type'], $this, $element);
