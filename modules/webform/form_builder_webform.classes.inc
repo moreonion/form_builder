@@ -119,16 +119,34 @@ class FormBuilderWebformProperty extends FormBuilderPropertyBase {
   public function setValue(&$component, $value) {
     drupal_array_set_nested_value($component, $this->storageParents, $value);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function form(&$form_state, $element) {
+    $p["#{$this->property}"] = $this->getValue($element['#webform_component'])
+      + $element;
+    return parent::form($form_state, $p);
+  }
+
+  /**
+   * Read the value from a component array.
+   */
+  public function getValue($component) {
+    return drupal_array_get_nested_value($component, $this->storageParents);
+  }
+
 }
 
 /**
  * Special handling for the mandatory -> required rename in webform4.
  */
-class FormBuilderWebformPropertyRequired extends FormBuilderPropertyBase {
+class FormBuilderWebformPropertyRequired extends FormBuilderWebformProperty {
   public function setValue(&$component, $value) {
     $component['required'] = $value; // webform 4
     $component['mandatory'] = $value; // webform 3
   }
+
 }
 
 /**
