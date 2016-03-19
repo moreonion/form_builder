@@ -43,7 +43,7 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
         $cids[] = $cid;
       }
     }
-    $max_cid = max($cids);
+    $max_cid = !empty($cids) ? max($cids) : 0;
 
     $components = array();
     // Keep track of the element_id => cid mapping for assigning the pid.
@@ -124,9 +124,8 @@ class FormBuilderWebformProperty extends FormBuilderPropertyBase {
    * {@inheritdoc}
    */
   public function form(&$form_state, $element) {
-    $p["#{$this->property}"] = $this->getValue($element['#webform_component'])
-      + $element;
-    return parent::form($form_state, $p);
+    $p["#{$this->property}"] = $this->getValue($element['#webform_component']);
+    return parent::form($form_state, $p + $element);
   }
 
   /**
