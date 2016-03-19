@@ -670,8 +670,10 @@ class FormBuilderFormBase implements Serializable {
 
   private function preOrderElementArrays(&$elements, &$e) {
     foreach (element_children($e, TRUE) as $key) {
-      $elements[$e[$key]['#form_builder']['element_id']] = $e[$key];
-      $this->preOrderElementArrays($elements, $e[$key]);
+      if (isset($e[$key]['#form_builder'])) {
+        $elements[$e[$key]['#form_builder']['element_id']] = $e[$key];
+        $this->preOrderElementArrays($elements, $e[$key]);
+      }
     }
   }
 
