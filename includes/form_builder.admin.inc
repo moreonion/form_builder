@@ -222,7 +222,7 @@ function form_builder_preview($f, &$form_state, $form_obj, $form_type, $form_id)
   // Make modifications to all form elements recursively.
   $element_ids = $form_obj->getElementIds();
 
-  $form = $form_obj->getFormArray();
+  $form = $form_obj->preview();
   // Record all the element IDs within the entire form.
   $form['#form_builder']['element_ids'] = $element_ids;
   $form['#form_builder']['form_type'] = $form_type;
