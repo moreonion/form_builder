@@ -269,4 +269,202 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
       ),
     ));
   }
+
+  function testConfigurationForm() {
+    $form = new FormBuilderWebformForm('webform', 0, 'the-sid', array(), array());
+    $form->addComponents($this->components);
+    $form_state = array();
+    $element = $form->getElement('cid_2');
+    $a = $element->configurationForm(array(), $form_state);
+    $this->assertEqual(array(
+      '#_edit_element' => array(
+        '#webform_component' => array(
+          'nid' => 1,
+          'cid' => '2',
+          'pid' => '0',
+          'form_key' => 'textfield1',
+          'name' => 'textfield1',
+          'type' => 'textfield',
+          'value' => 'textfield1',
+          'extra' => array(
+            'title_display' => 'before',
+            'private' => 0,
+            'disabled' => 1,
+            'unique' => 0,
+            'conditional_operator' => '=',
+            'width' => '4',
+            'maxlength' => '',
+            'field_prefix' => 'testprefix',
+            'field_suffix' => 'testpostfix',
+            'description' => '',
+            'attributes' => array(),
+            'conditional_component' => '',
+            'conditional_values' => '',
+          ),
+          'mandatory' => '0',
+          'weight' => '1',
+          'page_num' => 1,
+        ),
+        '#weight' => '1',
+        '#key' => 'textfield1',
+        '#form_builder' => array(
+          'element_id' => 'cid_2',
+          'parent_id' => 0,
+          'element_type' => 'textfield',
+          'form_type' => 'webform',
+          'form_id' => 0,
+          'configurable' => TRUE,
+          'removable' => TRUE,
+        ),
+      ),
+      'size' => array(
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+        '#type' => 'textfield',
+        '#size' => 6,
+        '#title' => 'Size',
+        '#default_value' => '4',
+        '#weight' => 2,
+        '#maxlength' => 5,
+        '#element_validate' => array(
+          0 => 'form_validate_integer',
+        ),
+      ),
+      'maxlength' => array(
+        '#form_builder' => array(
+          'property_group' => 'validation',
+        ),
+        '#type' => 'textfield',
+        '#size' => 6,
+        '#title' => 'Max length',
+        '#default_value' => '',
+        '#field_suffix' => ' characters',
+        '#weight' => 3,
+        '#maxlength' => 7,
+        '#element_validate' => array(
+          0 => 'form_validate_integer',
+        ),
+      ),
+      'field_prefix' => array(
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+        '#type' => 'textfield',
+        '#title' => 'Prefix',
+        '#default_value' => 'testprefix',
+        '#weight' => -2,
+      ),
+      'field_suffix' => array(
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+        '#type' => 'textfield',
+        '#title' => 'Suffix',
+        '#default_value' => 'testpostfix',
+        '#weight' => -1,
+      ),
+      'disabled' => array(
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+        '#title' => 'Disabled (read-only)',
+        '#type' => 'checkbox',
+        '#default_value' => TRUE,
+        '#weight' => 12,
+      ),
+      'unique' => array(
+        '#form_builder' => array(
+          'property_group' => 'validation',
+        ),
+        '#title' => 'Unique',
+        '#description' => 'Check that all entered values for this field are unique. The same value is not allowed to be used twice.',
+        '#type' => 'checkbox',
+        '#default_value' => 0,
+      ),
+      'title' => array(
+        '#title' => 'Title',
+        '#type' => 'textfield',
+        '#default_value' => 'textfield1',
+        '#maxlength' => 255,
+        '#required' => TRUE,
+        '#weight' => -10,
+      ),
+      'title_display' => array(
+        '#type' => 'select',
+        '#title' => 'Label display',
+        '#default_value' => 'before',
+        '#options' => array(
+          'before' => 'Above',
+          'inline' => 'Inline',
+          'none' => 'None',
+        ),
+        '#description' => 'Determines the placement of the component\'s label.',
+        '#weight' => 8,
+        '#tree' => TRUE,
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+      ),
+      'default_value' => array(
+        '#type' => 'textfield',
+        '#title' => 'Default value',
+        '#default_value' => 'textfield1',
+        '#weight' => 1,
+      ),
+      'description' => array(
+        '#title' => 'Description',
+        '#type' => 'textarea',
+        '#default_value' => '',
+        '#weight' => 5,
+      ),
+      'webform_private' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Private',
+        '#default_value' => FALSE,
+        '#description' => 'Private fields are shown only to users with results access.',
+        '#weight' => 45,
+        '#disabled' => TRUE,
+        '#tree' => TRUE,
+        '#form_builder' => array(
+          'property_group' => 'display',
+        ),
+      ),
+      'required' => array(
+        '#form_builder' => array(
+          'property_group' => 'validation',
+        ),
+        '#title' => 'Required',
+        '#type' => 'checkbox',
+        '#default_value' => '0',
+        '#weight' => -1,
+      ),
+      'key' => array(
+        '#title' => 'Form key',
+        '#type' => 'machine_name',
+        '#default_value' => 'textfield1',
+        '#maxlength' => 128,
+        '#description' => 'The form key is used in the field "name" attribute. Must be alphanumeric and underscore characters.',
+        '#machine_name' => array(
+          'source' => array(
+            0 => 'title',
+          ),
+          'label' => 'Form key',
+        ),
+        '#weight' => -9,
+        '#element_validate' => array(
+          0 => 'form_builder_property_key_form_validate',
+        ),
+      ),
+      'weight' => array(
+        '#form_builder' => array(
+          'property_group' => 'hidden',
+        ),
+        '#type' => 'textfield',
+        '#size' => 6,
+        '#title' => 'Weight',
+        '#default_value' => '1',
+      ),
+    ), $a);
+  }
 }
