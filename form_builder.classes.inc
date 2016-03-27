@@ -655,22 +655,22 @@ class FormBuilderFormBase implements Serializable {
     unset($parent[$element['#key']]);
   }
 
-  private function preOrderElementArrays(&$elements, $e) {
-    foreach (element_children($e, TRUE) as $key) {
-      if (isset($e[$key]['#form_builder'])) {
-        $elements[$e[$key]['#form_builder']['element_id']] = $e[$key];
-        $this->preOrderElementArrays($elements, $e[$key]);
-      }
-    }
+  /**
+   * Get list of element ids in depth-first pre-order.
+   */
+  public function getElementIdsInPreOrder() {
+    $ids = array();
+    $this->_recursiveElementIds($ids, $this->form);
+    return $ids;
   }
 
-  /**
-   * Get list of elements in depth-first pre-order.
-   */
-  public function getElementArraysInPreOrder() {
-    $elements = array();
-    $this->preOrderElementArrays($elements, $this->form);
-    return $elements;
+  private function _recursiveElementIds(&$ids, $e) {
+    foreach (element_children($e, TRUE) as $key) {
+      if (isset($e[$key]['#form_builder'])) {
+        $ids[] = $e[$key]['#form_builder']['element_id'];
+        $this->_recursiveElementIds($ids, $e[$key]);
+      }
+    }
   }
 
   /**
@@ -678,8 +678,7 @@ class FormBuilderFormBase implements Serializable {
    */
   public function getElementsInPreOrder() {
     $elements = array();
-    foreach ($this->getElementArraysInPreOrder() as $e) {
-      $id = $e['#form_builder']['element_id'];
+    foreach ($this->getElementIdsInPreOrder() as $id) {
       $elements[$id] = $this->getElement($id);
     }
     return $elements;

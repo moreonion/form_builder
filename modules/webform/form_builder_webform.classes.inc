@@ -92,8 +92,7 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     // Keep track of the element_id => cid mapping for assigning the pid.
     $element_cid_map = array();
     $page = 1;
-    $elements = $this->getElementArraysInPreOrder();
-    foreach ($elements as $element_id => $element) {
+    foreach ($this->getElementsInPreOrder() as $element_id => $element) {
       if ($component = $this->getComponent($element_id)) {
         if (empty($component['cid'])) {
           $component['cid'] = ++$max_cid;
@@ -101,7 +100,7 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
         $element_cid_map[$element_id] = $component['cid'];
 
         // Set the possibly changed pid.
-        $parent_id = $element['#form_builder']['parent_id'];
+        $parent_id = $element->parentId();
         $component['pid'] = ($parent_id === FORM_BUILDER_ROOT) ? 0 : $element_cid_map[$parent_id];
         $component['page_num'] = $page;
 

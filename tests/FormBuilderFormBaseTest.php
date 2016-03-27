@@ -187,13 +187,13 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     );
   }
 
-  public function test_getElementArraysInPreOrder() {
+  public function test_getElementsInPreOrder() {
     $form['a'] = $this->eArray('textfield', 'a', 'a', 1);
     $form['fieldset'] = $this->eArray('fieldset', 'fs', 'fieldset');
     $form['fieldset']['b'] = $this->eArray('textfield', 'b', 'b', 0, 'fs');
     $form['fieldset']['c'] = array('#markup' => 'Not a form_builder element');
     $form_obj = new FormBuilderFormBase('webform', 'test', NULL, array(), $form);
     $expected = array('fs', 'b', 'a');
-    $this->assertEqual($expected, array_keys($form_obj->getElementArraysInPreOrder()));
+    $this->assertEqual($expected, array_keys($form_obj->getElementsInPreOrder()));
   }
 }
