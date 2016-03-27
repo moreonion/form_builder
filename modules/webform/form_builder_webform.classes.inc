@@ -130,9 +130,9 @@ class FormBuilderWebformElement extends FormBuilderElementBase {
    * {@inheritdoc}
    */
   public function render() {
-    $element = &$this->element;
+    $element = $this->element;
     if (isset($element['#webform_component'])) {
-      $component = &$element['#webform_component'];
+      $component = $element['#webform_component'];
       $new_element = webform_component_invoke($component['type'], 'render', $component, NULL, FALSE);
       // Preserve the #weight. It may have been changed by the positions form.
       $new_element['#weight'] = $element['#weight'];

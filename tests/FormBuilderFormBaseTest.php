@@ -150,15 +150,17 @@ class FormBuilderFormBaseTest extends DrupalUnitTestCase {
     $this->assertNotEmpty($element->fieldset);
     $fieldset_id = $data['elementId'];
 
+    // Add a textfield to the form.
     $data = _form_builder_add_element('webform', 'test', 'textfield', NULL, 'test', TRUE);
     $this->assertNotEquals($fieldset_id, $data['elementId']);
     $textfield_id = $data['elementId'];
 
     $form = $loader->fromCache('webform', 'test', 'test');
+    // Move the textfield inside the fieldset.
     $element = $form->getElementArray($textfield_id);
     $element['#weight'] = 1;
     $element['#form_builder']['parent_id'] = $fieldset_id;
-    $form->setElementArray($element);
+    $this->assertEqual($textfield_id, $form->setElementArray($element));
 
     $form_array = $form->getFormArray();
     $this->assertEqual(array($fieldset_id), element_children($form_array));
