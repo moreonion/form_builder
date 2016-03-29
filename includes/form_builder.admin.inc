@@ -673,7 +673,6 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   $element_obj->configurationSubmit($form, $form_state);
 
   // Update the form builder cache.
-  $form_obj->setElementArray($element_obj->render());
   $form_obj->save();
 
   if (isset($_GET['js'])) {
