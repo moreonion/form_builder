@@ -323,6 +323,7 @@ function _form_builder_webform_property_map($component_type) {
     module_load_include('inc', 'webform', 'includes/webform.components');
     $map = form_builder_webform_component_invoke($component_type, 'form_builder_map');
     $map = $map ? $map : array();
+    $map += array('form_builder_type' => $component_type);
 
     if (webform_component_feature($component_type, 'title')) {
       $map['properties']['title'] = array(
