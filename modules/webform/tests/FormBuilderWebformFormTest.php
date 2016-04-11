@@ -271,15 +271,20 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
   }
 
   function testConfigurationForm() {
-    $form = new FormBuilderWebformForm('webform', 0, 'the-sid', array(), array());
-    $form->addComponents($this->components);
+    // We need a real node because webform_component_edit_form() uses it.
+    $node = (object) array('type' => 'webform');
+    node_object_prepare($node);
+    $node->webform['components'] = $this->components;
+    node_save($node);
+
+    $form = FormBuilderWebformForm::loadFromStorage('webform', $node->nid, 'the-sid', array());
     $form_state = array();
     $element = $form->getElement('cid_2');
     $a = $element->configurationForm(array(), $form_state);
     $this->assertEqual(array(
       '#_edit_element' => array(
         '#webform_component' => array(
-          'nid' => 1,
+          'nid' => $node->nid,
           'cid' => '2',
           'pid' => '0',
           'form_key' => 'textfield1',
@@ -312,7 +317,7 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
           'parent_id' => 0,
           'element_type' => 'textfield',
           'form_type' => 'webform',
-          'form_id' => 0,
+          'form_id' => $node->nid,
           'configurable' => TRUE,
           'removable' => TRUE,
         ),
@@ -466,5 +471,19 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
         '#default_value' => '1',
       ),
     ), $a);
+  }
+
+  /**
+   * Test whether we have a mapping for every (core) webform component.
+   */
+  function testElementMappings() {
+    $components = webform_webform_component_info();
+    $element_info = FormBuilderLoader::instance()->getElementTypeInfo('webform', NULL);
+    foreach (array_keys($components) as $type) {
+      $map = _form_builder_webform_property_map($type);
+      $this->assertTrue(!empty($map['form_builder_type']), "Unmapped component type '$type'.");
+      $t = $map['form_builder_type'];
+      $this->assertTrue(!empty($element_info[$t]), "Component type '$type' maps to undefined element_type $t");
+    }
   }
 }

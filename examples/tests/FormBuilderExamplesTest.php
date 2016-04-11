@@ -1,6 +1,6 @@
 <?php
 
-class FormBuilderFormBaseTest extends DrupalUnitTestCase {
+class FormBuilderExamplesTest extends DrupalUnitTestCase {
 
   public static function getInfo() {
     return array(
