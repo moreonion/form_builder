@@ -6,11 +6,49 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function form_builder_webform_menu() {
+  $items['node/%webform_menu/webform/form-builder'] = array(
+    'title' => 'Form builder',
+    'page callback' => 'form_builder_webform_components_page',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'weight' => -1,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function form_builder_webform_menu_alter(&$items) {
   $items['node/%webform_menu/webform']['page callback'] = 'form_builder_webform_components_page';
-  $items['node/%webform_menu/webform/components']['page callback'] = 'form_builder_webform_components_page';
+  $items['node/%webform_menu/webform/components']['type'] = MENU_LOCAL_TASK;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Webform uses hook_form_alter() to add it's own submit-handler. So this
+ * hook is called after webform's webform_form_alter()'
+ */
+function form_builder_webform_form_node_form_alter(&$form, &$form_state) {
+  if (!empty($form['webform'])) {
+    // Add our own submit-handler after webform_form_submit().
+    $form['actions']['submit']['#submit'][] = 'form_builder_webform_node_form_submit';
+  }
+}
+
+/**
+ * Submit handler for node forms on webform content-types.
+ *
+ * Redirect to the form_builder interface by default.
+ */
+function form_builder_webform_node_form_submit($form, &$form_state) {
+  $form_state['redirect'] = 'node/' . $form_state['nid'] . '/webform/form-builder';
 }
 
 /**
