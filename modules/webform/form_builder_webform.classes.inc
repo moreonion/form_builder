@@ -143,6 +143,10 @@ class FormBuilderWebformElement extends FormBuilderElementBase {
     return $this->addPreRender($element);
   }
 
+  public function title() {
+    return $this->element['#webform_component']['name'];
+  }
+
 }
 
 class FormBuilderWebformProperty extends FormBuilderPropertyBase {

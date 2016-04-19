@@ -692,13 +692,13 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
  * Form for removing a field.
  */
 function form_builder_field_remove($form, $form_state, $form_type, $form_id, $element_id) {
-  module_load_include('inc', 'form_builder', 'includes/form_builder.api');
-  module_load_include('inc', 'form_builder', 'includes/form_builder.cache');
-  $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
+  $form_obj = FormBUilderLoader::instance()->fromCache($form_type, $form_id);
+  $element_obj = $form_obj->getElement($element_id);
+  $title = $element_obj->title();
 
-  $question = t('Remove the field %title?', array('%title' => $element['#title']));
+  $question = t('Remove the field %title?', array('%title' => $title));
   $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
-  $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => isset($element['#title']) ? $element['#title'] : $element['#form_builder']['element_id']));
+  $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => $title));
   $yes = t('Remove');
 
   return confirm_form($form, $question, $path, $description, $yes);

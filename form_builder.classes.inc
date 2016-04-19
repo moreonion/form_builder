@@ -789,6 +789,12 @@ interface FormBuilderElementInterface {
    * Submit handler for the configuration form.
    */
   public function configurationSubmit(&$form, &$form_state);
+
+  /**
+   * Get a human-readable title for this form element.
+   */
+  public function title();
+
 }
 
 
@@ -888,10 +894,17 @@ class FormBuilderElementBase implements FormBuilderElementInterface {
     // Update the field according to the settings in $form_state['values'].
     $saveable = $this->getSaveableProperties();
     foreach ($form_state['values'] as $property => $value) {
-      if (in_array($property, $saveable)) {
+      if (in_array($property, $saveable, TRUE)) {
         $this->setProperty($property, $value);
       }
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function title() {
+    return $this->element['#title'];
   }
 
   public function parentId() {
