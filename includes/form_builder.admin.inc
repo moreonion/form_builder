@@ -22,11 +22,8 @@ function form_builder_interface($form_type, $form_id) {
 
   // Load the current state of the form, or create a new cache if needed.
   $loader = FormBuilderLoader::instance();
-  $form_obj = $loader->fromCache($form_type, $form_id);
-  if (!$form_obj) {
-    $form_obj = $loader->fromStorage($form_type, $form_id);
-    $form_obj->save();
-  }
+  $form_obj = $loader->fromStorage($form_type, $form_id);
+  $form_obj->save();
 
   $output = array();
   $output[] = drupal_get_form('form_builder_preview', $form_obj, $form_type, $form_id);
