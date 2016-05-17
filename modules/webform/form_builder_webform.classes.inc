@@ -65,6 +65,7 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     $component['weight'] = $element['#weight'];
     // The component can't decide this on it's own.
     $component['pid'] = 0;
+    $component['form_builder_element_id'] = $element_id;
 
     // Allow each component to set any specific settings that can't be mapped.
     if ($saved_component = form_builder_webform_component_invoke($type, 'form_builder_save', $component, $element)) {
