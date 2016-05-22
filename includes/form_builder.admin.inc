@@ -147,12 +147,12 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
   if (!isset($_REQUEST['js'])) {
     return $form;
   }
-  $commands[] = [
+  $commands[] = array(
     'command' => 'formBuilder-displayForm',
     'selector' => '#form-builder-element-' . $element_id,
     'data' => drupal_render($form),
-  ];
-  return ['#type' => 'ajax', '#commands' => $commands];
+  );
+  return array('#type' => 'ajax', '#commands' => $commands);
 }
 
 /**
