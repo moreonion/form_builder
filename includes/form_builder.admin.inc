@@ -20,7 +20,7 @@ function form_builder_interface($form_type, $form_id) {
   // Set the current form type (used for display of the sidebar block).
   form_builder_active_form($form_type, $form_id);
 
-  // Load the current state of the form, or create a new cache if needed.
+  // Create an internal state from the permanently stored form.
   $loader = FormBuilderLoader::instance();
   $form_obj = $loader->fromStorage($form_type, $form_id);
   $form_obj->save();

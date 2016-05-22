@@ -73,8 +73,11 @@ function form_builder_webform_components_page($node) {
   $build['#attached']['js'][] = $path . '/js/select-admin.js';
   $build['#attached']['library'][] = array('system', 'ui.datepicker');
 
+  // form_builder_interface() resets the cached form. We want the form-handlers
+  // of form_builder_webform_save_form() to be called before that.
+  $form = drupal_get_form('form_builder_webform_save_form', $node->nid);
   $build[] = form_builder_interface('webform', $node->nid);
-  $build[] = drupal_get_form('form_builder_webform_save_form', $node->nid);
+  $build[] = $form;
 
   return $build;
 }
