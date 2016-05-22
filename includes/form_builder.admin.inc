@@ -6,6 +6,16 @@
  */
 
 /**
+ * Delivery callback that either returns JSON or HTML.
+ */
+function form_builder_deliver_ajax_or_html($page_callback_result) {
+  if (isset($_REQUEST['js'])) {
+    return ajax_deliver($page_callback_result);
+  }
+  return drupal_deliver_html_page($page_callback_result);
+}
+
+/**
  * Main form building interface. Can be used as a menu callback.
  *
  * @param $form_type
@@ -133,28 +143,16 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
  * Menu callback for configuring a field.
  */
 function form_builder_configure_page($form_type, $form_id, $element_id) {
-  $output = drupal_get_form('form_builder_field_configure', $form_type, $form_id, $element_id);
-
-  if (isset($_REQUEST['js'])) {
-    // Return the newly changed field.
-    if (isset($_REQUEST['return'])) {
-      form_builder_field_json($form_type, $form_id, $element_id);
-    }
-    // Display the configuration form for a field.
-    else {
-      $data = array(
-        'formType' => $form_type,
-        'formId' => $form_id,
-        'elementId' => $element_id,
-        'html' => drupal_render($output),
-        'errors' => form_get_errors(),
-      );
-      form_builder_json_output($data);
-      exit();
-    }
+  $form = drupal_get_form('form_builder_field_configure', $form_type, $form_id, $element_id);
+  if (!isset($_REQUEST['js'])) {
+    return $form;
   }
-
-  return $output;
+  $commands[] = [
+    'command' => 'formBuilder-displayForm',
+    'selector' => '#form-builder-element-' . $element_id,
+    'data' => drupal_render($form),
+  ];
+  return ['#type' => 'ajax', '#commands' => $commands];
 }
 
 /**
@@ -609,6 +607,7 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
   $form_obj = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
   $element_obj = $form_obj->getElement($element_id);
 
+  $form['#attributes']['class'][] = 'form-builder-field-configure';
   $form = $element_obj->configurationForm($form, $form_state);
   $form['#_edit_form_type'] = $form_type;
   $form['#_edit_form_id'] = $form_id;
@@ -672,7 +671,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
   // Update the form builder cache.
   $form_obj->save();
 
-  if (isset($_GET['js'])) {
+  if (isset($_REQUEST['js'])) {
     // Option A: Use the destination variable to do a drupal_goto(). Allows
     // other submit handlers to add on extra functionality.
     // The destination variable takes precedence over $form_state['redirect'].
@@ -707,7 +706,7 @@ function form_builder_field_remove_submit(&$form, &$form_state) {
   // Update the form builder cache.
   form_builder_cache_field_delete($form_type, $form_id, $element_id);
 
-  if (isset($_GET['js'])) {
+  if (isset($_REQUEST['js'])) {
     // See form_builder_field_configure_submit() for comparison between using
     // redirect and immediately printing the JSON.
     //$form_state['redirect'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
