@@ -395,13 +395,13 @@ function theme_form_builder_element_wrapper($variables) {
     $output .= '<div class="form-builder-title-bar">';
     $output .= '<span class="form-builder-links">';
     if ($removable) {
-      $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/build/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('remove'), 'title' => t('Remove')), 'query' => drupal_get_destination()));
+      $output .= l('<span class="remove">'. t('Remove') .'</span>', 'admin/structure/form-builder/remove/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('remove'), 'title' => t('Remove')), 'query' => drupal_get_destination()));
     }
     if ($removable && $configurable) {
       $output .= ' ';
     }
     if ($configurable) {
-      $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/build/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('configure'), 'title' => t('Configure')), 'query' => drupal_get_destination()));
+      $output .= l('<span class="configure">'. t('Configure') .'</span>', 'admin/structure/form-builder/configure/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('configure'), 'title' => t('Configure')), 'query' => drupal_get_destination()));
     }
     $output .= '</span>';
     $output .= '</div>';
@@ -410,7 +410,7 @@ function theme_form_builder_element_wrapper($variables) {
   if ($cloneable) {
     $output .= '<div class="form-builder-bottom-title-bar">';
     $output .= '<span class="form-builder-bottom-links">';
-    $output .= l('<span class="clone">'. t('Copy') .'</span>', 'admin/build/form-builder/clone/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('clone'), 'title' => t('Copy')), 'query' => drupal_get_destination()));
+    $output .= l('<span class="clone">'. t('Copy') .'</span>', 'admin/structure/form-builder/clone/' . $element['#form_builder']['form_type'] . '/' . $element['#form_builder']['form_id'] . '/' . $element['#form_builder']['element_id'], array('html' => TRUE, 'attributes' => array('class' => array('clone'), 'title' => t('Copy')), 'query' => drupal_get_destination()));
     $output .= '</span>';
     $output .= '</div>';
   }
@@ -511,7 +511,7 @@ function theme_form_builder_field_palette($vars) {
 
     $lists[$field['palette_group']]['#weight'] = $groups[$field['palette_group']]['weight'];
     $lists[$field['palette_group']][] = array(
-      'data' => l($field['title'], 'admin/build/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
+      'data' => l($field['title'], 'admin/structure/form-builder/add/' . $form_type . '/' . $form_id . '/' . $field_name, array('query' => drupal_get_destination())),
       'class' => $class,
       'style' => $style,
     );
@@ -675,7 +675,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
     // Option A: Use the destination variable to do a drupal_goto(). Allows
     // other submit handlers to add on extra functionality.
     // The destination variable takes precedence over $form_state['redirect'].
-    //$_REQUEST['destination'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+    //$_REQUEST['destination'] = 'admin/structure/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
 
     // Option B: Immediately print the JSON and exit. Faster and requires only
     // one HTTP request instead of two. Other submit handlers must be before
@@ -709,7 +709,7 @@ function form_builder_field_remove_submit(&$form, &$form_state) {
   if (isset($_REQUEST['js'])) {
     // See form_builder_field_configure_submit() for comparison between using
     // redirect and immediately printing the JSON.
-    //$form_state['redirect'] = 'admin/build/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
+    //$form_state['redirect'] = 'admin/structure/form-builder/json/' . $form_type . '/' . $form_id . '/' . $element_id;
     form_builder_field_json($form_type, $form_id, $element_id);
   }
 }
