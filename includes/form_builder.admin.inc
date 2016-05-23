@@ -8,11 +8,11 @@
 /**
  * Delivery callback that either returns JSON or HTML.
  */
-function form_builder_deliver_ajax_or_html($page_callback_result) {
-  if (isset($_REQUEST['js'])) {
-    return ajax_deliver($page_callback_result);
+function form_builder_deliver_ajax_or_html($result) {
+  if (is_array($result) && isset($result['#type']) && $result['#type'] == 'ajax') {
+    return ajax_deliver($result);
   }
-  return drupal_deliver_html_page($page_callback_result);
+  return drupal_deliver_html_page($result);
 }
 
 /**
@@ -159,22 +159,16 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
  * Menu callback for removing a field.
  */
 function form_builder_remove_page($form_type, $form_id, $element_id) {
-  $output = drupal_get_form('form_builder_field_remove', $form_type, $form_id, $element_id);
-
-  if (isset($_REQUEST['js']) && !isset($_REQUEST['return'])) {
-    // This after build function immediately returns the form as JSON.
-    $data = array(
-      'formType' => $form_type,
-      'formId' => $form_id,
-      'elementId' => $element_id,
-      'html' => drupal_render($output),
-    );
-
-    form_builder_json_output($data);
-    exit();
+  $form = drupal_get_form('form_builder_field_remove', $form_type, $form_id, $element_id);
+  if (!isset($_REQUEST['js'])) {
+    return $form;
   }
-
-  return $output;
+  $commands[] = array(
+    'command' => 'formBuilder-displayForm',
+    'selector' => '#form-builder-element-' . $element_id,
+    'data' => drupal_render($form),
+  );
+  return array('#type' => 'ajax', '#commands' => $commands);
 }
 
 /**

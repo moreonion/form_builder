@@ -56,6 +56,7 @@ function form_builder_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'form_builder.admin.inc',
     'file path' => drupal_get_path('module', 'form_builder') . '/includes',
+    'delivery callback' => 'form_builder_deliver_ajax_or_html',
   );
 
   $items['admin/structure/form-builder/json'] = array(
