@@ -691,6 +691,13 @@ function form_builder_field_remove($form, $form_state, $form_type, $form_id, $el
   $description = t('Remove the field %title? This field will not be permanently removed until the form configuration is saved.', array('%title' => $title));
   $yes = t('Remove');
 
+  if ($_REQUEST['js']) {
+    $form['js'] = array(
+      '#type' => 'hidden',
+      '#value' => '1',
+    );
+  }
+
   return confirm_form($form, $question, $path, $description, $yes);
 }
 
