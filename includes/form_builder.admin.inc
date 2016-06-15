@@ -89,7 +89,7 @@ function _form_builder_add_element($form_type, $form_id, $element_type, $element
       }
       // Set the element type to the correct value so it will be used
       // consistently throughout this function.
-      $element_type = $element['#type'];
+      $element_type = $element['#form_builder']['element_type'];
     }
   }
   // Otherwise, create a new default field.
