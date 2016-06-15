@@ -657,7 +657,7 @@ function form_builder_field_configure_pre_render($form) {
 
 function form_builder_field_configure_submit(&$form, &$form_state) {
   list($form_type, $form_id, $element_id) = $form_state['build_info']['args'];
-  $form_obj = FormBUilderLoader::instance()->fromCache($form_type, $form_id);
+  $form_obj = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
   $element_obj = $form_obj->getElement($element_id);
 
   $element_obj->configurationSubmit($form, $form_state);
@@ -682,7 +682,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
  * Form for removing a field.
  */
 function form_builder_field_remove($form, $form_state, $form_type, $form_id, $element_id) {
-  $form_obj = FormBUilderLoader::instance()->fromCache($form_type, $form_id);
+  $form_obj = FormBuilderLoader::instance()->fromCache($form_type, $form_id);
   $element_obj = $form_obj->getElement($element_id);
   $title = $element_obj->title();
 
