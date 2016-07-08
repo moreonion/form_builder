@@ -261,6 +261,7 @@ function form_builder_property_markup_form(&$form_state, $form_type, $element, $
     '#default_value' => $element['#markup'],
     '#format' => isset($element['#format']) ? $element['#format'] : NULL,
     '#weight' => 1,
+    '#wysiwyg' => FALSE,
   );
 
   return $form;
