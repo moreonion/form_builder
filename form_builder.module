@@ -74,6 +74,16 @@ function form_builder_menu() {
 }
 
 /**
+ * Delivery callback that either returns JSON or HTML.
+ */
+function form_builder_deliver_ajax_or_html($result) {
+  if (is_array($result) && isset($result['#type']) && $result['#type'] == 'ajax') {
+    return ajax_deliver($result);
+  }
+  return drupal_deliver_html_page($result);
+}
+
+/**
  * Implements hook_theme().
  */
 function form_builder_theme() {
