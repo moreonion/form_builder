@@ -20,11 +20,11 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     if (array_key_exists('progressbar_label_first', $node->webform)) {
       $first = reset($components);
       if ($first['type'] != 'pagebreak') {
-        $pagebreak = _form_builder_webform_default('pagebreak', [], [
+        $pagebreak = _form_builder_webform_default('pagebreak', array(), array(
           'name' => $node->webform['progressbar_label_first'],
           'form_key' => 'progressbar_label_first',
           'weight' => -100,
-        ])['#webform_component'];
+        ))['#webform_component'];
         $components = [$pagebreak] + $components;
       }
     }
