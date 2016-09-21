@@ -9,9 +9,26 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     // Webform identifies its forms by Node Id.
     $node = node_load($form_id);
     $form = new static($form_type, $form_id, $sid, $params, array());
-    $form->addComponents($node->webform['components']);
+    $components = static::addFirstPagebreak($node, $node->webform['components']);
+    $form->addComponents($components);
     drupal_alter('form_builder_load', $form, $form_type, $form_id);
     return $form;
+  }
+
+  protected static function addFirstPagebreak($node, $components) {
+    // Only do this if using webform4 or webform_steps_w3.
+    if (array_key_exists('progressbar_label_first', $node->webform)) {
+      $first = reset($components);
+      if ($first['type'] != 'pagebreak') {
+        $pagebreak = _form_builder_webform_default('pagebreak', [], [
+          'name' => $node->webform['progressbar_label_first'],
+          'form_key' => 'progressbar_label_first',
+          'weight' => -100,
+        ])['#webform_component'];
+        $components = [$pagebreak] + $components;
+      }
+    }
+    return $components;
   }
 
   /**
@@ -113,6 +130,20 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     }
     return $components;
   }
+
+  public function updateNode($node) {
+    $components = $this->getComponents($node);
+    $first = reset($components);
+    if ($first['type'] == 'pagebreak') {
+      $node->webform['progressbar_label_first'] = $first['name'];
+    }
+    // Remove transient pagebreak.
+    if ($first['form_key'] == 'progressbar_label_first') {
+      unset($components[$first['cid']]);
+    }
+    $node->webform['components'] = $components;
+  }
+
 }
 
 class FormBuilderWebformElement extends FormBuilderElementBase {

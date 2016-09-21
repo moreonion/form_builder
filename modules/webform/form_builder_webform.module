@@ -116,7 +116,7 @@ function form_builder_webform_save_form($form, &$form_state, $nid) {
 function form_builder_webform_save_form_validate($form, &$form_state) {
   $node = $form['#node'];
   $form_obj = FormBuilderLoader::instance()->fromCache('webform', $node->nid);
-  $node->webform['components'] = $form_obj->getComponents($node);
+  $form_obj->updateNode($node);
 }
 
 /**
