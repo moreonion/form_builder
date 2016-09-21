@@ -711,7 +711,7 @@ Drupal.formBuilder.updateElementPosition = function(element) {
   $('#form-builder-positions input.form-builder-parent').filter('.' + child_id).val(parent_id);
 
   // Submit the position form via AJAX to save the new weights and parents.
-  $('#form-builder-positions input[type=submit]').triggerHandler('mousedown');
+  $('#form-builder-positions [type=submit]').triggerHandler('mousedown');
 };
 
 /**
