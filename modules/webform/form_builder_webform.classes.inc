@@ -208,6 +208,9 @@ class FormBuilderWebformProperty extends FormBuilderPropertyBase {
     // We use the rendered element here to re-use the form-API functions.
     $e = $element->render();
     $e += array("#{$this->property}" => $this->getValue($e['#webform_component']));
+    // Set weight to just anything. Element positions aren't configured in
+    // this way in form_builder.
+    $e['#webform_component']['weight'] = 0;
     if (isset($this->params['form']) && function_exists($this->params['form'])) {
       $function = $this->params['form'];
       return $function($form_state, $this->formTypeName, $e, $this->property);
