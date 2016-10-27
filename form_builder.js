@@ -60,7 +60,9 @@ Drupal.behaviors.formBuilderElement.attach = function(context) {
 /**
  * Behavior to disable preview fields and instead open up the configuration.
  */
-Drupal.behaviors.formBuilderFields = {};
+Drupal.behaviors.formBuilderFields = {
+  tableDragAttached: false,
+};
 Drupal.behaviors.formBuilderFields.attach = function(context) {
   // Bind a function to all elements to update the preview on change.
   var $forms = $('.form-builder-field-configure', context)
@@ -75,7 +77,29 @@ Drupal.behaviors.formBuilderFields.attach = function(context) {
     .not('.form-builder-field-keyup')
     .addClass('form-builder-field-keyup')
     .bind('keyup', Drupal.formBuilder.elementPendingChange);
+
+  this.attachTableDrag();
 };
+/**
+ * Register a tableDrag onDrop callback - so we catch weight changes.
+ */
+Drupal.behaviors.formBuilderFields.attachTableDrag = function() {
+  if (this.tableDragAttached) {
+    return;
+  }
+  if (Drupal.tableDrag.prototype) {
+    var oldOnDrop = Drupal.tableDrag.prototype.onDrop;
+    Drupal.tableDrag.prototype.onDrop = function() {
+      oldOnDrop();
+      if ($(this.table).parents('.form-builder-field-configure').length) {
+        Drupal.formBuilder.elementPendingChange.apply(this.table, [{
+          type: 'change',
+        }]);
+      }
+    };
+    this.tableDragAttached = true;
+  }
+}
 
 /**
  * Behavior for the entire form builder. Add drag and drop to elements.
