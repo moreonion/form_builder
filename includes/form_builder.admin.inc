@@ -318,11 +318,13 @@ function form_builder_positions_submit(&$form, &$form_state) {
       continue;
     }
 
-    // Check for changed weights or parents.
-    $element = $form_cache->getElementArray($element_id);
-    $element['#weight'] = $form_state['values'][$element_id]['weight'];
-    $element['#form_builder']['parent_id'] = $form_state['values'][$element_id]['parent'];
-    $form_cache->setElementArray($element);
+    // Check for changed weights or parents if element has not been deleted in
+    // the meanwhile.
+    if ($element = $form_cache->getElementArray($element_id)) {
+      $element['#weight'] = $form_state['values'][$element_id]['weight'];
+      $element['#form_builder']['parent_id'] = $form_state['values'][$element_id]['parent'];
+      $form_cache->setElementArray($element);
+    }
   }
 
   // Save all the changes made.
