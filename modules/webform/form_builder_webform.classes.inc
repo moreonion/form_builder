@@ -2,6 +2,8 @@
 
 
 class FormBuilderWebformForm extends FormBuilderFormBase {
+  const LABEL_PREFIX = 'progressbar_label_first';
+
   /**
    * {@inheritdoc}
    */
@@ -20,9 +22,22 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     if (array_key_exists('progressbar_label_first', $node->webform)) {
       $first = reset($components);
       if ($first['type'] != 'pagebreak') {
+        $form_keys = array();
+        foreach ($components as $c) {
+          if ($c['pid'] === 0) {
+            $form_keys[$c['form_key']] = TRUE;
+          }
+        }
+
+        $form_key = self::LABEL_PREFIX;
+        $i = 0;
+        while (!empty($form_keys[$form_key])) {
+          $form_key = self::LABEL_PREFIX . ++$i;
+        }
+
         $element = _form_builder_webform_default('pagebreak', array(), array(
           'name' => $node->webform['progressbar_label_first'],
-          'form_key' => 'progressbar_label_first',
+          'form_key' => $form_key,
           'weight' => -100,
         ));
         $components = array($element['#webform_component']) + $components;
@@ -136,10 +151,14 @@ class FormBuilderWebformForm extends FormBuilderFormBase {
     $first = reset($components);
     if ($first['type'] == 'pagebreak') {
       $node->webform['progressbar_label_first'] = $first['name'];
-    }
-    // Remove transient pagebreak.
-    if ($first['form_key'] == 'progressbar_label_first') {
-      unset($components[$first['cid']]);
+
+      // Remove pagebreak if it has the right key.
+      if (substr($first['form_key'], 0, strlen(self::LABEL_PREFIX)) === self::LABEL_PREFIX) {
+        unset($components[$first['cid']]);
+        foreach ($components as &$c) {
+          $c['page_num']--;
+        }
+      }
     }
     $node->webform['components'] = $components;
   }
