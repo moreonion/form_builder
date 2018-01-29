@@ -388,9 +388,12 @@ function _form_builder_webform_form_builder_types_hidden() {
   $fields['hidden'] = array(
     'title' => t('Hidden'),
     'weight' => 8,
+    'class' => 'FormBuilderWebformHiddenElement',
   );
   $component['name'] = t('New hidden');
-  $fields['hidden']['default'] = _form_builder_webform_default('hidden', array(), $component);
+  $fields['hidden']['default'] = _form_builder_webform_default('hidden', array(
+    'hidden_type' => 'hidden',
+  ), $component);
 
   return $fields;
 }
@@ -403,13 +406,18 @@ function _form_builder_webform_form_builder_preview_alter_hidden($form_element) 
   $form_element['#type'] = 'markup';
   $form_element['#form_builder']['element_type'] = 'markup';
   unset($form_element['#theme']);
-
-  // Add the 'webform_element' theme wrapper at the beginning, where it would
-  // normally be.
-  array_unshift($form_element['#theme_wrappers'], 'webform_element');
+  $c = $form_element['#webform_component'];
+  if ($c['extra']['hidden_type'] == 'value') {
+    array_unshift($form_element['#theme_wrappers'], 'webform_element');
+  }
+  else {
+    unset($form_element['#wrapper_attributes']);
+  }
 
   // Display the title of the hidden field as regular markup.
-  $form_element['#children'] = t('@title - <em>hidden field</em>', array('@title' => $form_element['#webform_component']['name']));
+  $v['@title'] = $c['name'];
+  $v['@type'] = $c['extra']['hidden_type'] == 'value' ? 'secure' : 'insecure - editable by JavaScript';
+  $form_element['#children'] = t('@title - <em>hidden field (@type)</em>', $v);
 
   return $form_element;
 }
