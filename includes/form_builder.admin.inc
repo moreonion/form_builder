@@ -594,6 +594,7 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
   $element_obj = $form_obj->getElement($element_id);
 
   $form['#attributes']['class'][] = 'form-builder-field-configure';
+  $form['#property_groups'] = module_invoke_all('form_builder_property_groups', $form_type);
   $form = $element_obj->configurationForm($form, $form_state);
   $form['#_edit_form_type'] = $form_type;
   $form['#_edit_form_id'] = $form_id;
@@ -613,7 +614,7 @@ function form_builder_field_configure($form, $form_state, $form_type, $form_id, 
  * Pre-render function for the field configuration form.
  */
 function form_builder_field_configure_pre_render($form) {
-  $groups = module_invoke_all('form_builder_property_groups', $form['#_edit_form_type']);
+  $groups = $form['#property_groups'];
 
   foreach (element_children($form) as $key) {
     // If no group is specified, put the element into the default group.
