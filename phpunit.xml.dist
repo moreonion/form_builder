@@ -1,8 +1,5 @@
 <!-- Copy and rename to phpunit.xml. Customize as needed. -->
-<phpunit backupGlobals="false"
-    backupStaticAttributes="false"
-    syntaxCheck="false"
-    bootstrap="/home/roman/code/upal/bootstrap.php">
+<phpunit backupGlobals="false" backupStaticAttributes="false" syntaxCheck="false">
   <php>
     <!-- These variables may alternatively be set as bash environment variables. -->
 

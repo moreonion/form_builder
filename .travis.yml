@@ -35,4 +35,7 @@ before_script:
 
 script:
   - cd $form_builder
-  - UPAL_ROOT=$root UPAL_DB_URL=mysql://root:@127.0.0.1/drupal UPAL_WEB_URL=http://127.0.0.1 phpunit -c phpunit.xml --bootstrap $upal/bootstrap.php $form_builder/tests
+  - UPAL_ROOT=$root UPAL_DB_URL=mysql://root:@127.0.0.1/drupal UPAL_WEB_URL=http://127.0.0.1 phpunit -c phpunit.xml.dist --bootstrap $upal/bootstrap.php --coverage-clover=coverage.xml $form_builder/tests
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
