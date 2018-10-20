@@ -1,91 +1,88 @@
 <?php
 
 class FormBuilderWebformFormTest extends DrupalUnitTestCase {
-  protected $components = array(
-    1 => array(
-      'nid' => 1,
-      'cid' => '1',
-      'pid' => '0',
-      'form_key' => 'fieldset1',
-      'name' => 'fieldset1',
-      'type' => 'fieldset',
-      'value' => '',
-      'extra' => array(
-        'title_display' => 0,
-        'private' => 0,
-        'collapsible' => 0,
-        'collapsed' => 0,
-        'conditional_operator' => '=',
-        'description' => '',
-        'conditional_component' => '',
-        'conditional_values' => '',
+  protected function components() {
+    $components = array(
+      1 => array(
+        'nid' => 1,
+        'cid' => 1,
+        'form_key' => 'fieldset1',
+        'name' => 'fieldset1',
+        'type' => 'fieldset',
+        'value' => '',
+        'extra' => array(
+          'conditional_operator' => '=',
+          'conditional_component' => '',
+          'conditional_values' => '',
+        ),
+        'required' => 0,
+        'page_num' => 1,
       ),
-      'required' => '0',
-      'weight' => '0',
-      'page_num' => 1,
-    ),
-    3 => array(
-      'nid' => 1,
-      'cid' => '3',
-      'pid' => '1',
-      'form_key' => 'hour',
-      'name' => 'hour',
-      'type' => 'time',
-      'value' => '',
-      'extra' => array(
-        'timezone' => 'user',
-        'title_display' => 'before',
-        'private' => 0,
-        'hourformat' => '12-hour',
-        'minuteincrements' => '1',
-        'conditional_operator' => '=',
-        'description' => '',
-        'conditional_component' => '',
-        'conditional_values' => '',
+      3 => array(
+        'nid' => 1,
+        'cid' => 3,
+        'pid' => 1,
+        'form_key' => 'hour',
+        'name' => 'hour',
+        'type' => 'time',
+        'extra' => array(
+          'title_display' => 'before',
+          'conditional_operator' => '=',
+          'conditional_component' => '',
+          'conditional_values' => '',
+        ),
+        'weight' => 2,
+        'page_num' => 1,
       ),
-      'required' => '0',
-      'weight' => '2',
-      'page_num' => 1,
-    ),
-    2 => array(
-      'nid' => 1,
-      'cid' => '2',
-      'pid' => '0',
-      'form_key' => 'textfield1',
-      'name' => 'textfield1',
-      'type' => 'textfield',
-      'value' => 'textfield1',
-      'extra' => array(
-        'title_display' => 'before',
-        'private' => 0,
-        'disabled' => 1,
-        'unique' => 0,
-        'conditional_operator' => '=',
-        'width' => '4',
-        'maxlength' => '',
-        'field_prefix' => 'testprefix',
-        'field_suffix' => 'testpostfix',
-        'description' => '',
-        'attributes' => array(),
-        'conditional_component' => '',
-        'conditional_values' => '',
+      2 => array(
+        'nid' => 1,
+        'cid' => 2,
+        'pid' => 0,
+        'form_key' => 'textfield1',
+        'name' => 'textfield1',
+        'type' => 'textfield',
+        'value' => 'textfield1',
+        'extra' => array(
+          'title_display' => 'before',
+          'disabled' => 1,
+          'unique' => 0,
+          'conditional_operator' => '=',
+          'width' => '4',
+          'maxlength' => '',
+          'field_prefix' => 'testprefix',
+          'field_suffix' => 'testpostfix',
+          'conditional_component' => '',
+          'conditional_values' => '',
+        ),
+        'weight' => 1,
+        'page_num' => 1,
       ),
-      'required' => '0',
-      'weight' => '1',
-      'page_num' => 1,
-    ),
-  );
+    );
+    foreach ($components as &$component) {
+      webform_component_defaults($component);
+    }
+    return $components;
+  }
+
+  protected function deleteComponentInfo($element) {
+    unset($element['#webform_component']);
+    foreach (element_children($element, FALSE) as $key) {
+      $element[$key] = $this->deleteComponentInfo($element[$key]);
+    }
+    return $element;
+  }
 
   function testPreview() {
     $form = new FormBuilderWebformForm('webform', 0, 'the-sid', array(), array());
-    $form->addComponents($this->components);
-    $this->assertEqual($form->preview(), array(
+    $form->addComponents($this->components());
+    $preview = $this->deleteComponentInfo($form->preview());
+    $this->assertEqual(array(
       '#tree' => TRUE,
       'fieldset1' => array(
         '#type' => 'fieldset',
         '#title' => 'fieldset1',
         '#title_display' => NULL,
-        '#weight' => '0',
+        '#weight' => 0,
         '#description' => '',
         '#collapsible' => 0,
         '#collapsed' => 0,
@@ -103,34 +100,12 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
           0 => 'title',
           1 => 'description',
         ),
-        '#webform_component' => array(
-          'nid' => 1,
-          'cid' => '1',
-          'pid' => '0',
-          'form_key' => 'fieldset1',
-          'name' => 'fieldset1',
-          'type' => 'fieldset',
-          'value' => '',
-          'extra' => array(
-            'title_display' => 0,
-            'private' => 0,
-            'collapsible' => 0,
-            'collapsed' => 0,
-            'conditional_operator' => '=',
-            'description' => '',
-            'conditional_component' => '',
-            'conditional_values' => '',
-          ),
-          'required' => '0',
-          'weight' => '0',
-          'page_num' => 1,
-        ),
         'hour' => array(
           '#type' => 'webform_time',
           '#title' => 'hour',
           '#title_display' => 'before',
-          '#required' => '0',
-          '#weight' => '2',
+          '#required' => 0,
+          '#weight' => 2,
           '#description' => '',
           '#element_validate' => array(
             0 => 'webform_validate_time',
@@ -149,29 +124,6 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
           '#translatable' => array(
             0 => 'title',
             1 => 'description',
-          ),
-          '#webform_component' => array(
-            'nid' => 1,
-            'cid' => '3',
-            'pid' => '1',
-            'form_key' => 'hour',
-            'name' => 'hour',
-            'type' => 'time',
-            'value' => '',
-            'extra' => array(
-              'timezone' => 'user',
-              'title_display' => 'before',
-              'private' => 0,
-              'hourformat' => '12-hour',
-              'minuteincrements' => '1',
-              'conditional_operator' => '=',
-              'description' => '',
-              'conditional_component' => '',
-              'conditional_values' => '',
-            ),
-            'required' => '0',
-            'weight' => '2',
-            'page_num' => 1,
           ),
           '#form_builder' => array(
             'element_id' => 'cid_3',
@@ -222,33 +174,6 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
         ),
         '#disabled' => TRUE,
         '#size' => '4',
-        '#webform_component' => array(
-          'nid' => 1,
-          'cid' => '2',
-          'pid' => '0',
-          'form_key' => 'textfield1',
-          'name' => 'textfield1',
-          'type' => 'textfield',
-          'value' => 'textfield1',
-          'extra' => array(
-            'title_display' => 'before',
-            'private' => 0,
-            'disabled' => 1,
-            'unique' => 0,
-            'conditional_operator' => '=',
-            'width' => '4',
-            'maxlength' => '',
-            'field_prefix' => 'testprefix',
-            'field_suffix' => 'testpostfix',
-            'description' => '',
-            'attributes' => array(),
-            'conditional_component' => '',
-            'conditional_values' => '',
-          ),
-          'required' => '0',
-          'weight' => '1',
-          'page_num' => 1,
-        ),
         '#form_builder' => array(
           'element_id' => 'cid_2',
           'element_type' => 'textfield',
@@ -269,14 +194,14 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
         'form_id' => 0,
         'sid' => 'the-sid',
       ),
-    ));
+    ), $preview);
   }
 
   function testConfigurationForm() {
     // We need a real node because webform_component_edit_form() uses it.
     $node = (object) array('type' => 'webform');
     node_object_prepare($node);
-    $node->webform['components'] = $this->components;
+    $node->webform['components'] = $this->components();
     node_save($node);
 
     $form = FormBuilderWebformForm::loadFromStorage('webform', $node->nid, 'the-sid', array());
