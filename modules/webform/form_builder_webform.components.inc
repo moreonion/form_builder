@@ -451,7 +451,8 @@ function _form_builder_webform_form_builder_types_markup() {
   );
   $component['name'] = t('New markup');
   $component['value'] = $default;
-  $fields['markup']['default'] = _form_builder_webform_default('markup', array(), $component);
+  $extras['format'] = filter_default_format($GLOBALS['user']);
+  $fields['markup']['default'] = _form_builder_webform_default('markup', $extras, $component);
 
   return $fields;
 }
