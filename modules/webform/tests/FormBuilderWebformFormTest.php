@@ -1,6 +1,13 @@
 <?php
 
+/**
+ * Integration test for the webform integration.
+ */
 class FormBuilderWebformFormTest extends DrupalUnitTestCase {
+
+  /**
+   * Provide example components for the tests.
+   */
   protected function components() {
     $components = array(
       1 => array(
@@ -64,6 +71,9 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
     return $components;
   }
 
+  /**
+   * Remove the #webform_component sub-array from an element.
+   */
   protected function deleteComponentInfo($element) {
     unset($element['#webform_component']);
     foreach (element_children($element, FALSE) as $key) {
@@ -72,6 +82,9 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
     return $element;
   }
 
+  /**
+   * Test the form builder preview.
+   */
   function testPreview() {
     $form = new FormBuilderWebformForm('webform', 0, 'the-sid', array(), array());
     $form->addComponents($this->components());
@@ -197,6 +210,9 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
     ), $preview);
   }
 
+  /**
+   * Test the element configuration form.
+   */
   function testConfigurationForm() {
     // We need a real node because webform_component_edit_form() uses it.
     $node = (object) array('type' => 'webform');
@@ -444,4 +460,5 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
       $this->assertTrue(!empty($element_info[$t]), "Component type '$type' maps to undefined element_type $t");
     }
   }
+
 }
