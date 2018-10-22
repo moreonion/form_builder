@@ -1,7 +1,8 @@
 name = Form builder Webform UI
 description = Form builder integration for the Webform module.
 core = 7.x
+php = 7.0
 dependencies[] = form_builder
-dependencies[] = webform
+dependencies[] = webform (>=4.0)
 
 files[] = 'form_builder_webform.classes.inc'

@@ -419,20 +419,6 @@ function form_validate_url(&$element, &$form_state) {
 }
 
 /**
- * Implementation of hook_registry_files_alter().
- *
- * Reassign formbuilder include files to their respective modules.
- * Required to make module_invoke() type of calls working.
- */
-function form_builder_registry_files_alter(&$files, $module_cache) {
-  $module_files = file_scan_directory(drupal_get_path('module', 'form_builder') . '/modules', '!^.*\.inc$!');
-  foreach ($module_files as $path => $file) {
-    $files[$file->uri]['module'] = $file->name;
-    $files[$file->uri]['weight'] = 0;
-  }
-}
-
-/**
  * Implement hook_cron().
  *
  * Remove stale form_builder_cache entries.
