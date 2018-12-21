@@ -186,7 +186,7 @@ class FormBuilderWebformElement extends FormBuilderElementBase {
       $new_element = webform_component_invoke($component['type'], 'render', $component, NULL, FALSE);
       // Preserve the #weight. It may have been changed by the positions form.
       $new_element['#weight'] = $element['#weight'];
-      $new_element['#key'] = $element['#key'];
+      $new_element['#key'] = $component['form_key'];
       $new_element['#webform_component'] = $component;
       $new_element['#form_builder'] = $element['#form_builder'];
       return $this->addPreRender($new_element);
@@ -196,6 +196,16 @@ class FormBuilderWebformElement extends FormBuilderElementBase {
 
   public function title() {
     return $this->element['#webform_component']['name'];
+  }
+
+  /**
+   * Get the element’s form key.
+   *
+   * @return string
+   *   The element’s form key.
+   */
+  public function key() {
+    return $this->element['#webform_component']['form_key'];
   }
 
 }

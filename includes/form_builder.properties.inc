@@ -18,7 +18,7 @@ function form_builder_property_key_form(&$form_state, $form_type, $element, $pro
   $form['key'] = array(
     '#title' => t('Form key'),
     '#type' => 'machine_name',
-    '#default_value' => preg_match('/^new_[0-9]+$/', $element['#key']) ? '' : $element['#key'],
+    '#default_value' => $element['#key'],
     '#maxlength' => 128,
     '#description' => t('The form key is used in the field "name" attribute. Must be alphanumeric and underscore characters.'),
     '#machine_name' => array(
