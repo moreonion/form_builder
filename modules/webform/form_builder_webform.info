@@ -3,6 +3,5 @@ description = Form builder integration for the Webform module.
 core = 7.x
 php = 7.0
 dependencies[] = form_builder
+dependencies[] = psr0:psr0
 dependencies[] = webform (>=4.0)
-
-files[] = 'form_builder_webform.classes.inc'

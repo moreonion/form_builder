@@ -5,5 +5,4 @@ php = 7.0
 
 dependencies[] = ctools
 dependencies[] = options_element
-
-files[] = 'form_builder.classes.inc'
+dependencies[] = psr0:psr0

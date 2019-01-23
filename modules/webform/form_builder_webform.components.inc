@@ -5,6 +5,9 @@
  *   Default webform component callbacks for functionality related to the Form Builder.
  */
 
+use Drupal\form_builder\Loader;
+use Drupal\form_builder_webform\HiddenElement;
+
 /**
  * Configuration form for the "unique" property.
  */
@@ -388,7 +391,7 @@ function _form_builder_webform_form_builder_types_hidden() {
   $fields['hidden'] = array(
     'title' => t('Hidden'),
     'weight' => 8,
-    'class' => 'FormBuilderWebformHiddenElement',
+    'class' => HiddenElement::class,
   );
   $component['name'] = t('New hidden');
   $fields['hidden']['default'] = _form_builder_webform_default('hidden', array(
@@ -627,7 +630,7 @@ function _form_builder_webform_form_builder_save_pagebreak($component, $form_ele
   if ($component['pid'] !== 0) {
     drupal_set_message(t('Page breaks may not be nested inside fieldsets. Each pagebreak has been moved outside of fieldsets.'), 'status', FALSE);
 
-    $parent = FormBuilderLoader::instance()
+    $parent = Loader::instance()
       ->fromCache('webform', $form_element['#form_builder']['form_id'])
       ->getElementArray($form_element['#form_builder']['parent_id']);
 

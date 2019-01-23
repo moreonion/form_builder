@@ -1,9 +1,13 @@
 <?php
 
+namespace Drupal\form_builder_webform;
+
+use Drupal\form_builder\Loader;
+
 /**
  * Integration test for the webform integration.
  */
-class FormBuilderWebformFormTest extends DrupalUnitTestCase {
+class FormTest extends \DrupalUnitTestCase {
 
   /**
    * Provide example components for the tests.
@@ -86,7 +90,7 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
    * Test the form builder preview.
    */
   function testPreview() {
-    $form = new FormBuilderWebformForm('webform', 0, 'the-sid', array(), array());
+    $form = new Form('webform', 0, 'the-sid', array(), array());
     $form->addComponents($this->components());
     $preview = $this->deleteComponentInfo($form->preview());
     $this->assertEqual(array(
@@ -220,7 +224,7 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
     $node->webform['components'] = $this->components();
     node_save($node);
 
-    $form = FormBuilderWebformForm::loadFromStorage('webform', $node->nid, 'the-sid', array());
+    $form = Form::loadFromStorage('webform', $node->nid, 'the-sid', array());
     $form_state = array();
     $element = $form->getElement('cid_2');
     $a = $element->configurationForm(array(), $form_state);
@@ -452,7 +456,7 @@ class FormBuilderWebformFormTest extends DrupalUnitTestCase {
    */
   function testElementMappings() {
     $components = webform_webform_component_info();
-    $element_info = FormBuilderLoader::instance()->getElementTypeInfo('webform', NULL);
+    $element_info = Loader::instance()->getElementTypeInfo('webform', NULL);
     foreach (array_keys($components) as $type) {
       $map = _form_builder_webform_property_map($type);
       $this->assertTrue(!empty($map['form_builder_type']), "Unmapped component type '$type'.");

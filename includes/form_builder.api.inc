@@ -5,6 +5,9 @@
  * Universally used API functions within the Form builder module.
  */
 
+use Drupal\form_builder\FormBase;
+use Drupal\form_builder\Loader;
+
 /**
  * Get a list of all properties that are supported within a form type.
  *
@@ -12,7 +15,7 @@
  *   Use the Form / Element or Property classes instead of the info-arrays.
  */
 function form_builder_get_properties($form_type, $reset = FALSE) {
-  return FormBuilderLoader::instance()->getPropertyInfo($form_type, $reset);
+  return Loader::instance()->getPropertyInfo($form_type, $reset);
 }
 
 /**
@@ -30,11 +33,11 @@ function form_builder_get_properties($form_type, $reset = FALSE) {
  *
  * @see form_builder_get_elements().
  *
- * @deprecated Use FormBuilderFormInterface::getElement() instead.
+ * @deprecated Use \Drupal\form_builder\FormInterface::getElement() instead.
  *   Will be removed in 2.0.
  */
 function form_builder_get_element(&$form, $element_id) {
-  return FormBuilderFormBase::fromArray($form)->getElementArray($element_id);
+  return FormBase::fromArray($form)->getElementArray($element_id);
 }
 
 /**
@@ -57,20 +60,20 @@ function form_builder_get_element(&$form, $element_id) {
  *   A single Form API element array.
  */
 function form_builder_get_elements(&$form, $element_ids) {
-  return FormBuilderFormBase::fromArray($form)->getFormArray();
+  return FormBase::fromArray($form)->getFormArray();
 }
 
 /**
  * Set an element within a form structure.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the FormBuilderElement class instead of the info-arrays.
+ *   Use element objects directly instead of the info-arrays.
  *
  * @return
  *   TRUE if an element was updated, FALSE if it was not found.
  */
 function form_builder_set_element(&$form, $element, &$entire_form = NULL, $parent_id = FORM_BUILDER_ROOT) {
-  $form_obj = FormBuilderFormBase::fromArray($form);
+  $form_obj = FormBase::fromArray($form);
   $r = $form_obj->setElementArray($element);
   $form = $form_obj->getFormArray();
   return $r;
@@ -80,10 +83,10 @@ function form_builder_set_element(&$form, $element, &$entire_form = NULL, $paren
  * Unset an element within a form structure.
  *
  * @deprecated Deprecated since 1.8 and will be removed in 2.0.
- *   Use the FormBuilderElement class instead of the info-arrays.
+ *   Use element objects directly instead of the info-arrays.
  */
 function form_builder_unset_element(&$form, $element_id) {
-  $form_obj = FormBuilderFormBase::fromArray($form);
+  $form_obj = FormBase::fromArray($form);
   $r = $form_obj->unsetElement($element_id);
   $form = $form_obj->getFormArray();
   return $r;
@@ -92,25 +95,25 @@ function form_builder_unset_element(&$form, $element_id) {
 /**
  * Recursive function to check if an element exists at all within a form.
  *
- * @deprecated Use FormBuilderFormInterface::getElementIds() instead.
+ * @deprecated Use \Drupal\form_builder\FormInterface::getElementIds() instead.
  */
 function form_builder_get_element_ids($form) {
-  return FormBuilderFormBase::fromArray($form)->getElementIds();
+  return FormBase::fromArray($form)->getElementIds();
 }
 
 /**
  * Recursive function to get the types of all element within a form.
  *
- * @deprecated Use FormBuilderFormInterface::getElementTypes() instead.
+ * @deprecated Use \Drupal\form_builder\FormInterface::getElementTypes() instead.
  */
 function form_builder_get_element_types($form) {
-  return FormBuilderFormBase::fromArray($form)->getElementTypes();
+  return FormBase::fromArray($form)->getElementTypes();
 }
 
 /**
  * Loader function to retrieve a form builder configuration array.
  *
- * @deprecated Use FormBuilderLoader::fromStorage() instead.
+ * @deprecated Use \Drupal\form_builder\Loader::fromStorage() instead.
  *
  * @param $form_type
  *   The type of form being edited. Usually the name of the providing module.
@@ -118,7 +121,7 @@ function form_builder_get_element_types($form) {
  *   The unique identifier for the form being edited with the type.
  */
 function form_builder_load_form($form_type, $form_id) {
-  return FormBuilderLoader::instance()
+  return Loader::instance()
     ->fromStorage($form_type, $form_id)
     ->getFormArray();
 }
@@ -126,10 +129,10 @@ function form_builder_load_form($form_type, $form_id) {
 /**
  * Execute the save methods for a form array.
  *
- * @deprecated Use FormBuilderFormInterface::saveToStorage().
+ * @deprecated Use \Drupal\form_builder\FormInterface::saveToStorage().
  */
 function form_builder_save_form(&$form, $form_type, $form_id) {
-  FormBuilderFormBase::fromArray($form)->saveToStorage();
+  FormBase::fromArray($form)->saveToStorage();
 }
 
 /**

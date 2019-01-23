@@ -25,7 +25,7 @@ before_script:
   - php -d include_path=`pwd` -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes core-quick-drupal --core=drupal-7.x --profile=testing --no-server --db-url=mysql://root:@127.0.0.1/drupal --root=$root
   - ln -s $repo $root/sites/all/modules/module_under_test
   - cd $root
-  - drush dl webform-7.x-4.x ctools options_element
+  - drush dl webform-7.x-4.x ctools options_element psr0
   - drush --yes pm-enable form_builder_webform form_builder_examples
 
 script:
