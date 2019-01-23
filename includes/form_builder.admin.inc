@@ -734,7 +734,7 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
   $form = form_builder('form_builder_preview', $form, $form_state);
 
   // Get only the element wanted and render it.
-  $element = form_builder_get_element($form, $element_id);
+  $element = FormBase::fromArray($form)->getElementArray($element_id);
 
   if ($wrapper) {
     $element['#theme_wrappers'][] = 'form_builder_element_wrapper';
