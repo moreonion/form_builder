@@ -8,25 +8,6 @@
 use Drupal\form_builder\FormBase;
 use Drupal\form_builder\Loader;
 
-/**
- * Load a form configuration cache.
- *
- * @deprecated Use \Drupal\form_builder\Loader::fromCache() instead.
- */
-function form_builder_cache_load($form_type, $form_id, $sid = NULL, $reset = FALSE) {
-  $form = Loader::instance()->fromCache($form_type, $form_id, $sid, $reset);
-  return $form ? $form->getFormArray() : FALSE;
-}
-
-/**
- * Save a form builder cache based on the form structure.
- *
- * @deprecated Use \Drupal\form_builder\FormBase::save() instead.
- */
-function form_builder_cache_save($form_type, $form_id, $form, $sid = NULL) {
-  return Loader::instance()->getForm($form_type, $form_id, $sid, $form)->save();
-}
-
 function form_builder_cache_delete($form_type, $form_id, $sid = NULL) {
   Loader::instance()->fromCache($form_type, $form_id, $sid)->delete();
 }
