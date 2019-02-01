@@ -217,7 +217,6 @@ Drupal.behaviors.formBuilderBlockScroll.attach = function(context) {
 
   if ($list.length) {
     var $block = $list.parents('div.block:first').css('position', 'relative').css('top', 0 + 'px');
-    var blockScrollStart = 0;
 
     function blockScroll() {
       // Do not move the palette while dragging a field.
@@ -225,10 +224,7 @@ Drupal.behaviors.formBuilderBlockScroll.attach = function(context) {
         return;
       }
 
-      if ($block.css('top') == '0px') {
-        blockScrollStart = Math.min($block.offset().top, $('#form-builder').offset().top);
-      }
-
+      var blockScrollStart = $block.offset().top - parseInt($block.css('top'));
       var scrollTop = $(window).scrollTop();
       var windowHeight = $(window).height();
 
@@ -244,16 +240,12 @@ Drupal.behaviors.formBuilderBlockScroll.attach = function(context) {
 
       var padding = 20;
       var windowOffset = scrollTop + stickyHeight + padding;
-      var blockHeight = $block.height();
-      var formBuilderHeight = $('#form-builder').height();
-      if (windowOffset - blockScrollStart > 0) {
-        // Do not scroll beyond the bottom of the editing area.
-        var newTop = Math.min(windowOffset - blockScrollStart, formBuilderHeight - blockHeight);
-        $block.animate({ top: (newTop + 'px') }, 'fast');
-      }
-      else {
-        $block.animate({ top: '0px' }, 'fast');
-      }
+      // Do not scroll beyond the bottom of the editing area.
+      var maxTop = $('#form-builder').height() - $block.height();
+      var newTop = Math.min(windowOffset - blockScrollStart, maxTop);
+      // Do not scroll up beyond the original position.
+      newTop = Math.max(0, newTop);
+      $block.animate({ top: (newTop + 'px') }, 'fast');
     }
 
     var timeout = false;
