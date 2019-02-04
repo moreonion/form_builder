@@ -1042,15 +1042,16 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   $component = isset($element['#webform_component']) ? $element['#webform_component'] : $defaults_function();
   $nid = isset($component['nid']) ? $component['nid'] : NULL;
 
-  // Build the entire _webform_edit_file() form based on the current state of
+  // Build the entire _webform_edit_COMPONENT() form based on the current state of
   // the component, and obtain the slice of it that we want.
-  $empty_form = array();
-  $empty_form_state = form_state_defaults();
+  $form_id = 'webform_component_edit_form';
+  $form_state = form_state_defaults();
 
   // The full node is needed here so that the "private" option can be access
   // checked.
   $node = !isset($nid) ? (object) array('nid' => NULL, 'webform' => webform_node_defaults()) : node_load($nid);
-  $form = webform_component_edit_form($empty_form, $empty_form_state, $node, $component);
+  $form = $form_id([], $form_state, $node, $component);
+  drupal_alter(['form', 'form_webform_component_edit_form'], $form, $form_state, $form_id);
   $form = drupal_array_get_nested_value($form, $form_nested_keys);
 
   // Force the form to have a consistent #tree structure so it will appear in
