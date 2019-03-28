@@ -25,7 +25,15 @@ class Property extends PropertyBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Generate form-API elements for editing this property.
+   *
+   * @param array $form_state
+   *   Form API form_state of the field configure form.
+   * @param \Drupal\form_builder\ElementInterface $element
+   *   The currently stored element. Use this to get the "current" values.
+   *
+   * @return array
+   *   Form-API array that will be merged into the field configure form.
    */
   public function form(&$form_state, $element) {
     // We use the rendered element here to re-use the form-API functions.

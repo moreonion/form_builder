@@ -6,6 +6,8 @@
  */
 
 use Drupal\form_builder\Loader;
+use Drupal\form_builder_examples\Element;
+use Drupal\form_builder_examples\Property;
 
 /**
  * Implementation of hook_menu().
@@ -142,7 +144,11 @@ function form_builder_examples_form_builder_field_access($op, $form_type, $form_
  * Implements hook_form_builder_form_types().
  */
 function form_builder_examples_form_builder_form_types() {
-  return array('example' => array());
+  $types['example'] = [
+    'element class' => Element::class,
+    'property class' => Property::class,
+  ];
+  return $types;
 }
 
 /**
