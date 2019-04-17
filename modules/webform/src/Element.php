@@ -66,6 +66,7 @@ class Element extends ElementBase {
     // We want to avoid a full drupal_get_form() for now but some alter hooks
     // need defaults normally set in drupal_prepare_form().
     $form += ['#submit' => []];
+    $form_state['build_info']['args'][1] = $component;
     drupal_alter(['form', 'form_webform_component_edit_form'], $form, $form_state, $form_id);
     return $form;
   }
