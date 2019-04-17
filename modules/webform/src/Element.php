@@ -47,5 +47,16 @@ class Element extends ElementBase {
     return $this->element['#webform_component']['form_key'];
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function configurationForm($form, &$form_state) {
+    $form['#_edit_element'] = $this->element;
+    foreach ($this->getProperties() as $property) {
+      $form = array_merge($form, $property->form($form_state, $this));
+    }
+    return $form;
+  }
+
 }
 
