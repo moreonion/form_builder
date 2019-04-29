@@ -1010,6 +1010,9 @@ function _form_builder_webform_mapped_form($component, $edit, &$form_state, $pro
   if (isset($map['weight'])) {
     $form['#weight'] = $map['weight'];
   }
+  // Set '#parents' in order for the data to end up in the right place in the
+  // submitted data — even when the actual form fields are moved around.
+  $form += ['#parents' => $form_nested_keys];
 
   // Return the form, keyed by the name of the property that is being
   // configured.
@@ -1028,7 +1031,6 @@ function _form_builder_webform_mapped_form($component, $edit, &$form_state, $pro
  *   The form array to modify.
  */
 function _form_builder_webform_force_tree(&$form) {
-  unset($form['#parents']);
   $form['#tree'] = TRUE;
   foreach (element_children($form) as $key) {
     _form_builder_webform_force_tree($form[$key]);

@@ -257,6 +257,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#element_validate' => array(
           0 => 'form_validate_integer',
         ),
+        '#parents' => ['extra', 'size'],
       ),
       'maxlength' => array(
         '#form_builder' => array(
@@ -272,6 +273,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#element_validate' => array(
           0 => 'form_validate_integer',
         ),
+        '#parents' => ['extra', 'maxlength'],
       ),
       'field_prefix' => array(
         '#form_builder' => array(
@@ -281,6 +283,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#title' => 'Prefix',
         '#default_value' => 'testprefix',
         '#weight' => -2,
+        '#parents' => ['extra', 'field_prefix'],
       ),
       'field_suffix' => array(
         '#form_builder' => array(
@@ -299,6 +302,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#type' => 'checkbox',
         '#default_value' => TRUE,
         '#weight' => 12,
+        '#parents' => ['extra', 'disabled'],
       ),
       'unique' => array(
         '#form_builder' => array(
@@ -319,6 +323,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#maxlength' => 255,
         '#required' => TRUE,
         '#weight' => -10,
+        '#parents' => ['name'],
       ),
       'title_display' => array(
         '#type' => 'select',
@@ -335,18 +340,22 @@ class FormTest extends \DrupalUnitTestCase {
           'property_group' => 'display',
         ),
         '#tree' => TRUE,
+        '#required' => TRUE,
+        '#parents' => ['extra', 'title_display'],
       ),
       'default_value' => array(
         '#type' => 'textfield',
         '#title' => 'Default value',
         '#default_value' => 'textfield1',
         '#weight' => 1,
+        '#parents' => ['value'],
       ),
       'description' => array(
         '#title' => 'Description',
         '#type' => 'textarea',
         '#default_value' => '',
         '#weight' => 5,
+        '#parents' => ['extra', 'description'],
       ),
       'webform_private' => array(
         '#type' => 'checkbox',
@@ -359,6 +368,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#form_builder' => array(
           'property_group' => 'display',
         ),
+        '#parents' => ['extra', 'private'],
       ),
       'required' => array(
         '#form_builder' => array(
@@ -368,6 +378,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#type' => 'checkbox',
         '#default_value' => '0',
         '#weight' => -1,
+        '#parents' => ['weight'],
       ),
       'key' => array(
         '#title' => 'Form key',
@@ -385,6 +396,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#element_validate' => array(
           0 => 'form_builder_webform_property_key_form_validate',
         ),
+        '#parents' => ['form_key'],
       ),
       'weight' => array(
         '#form_builder' => array(
@@ -394,6 +406,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#size' => 6,
         '#title' => 'Weight',
         '#default_value' => 0,
+        '#parents' => ['weight'],
       ),
       'placeholder' => array(
         '#type' => 'textfield',
@@ -403,6 +416,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 1,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'placeholder'],
       ),
       'css_classes' => array(
         '#type' => 'textfield',
@@ -412,6 +426,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 51,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'css_classes'],
       ),
       'wrapper_classes' => array(
         '#type' => 'textfield',
@@ -421,6 +436,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 50,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'wrapper_classes'],
       ),
     ), $a);
 
