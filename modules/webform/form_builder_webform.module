@@ -18,7 +18,7 @@ use Drupal\form_builder_webform\PropertyValue;
  */
 function form_builder_webform_menu() {
   $items['node/%webform_menu/webform/form-builder'] = array(
-    'title' => 'Form builder',
+    'title' => 'Form',
     'page callback' => 'form_builder_webform_components_page',
     'page arguments' => array(1),
     'access callback' => 'node_access',
@@ -35,6 +35,7 @@ function form_builder_webform_menu() {
 function form_builder_webform_menu_alter(&$items) {
   $items['node/%webform_menu/webform']['page callback'] = 'form_builder_webform_components_page';
   $items['node/%webform_menu/webform/components']['type'] = MENU_LOCAL_TASK;
+  $items['node/%webform_menu/webform/components']['title'] = 'Components';
 }
 
 /**
