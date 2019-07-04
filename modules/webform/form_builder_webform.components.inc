@@ -1051,6 +1051,10 @@ function _form_builder_webform_build_edit_form($component_type, $element, $prope
   // checked.
   $node = !isset($nid) ? (object) array('nid' => NULL, 'webform' => webform_node_defaults()) : node_load($nid);
   $form = $form_id([], $form_state, $node, $component);
+  // Add some properties expected by clientside_validation_webform:
+  $form_state['build_info']['args'][1] = $component;
+  $form['#submit'] = [];
+
   drupal_alter(['form', 'form_webform_component_edit_form'], $form, $form_state, $form_id);
   $form = drupal_array_get_nested_value($form, $form_nested_keys);
 
