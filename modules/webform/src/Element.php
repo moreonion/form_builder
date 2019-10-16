@@ -51,6 +51,7 @@ class Element extends ElementBase {
    * {@inheritdoc}
    */
   public function configurationForm($form, &$form_state) {
+    form_load_include($form_state, 'properties.inc', 'form_builder_webform');
     $form['#_edit_element'] = $this->element;
     foreach ($this->getProperties() as $property) {
       $form = array_merge($form, $property->form($form_state, $this));
