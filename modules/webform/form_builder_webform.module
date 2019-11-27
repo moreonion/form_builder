@@ -223,9 +223,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'title' => array(
       'form' => 'form_builder_webform_property_title_form',
     ),
-    'description' => array(
-      'form' => 'form_builder_webform_property_description_form',
-    ),
     'disabled' => array(
       'form' => 'form_builder_webform_property_disabled_form',
     ),
@@ -458,7 +455,9 @@ function _form_builder_webform_property_map($component_type) {
 
     if (webform_component_feature($component_type, 'description')) {
       $map['properties']['description'] = array(
-        'storage_parents' => array('extra', 'description'),
+        'form_parents' => ['extra', 'description'],
+        'storage_parents' => ['extra', 'description'],
+        'weight' => 5,
       );
     }
 

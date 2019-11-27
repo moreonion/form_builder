@@ -107,22 +107,6 @@ function form_builder_webform_property_weight_form($component, $edit, &$form_sta
 }
 
 /**
- * Configuration form for the "description" property.
- */
-function form_builder_webform_property_description_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['description'] = array(
-    '#title' => t('Description'),
-    '#type' => 'textarea',
-    '#default_value' => $component['extra']['description'],
-    '#weight' => 5,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "disabled" property.
  */
 function form_builder_webform_property_disabled_form($component, $edit, &$form_state, $property) {

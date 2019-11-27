@@ -352,10 +352,12 @@ class FormTest extends \DrupalUnitTestCase {
       ),
       'description' => array(
         '#title' => 'Description',
+        '#description' => "A short description of the field used as help for the user when he/she uses the form. <fieldset class=\"collapsible collapsed form-wrapper\"><legend><span class=\"fieldset-legend\">Token values</span></legend><div class=\"fieldset-wrapper\"><p>This field supports dynamic token values. Common values might be [current-user:mail] or [node:title].</p><p>A full listing of tokens may be listed here by installing the <a href=\"http://drupal.org/project/token\">Token module</a>.</p></div></fieldset>\n",
         '#type' => 'textarea',
         '#default_value' => '',
         '#weight' => 5,
         '#parents' => ['extra', 'description'],
+        '#tree' => TRUE,
       ),
       'webform_private' => array(
         '#type' => 'checkbox',
