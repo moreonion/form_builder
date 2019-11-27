@@ -89,23 +89,6 @@ function form_builder_webform_property_weight_form($component, $edit, &$form_sta
 }
 
 /**
- * Configuration form for the "disabled" property.
- */
-function form_builder_webform_property_disabled_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['disabled'] = array(
-    '#form_builder' => array('property_group' => 'display'),
-    '#title' => t('Disabled (read-only)'),
-    '#type' => 'checkbox',
-    '#default_value' => $component['extra']['disabled'],
-    '#weight' => 12,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "required" property.
  */
 function form_builder_webform_property_required_form($component, $edit, &$form_state, $property) {

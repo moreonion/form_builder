@@ -220,9 +220,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'key' => array(
       'form' => 'form_builder_webform_property_key_form',
     ),
-    'disabled' => array(
-      'form' => 'form_builder_webform_property_disabled_form',
-    ),
     'weight' => array(
       'form' => 'form_builder_webform_property_weight_form',
     ),

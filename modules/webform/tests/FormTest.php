@@ -298,11 +298,14 @@ class FormTest extends \DrupalUnitTestCase {
         '#form_builder' => array(
           'property_group' => 'display',
         ),
-        '#title' => 'Disabled (read-only)',
+        '#title' => 'Disabled',
+        '#description' => 'Make this field non-editable. Useful for displaying default value. Changeable via JavaScript or developer tools.',
         '#type' => 'checkbox',
         '#default_value' => TRUE,
-        '#weight' => 12,
+        '#weight' => 11,
+        '#return_value' => 1,
         '#parents' => ['extra', 'disabled'],
+        '#tree' => TRUE,
       ),
       'unique' => array(
         '#form_builder' => array(

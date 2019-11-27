@@ -107,6 +107,7 @@ function _form_builder_webform_form_builder_map_email() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
       'unique' => array(
         'storage_parents' => array('extra', 'unique'),
@@ -799,6 +800,7 @@ function _form_builder_webform_form_builder_map_textarea() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
     ),
   );
@@ -850,6 +852,7 @@ function _form_builder_webform_form_builder_map_textfield() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
       'unique' => array(
         'storage_parents' => array('extra', 'unique'),
