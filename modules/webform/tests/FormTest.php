@@ -307,19 +307,19 @@ class FormTest extends \DrupalUnitTestCase {
       ),
       'title_display' => array(
         '#type' => 'select',
-        '#title' => 'Title display',
+        '#title' => 'Label display',
+        '#description' => "Determines the placement of the component's label.",
         '#default_value' => 'before',
         '#options' => array(
-          'before' => 'Before',
-          'after' => 'After',
-          'invisible' => 'Invisible',
-          'attribute' => 'Attribute',
+          'before' => 'Above',
+          'inline' => 'Inline',
+          'none' => 'None',
         ),
-        '#weight' => -10,
+        '#weight' => 8,
         '#form_builder' => array(
           'property_group' => 'display',
         ),
-        '#required' => TRUE,
+        '#tree' => TRUE,
       ),
       'default_value' => array(
         '#type' => 'textfield',
