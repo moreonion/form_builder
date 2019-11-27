@@ -89,23 +89,6 @@ function form_builder_webform_property_weight_form($component, $edit, &$form_sta
 }
 
 /**
- * Configuration form for the "required" property.
- */
-function form_builder_webform_property_required_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['required'] = array(
-    '#form_builder' => array('property_group' => 'validation'),
-    '#title' => t('Required'),
-    '#type' => 'checkbox',
-    '#default_value' => $component['required'],
-    '#weight' => -1,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "options" property.
  */
 function form_builder_webform_property_options_form($component, $edit, &$form_state, $property) {

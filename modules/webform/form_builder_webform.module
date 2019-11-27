@@ -233,9 +233,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'maxlength' => array(
       'form' => 'form_builder_webform_property_maxlength_form',
     ),
-    'required' => array(
-      'form' => 'form_builder_webform_property_required_form',
-    ),
     'options' => array(
       'class' => PropertyOptions::class,
       'form' => 'form_builder_webform_property_options_form',
@@ -487,6 +484,7 @@ function _form_builder_webform_property_map($component_type) {
     if (webform_component_feature($component_type, 'required')) {
       $map['properties']['required'] = array(
         'class'  => PropertyRequired::class,
+        'form_parents' => ['validation', 'required'],
       );
     }
 
