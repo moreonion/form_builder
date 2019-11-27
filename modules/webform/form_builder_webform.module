@@ -220,9 +220,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'key' => array(
       'form' => 'form_builder_webform_property_key_form',
     ),
-    'title' => array(
-      'form' => 'form_builder_webform_property_title_form',
-    ),
     'disabled' => array(
       'form' => 'form_builder_webform_property_disabled_form',
     ),
@@ -433,9 +430,10 @@ function _form_builder_webform_property_map($component_type) {
     $map += array('form_builder_type' => $component_type);
 
     if (webform_component_feature($component_type, 'title')) {
-      $map['properties']['title'] = array(
-        'storage_parents' => array('name'),
-      );
+      $map['properties']['title'] = [
+        'storage_parents' => ['name'],
+        'form_parents' => ['name'],
+      ];
     }
 
     if (webform_component_feature($component_type, 'title_display')) {

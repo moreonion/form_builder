@@ -317,13 +317,15 @@ class FormTest extends \DrupalUnitTestCase {
         '#parents' => ['extra', 'unique'],
       ),
       'title' => array(
-        '#title' => 'Title',
+        '#title' => 'Label',
+        '#description' => 'This is used as a descriptive label when displaying this form element.',
         '#type' => 'textfield',
         '#default_value' => 'textfield1',
-        '#maxlength' => 255,
+        '#maxlength' => NULL,
         '#required' => TRUE,
         '#weight' => -10,
         '#parents' => ['name'],
+        '#tree' => TRUE,
       ),
       'title_display' => array(
         '#type' => 'select',

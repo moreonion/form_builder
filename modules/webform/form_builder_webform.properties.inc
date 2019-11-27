@@ -67,24 +67,6 @@ function _form_builder_webform_get_element_parent($form_obj, $element_id) {
 }
 
 /**
- * Configuration form for the "title" property.
- */
-function form_builder_webform_property_title_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['title'] = array(
-    '#title' => t('Title'),
-    '#type' => 'textfield',
-    '#default_value' => $component['name'],
-    '#maxlength' => 255,
-    '#required' => TRUE,
-    '#weight' => -10,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "weight" property.
  *
  * This field is in the "hidden" builder group, meaning it's never shown in
