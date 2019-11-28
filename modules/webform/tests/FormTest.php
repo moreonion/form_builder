@@ -281,7 +281,6 @@ class FormTest extends \DrupalUnitTestCase {
         '#title' => 'Prefix',
         '#default_value' => 'testprefix',
         '#weight' => -2,
-        '#parents' => ['extra', 'field_prefix'],
       ),
       'field_suffix' => array(
         '#form_builder' => array(
