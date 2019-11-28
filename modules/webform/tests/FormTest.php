@@ -349,7 +349,12 @@ class FormTest extends \DrupalUnitTestCase {
         '#type' => 'textfield',
         '#title' => 'Default value',
         '#default_value' => 'textfield1',
-        '#weight' => 1,
+        '#weight' => 0,
+        '#description' => 'The default value of the field. <fieldset class="collapsible collapsed form-wrapper"><legend><span class="fieldset-legend">Token values</span></legend><div class="fieldset-wrapper"><p>This field supports dynamic token values. Common values might be [current-user:mail] or [node:title].</p><p>A full listing of tokens may be listed here by installing the <a href="http://drupal.org/project/token">Token module</a>.</p></div></fieldset>' . "\n",
+        '#size' => 60,
+        '#maxlength' => 1024,
+        '#tree' => TRUE,
+        '#parents' => ['value'],
       ),
       'description' => array(
         '#title' => 'Description',

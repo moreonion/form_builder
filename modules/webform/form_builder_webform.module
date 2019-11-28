@@ -223,9 +223,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'weight' => array(
       'form' => 'form_builder_webform_property_weight_form',
     ),
-    'default_value' => array(
-      'form' => 'form_builder_webform_property_default_value_form',
-    ),
     'markup' => array(
       'form' => 'form_builder_webform_property_markup_form',
       'submit' => array('form_builder_webform_property_markup_form_submit'),
@@ -442,7 +439,9 @@ function _form_builder_webform_property_map($component_type) {
     if (webform_component_feature($component_type, 'default_value')) {
       $map['properties']['default_value'] = array(
         'class' => PropertyValue::class,
-        'storage_parents' => array('value'),
+        'storage_parents' => ['value'],
+        'form_parents' => ['value'],
+        'property_group' => FALSE,
       );
     }
 

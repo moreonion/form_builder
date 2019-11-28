@@ -134,25 +134,6 @@ function form_builder_webform_property_options_form_submit(&$form, &$form_state)
 }
 
 /**
- * Configuration form for the "default_value" property.
- */
-function form_builder_webform_property_default_value_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['default_value'] = array(
-    // Most fields have default values that can be stored on one line, so we
-    // use a textfield to configure their default value. Textareas are an
-    // exception, though.
-    '#type' => $component['type'] == 'textarea' ? 'textarea' : 'textfield',
-    '#title' => t('Default value'),
-    '#default_value' => $component['value'],
-    '#weight' => 1,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "markup" property.
  */
 function form_builder_webform_property_markup_form($component, $edit, &$form_state, $property) {
