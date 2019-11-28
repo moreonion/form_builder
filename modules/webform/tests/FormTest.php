@@ -263,15 +263,18 @@ class FormTest extends \DrupalUnitTestCase {
           'property_group' => 'validation',
         ),
         '#type' => 'textfield',
-        '#size' => 6,
-        '#title' => 'Max length',
+        '#size' => 5,
+        '#title' => 'Maxlength',
+        '#description' => 'Maximum length of the textfield value.',
         '#default_value' => '',
         '#field_suffix' => ' characters',
-        '#weight' => 3,
-        '#maxlength' => 7,
+        '#weight' => 2,
+        '#maxlength' => 10,
         '#element_validate' => array(
           0 => 'form_validate_integer',
         ),
+        '#parents' => ['extra', 'maxlength'],
+        '#tree' => TRUE,
       ),
       'field_prefix' => array(
         '#form_builder' => array(
