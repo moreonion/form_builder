@@ -410,7 +410,6 @@ class FormTest extends \DrupalUnitTestCase {
         '#size' => 6,
         '#title' => 'Weight',
         '#default_value' => 0,
-        '#parents' => ['weight'],
       ),
       'placeholder' => array(
         '#type' => 'textfield',
