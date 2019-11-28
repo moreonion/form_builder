@@ -350,7 +350,6 @@ class FormTest extends \DrupalUnitTestCase {
         '#title' => 'Default value',
         '#default_value' => 'textfield1',
         '#weight' => 1,
-        '#parents' => ['value'],
       ),
       'description' => array(
         '#title' => 'Description',
