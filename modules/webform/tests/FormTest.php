@@ -257,7 +257,6 @@ class FormTest extends \DrupalUnitTestCase {
         '#element_validate' => array(
           0 => 'form_validate_integer',
         ),
-        '#parents' => ['extra', 'size'],
       ),
       'maxlength' => array(
         '#form_builder' => array(
