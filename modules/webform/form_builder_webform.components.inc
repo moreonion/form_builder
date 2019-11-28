@@ -843,6 +843,8 @@ function _form_builder_webform_form_builder_map_textfield() {
       ),
       'maxlength' => array(
         'storage_parents' => array('extra', 'maxlength'),
+        'form_parents' => ['validation', 'maxlength'],
+        'class' => '\\Drupal\\form_builder_webform\\PropertyMaxlength',
       ),
       'field_prefix' => array(
         'storage_parents' => array('extra', 'field_prefix'),

@@ -227,9 +227,6 @@ function form_builder_webform_form_builder_properties($form_type) {
       'form' => 'form_builder_webform_property_markup_form',
       'submit' => array('form_builder_webform_property_markup_form_submit'),
     ),
-    'maxlength' => array(
-      'form' => 'form_builder_webform_property_maxlength_form',
-    ),
     'options' => array(
       'class' => PropertyOptions::class,
       'form' => 'form_builder_webform_property_options_form',

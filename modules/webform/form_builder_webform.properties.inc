@@ -165,27 +165,6 @@ function form_builder_webform_property_markup_form_submit(&$form, &$form_state) 
 }
 
 /**
- * Configuration form for the "maxlength" property.
- */
-function form_builder_webform_property_maxlength_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['maxlength'] = array(
-    '#form_builder' => array('property_group' => 'validation'),
-    '#type' => 'textfield',
-    '#size' => 6,
-    '#title' => t('Max length'),
-    '#default_value' => $component['extra']['maxlength'],
-    '#field_suffix' => ' ' . t('characters'),
-    '#weight' => 3,
-    '#maxlength' => 7,
-    '#element_validate' => array('form_validate_integer'),
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "size" property.
  */
 function form_builder_webform_property_size_form($component, $edit, &$form_state, $property) {
