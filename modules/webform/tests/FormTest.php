@@ -401,7 +401,6 @@ class FormTest extends \DrupalUnitTestCase {
         '#element_validate' => array(
           0 => 'form_builder_webform_property_key_form_validate',
         ),
-        '#parents' => ['form_key'],
       ),
       'weight' => array(
         '#form_builder' => array(
