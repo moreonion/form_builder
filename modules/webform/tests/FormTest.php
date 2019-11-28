@@ -243,7 +243,7 @@ class FormTest extends \DrupalUnitTestCase {
     $form_state = array();
     $element = $form->getElement('cid_2');
     $a = $element->configurationForm(array(), $form_state);
-    $this->assertEqual(array(
+    $expected = array(
       'size' => array(
         '#form_builder' => array(
           'property_group' => 'display',
@@ -447,7 +447,16 @@ class FormTest extends \DrupalUnitTestCase {
         '#form_builder' => array('property_group' => 'display'),
         '#parents' => ['extra', 'wrapper_classes'],
       ),
-    ), $a);
+    );
+    $expected_keys = array_keys($expected);
+    sort($expected_keys);
+    $actual_keys = array_keys($a);
+    sort($actual_keys);
+    $this->assertEqual($expected_keys, $actual_keys);
+    foreach (element_children($a) as $property) {
+      //echo "$property\n";
+      $this->assertEqual($expected[$property], $a[$property], 'Configuration form for ' . $property);
+    }
 
     // Render the configuration form of a grid component.
     $element = $form->getElement('cid_4');
