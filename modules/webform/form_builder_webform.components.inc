@@ -940,7 +940,7 @@ function _form_builder_webform_mapped_form($component, $edit, &$form_state, $pro
   if ($component_type = $component['type']) {
     if ($map = _form_builder_webform_property_map($component_type)) {
       $property_group = isset($map['properties'][$property]['property_group']) ? $map['properties'][$property]['property_group'] : reset($map['properties'][$property]['form_parents']);
-      $form = _form_builder_webform_build_edit_form($component, $edit, $property, $property_group, $map['properties'][$property]['form_parents']);
+      $form = _form_builder_webform_build_edit_form($component, $edit, $property, $map['properties'][$property]);
     }
   }
   return $form;
@@ -999,23 +999,25 @@ function _form_builder_webform_default($component_type, $merge_extras = array(),
  *   The property of $element which stores the state of portions of the webform
  *   component that this form is responsible for configuring. The property
  *   should be passed in without the leading "#".
- * @param $form_builder_property_group
- *   The Form Builder property group in which this configuration form should be
- *   displayed.
- * @param $form_nested_keys
- *   An array of nested keys representing the location of the subcomponent of
- *   the _webform_edit_[component]() form that this configuration form will be
- *   taken from. For example, if the part of the configuration form we are
- *   interested in is located in $form['display']['width'], where $form is the
- *   output of _webform_edit_[component](), we would pass
- *   array('display', 'width') in for this parameter.
+ * @param array $map
+ *   The mapping data for this webform component. Including:
+ *   - form_parents: An array of nested keys representing the location of the
+ *     subcomponent of the _webform_edit_[component]() form that this
+ *     configuration form will be taken from. For example ['display', 'with'] to
+ *     get $form['display']['with'] fromm _webform_edit_[component]().
+ *   - property_group: Controls in which tab of the configuration form the
+ *     property will be shown.
+ *   - weight: Override the #weight of the property form element.
  *
  * @return
  *   A form array that can be used to edit the specified part of the webform
  *   component represented by $element.
  */
-function _form_builder_webform_build_edit_form($component, $edit, $property, $form_builder_property_group, $form_nested_keys) {
-  $form = drupal_array_get_nested_value($edit, $form_nested_keys);
+function _form_builder_webform_build_edit_form($component, $edit, $property, array $map) {
+  $map += [
+    'property_group' => reset($map['form_parents']),
+  ];
+  $form = drupal_array_get_nested_value($edit, $map['form_parents']);
 
   // Force the form to have a consistent #tree structure so it will appear in
   // $form_state['values'] the way we want.
@@ -1023,8 +1025,13 @@ function _form_builder_webform_build_edit_form($component, $edit, $property, $fo
 
   // Indicate the Form Builder property group that this form will be displayed
   // in.
-  if ($form_builder_property_group) {
-    $form['#form_builder']['property_group'] = $form_builder_property_group;
+  if (!empty($map['property_group'])) {
+    $form['#form_builder']['property_group'] = $map['property_group'];
+  }
+
+  // Allow overriding the weight via the map.
+  if (isset($map['weight'])) {
+    $form['#weight'] = $map['weight'];
   }
 
   // Return the form, keyed by the name of the property that is being

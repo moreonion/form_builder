@@ -315,7 +315,7 @@ class FormTest extends \DrupalUnitTestCase {
           'inline' => 'Inline',
           'none' => 'None',
         ),
-        '#weight' => 8,
+        '#weight' => -10,
         '#form_builder' => array(
           'property_group' => 'display',
         ),
