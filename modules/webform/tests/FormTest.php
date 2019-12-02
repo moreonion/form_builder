@@ -229,50 +229,6 @@ class FormTest extends \DrupalUnitTestCase {
     $element = $form->getElement('cid_2');
     $a = $element->configurationForm(array(), $form_state);
     $this->assertEqual(array(
-      '#_edit_element' => array(
-        '#webform_component' => array(
-          'nid' => (int) $node->nid,
-          'cid' => '2',
-          'pid' => '0',
-          'form_key' => 'textfield1',
-          'name' => 'textfield1',
-          'type' => 'textfield',
-          'value' => 'textfield1',
-          'extra' => array(
-            'title_display' => 'before',
-            'private' => 0,
-            'disabled' => 1,
-            'unique' => 0,
-            'conditional_operator' => '=',
-            'width' => '4',
-            'minlength' => '',
-            'maxlength' => '',
-            'field_prefix' => 'testprefix',
-            'field_suffix' => 'testpostfix',
-            'description' => '',
-            'description_above' => FALSE,
-            'attributes' => array(),
-            'conditional_component' => '',
-            'conditional_values' => '',
-            'placeholder' => '',
-            'analysis' => FALSE,
-          ),
-          'required' => '0',
-          'weight' => '1',
-          'page_num' => 1,
-        ),
-        '#weight' => '1',
-        '#key' => 'textfield1',
-        '#form_builder' => array(
-          'element_id' => 'cid_2',
-          'parent_id' => 0,
-          'element_type' => 'textfield',
-          'form_type' => 'webform',
-          'form_id' => $node->nid,
-          'configurable' => TRUE,
-          'removable' => TRUE,
-        ),
-      ),
       'size' => array(
         '#form_builder' => array(
           'property_group' => 'display',
@@ -337,6 +293,9 @@ class FormTest extends \DrupalUnitTestCase {
         '#description' => 'Check that all entered values for this field are unique. The same value is not allowed to be used twice.',
         '#type' => 'checkbox',
         '#default_value' => 0,
+        '#return_value' => 1,
+        '#weight' => 1,
+        '#parents' => ['extra', 'unique'],
       ),
       'title' => array(
         '#title' => 'Title',
@@ -348,19 +307,19 @@ class FormTest extends \DrupalUnitTestCase {
       ),
       'title_display' => array(
         '#type' => 'select',
-        '#title' => 'Title display',
+        '#title' => 'Label display',
+        '#description' => "Determines the placement of the component's label.",
         '#default_value' => 'before',
         '#options' => array(
-          'before' => 'Before',
-          'after' => 'After',
-          'invisible' => 'Invisible',
-          'attribute' => 'Attribute',
+          'before' => 'Above',
+          'inline' => 'Inline',
+          'none' => 'None',
         ),
-        '#weight' => -10,
+        '#weight' => 8,
         '#form_builder' => array(
           'property_group' => 'display',
         ),
-        '#required' => TRUE,
+        '#tree' => TRUE,
       ),
       'default_value' => array(
         '#type' => 'textfield',
@@ -419,7 +378,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#type' => 'textfield',
         '#size' => 6,
         '#title' => 'Weight',
-        '#default_value' => '1',
+        '#default_value' => 0,
       ),
       'placeholder' => array(
         '#type' => 'textfield',

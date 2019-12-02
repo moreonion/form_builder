@@ -222,9 +222,6 @@ function form_builder_webform_form_builder_properties($form_type) {
     'title' => array(
       'form' => 'form_builder_webform_property_title_form',
     ),
-    'title_display' => array(
-      'form' => 'form_builder_webform_property_title_display_form',
-    ),
     'description' => array(
       'form' => 'form_builder_webform_property_description_form',
     ),

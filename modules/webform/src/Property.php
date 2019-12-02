@@ -35,16 +35,13 @@ class Property extends PropertyBase {
    * @return array
    *   Form-API array that will be merged into the field configure form.
    */
-  public function form(&$form_state, $element) {
-    // We use the rendered element here to re-use the form-API functions.
-    $e = $element->render();
-    $e += array("#{$this->property}" => $this->getValue($e['#webform_component']));
+  public function form($component, $edit, &$form_state) {
     // Set weight to just anything. Element positions aren't configured in
     // this way in form_builder.
-    $e['#webform_component']['weight'] = 0;
+    $component['weight'] = 0;
     if (isset($this->params['form']) && function_exists($this->params['form'])) {
       $function = $this->params['form'];
-      return $function($form_state, $this->formTypeName, $e, $this->property);
+      return $function($component, $edit, $form_state, $this->property);
     }
     return array();
   }
