@@ -444,6 +444,7 @@ function _form_builder_webform_property_map($component_type) {
       $map['properties']['title_display'] = array(
         'form_parents' => array('display', 'title_display'),
         'storage_parents' => array('extra', 'title_display'),
+        'weight' => -10,
       );
     }
 
