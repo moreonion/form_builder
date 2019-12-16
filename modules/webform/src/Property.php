@@ -46,11 +46,4 @@ class Property extends PropertyBase {
     return array();
   }
 
-  /**
-   * Read the value from a component array.
-   */
-  public function getValue($component) {
-    return drupal_array_get_nested_value($component, $this->storageParents);
-  }
-
 }

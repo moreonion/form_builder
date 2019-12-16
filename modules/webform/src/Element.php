@@ -84,5 +84,48 @@ class Element extends ElementBase {
     return $form;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function configurationSubmit(&$form, &$form_state) {
+    // Allow each property to do any necessary submission handling.
+    foreach ($this->getProperties() as $property) {
+      $property->submit($form, $form_state);
+    }
+
+    $component = $form_state['values'];
+    // Remove extra values that match the default.
+    if (isset($component['extra'])) {
+      $default = array('type' => $component['type'], 'extra' => array());
+      webform_component_defaults($default);
+      foreach ($component['extra'] as $key => $value) {
+        if (isset($default['extra'][$key]) && $default['extra'][$key] === $value) {
+          unset($component['extra'][$key]);
+        }
+      }
+    }
+
+    // Remove empty attribute values.
+    if (isset($component['extra']['attributes'])) {
+      foreach ($component['extra']['attributes'] as $key => $value) {
+        if ($value === '') {
+          unset($component['extra']['attributes'][$key]);
+        }
+      }
+    }
+
+    // Allow modules to modify the component before saving.
+    foreach (module_implements('webform_component_presave') as $module) {
+      $function = $module . '_webform_component_presave';
+      $function($component);
+    }
+
+    $component['value'] = isset($component['value']) ? $component['value'] : NULL;
+    $component['required'] = isset($component['required']) ? $component['required'] : 0;
+    $component['extra']['private'] = isset($component['extra']['private']) ? $component['extra']['private'] : 0;
+
+    $this->element['#webform_component'] = $component + $this->element['#webform_component'];
+  }
+
 }
 
