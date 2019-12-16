@@ -292,10 +292,14 @@ function _form_builder_webform_form_builder_map_grid() {
         'storage_parents' => array('extra', 'custom_question_keys'),
       ),
       'grid_options' => array(
-        'storage_parents' => array('extra', 'options'),
+        'storage_parents' => ['extra', 'options'],
+        'form_parents' => ['options'],
+        'property_group' => 'options',
       ),
       'grid_questions' => array(
-        'storage_parents' => array('extra', 'questions'),
+        'storage_parents' => ['extra', 'questions'],
+        'form_parents' => ['questions'],
+        'property_group' => 'options',
       ),
       'optrand' => array(
         'form_parents' => array('display', 'optrand'),
@@ -318,33 +322,15 @@ function _form_builder_webform_form_builder_map_grid() {
 function _form_builder_webform_form_builder_properties_grid() {
   return array(
     'grid_options' => array(
-      'form' => 'form_builder_webform_property_grid_options_form',
       'submit' => array('form_builder_webform_property_grid_form_submit'),
     ),
     'grid_questions' => array(
-      'form' => 'form_builder_webform_property_grid_questions_form',
       'submit' => array('form_builder_webform_property_grid_form_submit'),
     ),
     'unique' => array(
       'form' => 'form_builder_webform_property_unique_form',
     ),
   );
-}
-
-/**
- * Configuration form for the "grid_options" property.
- */
-function form_builder_webform_property_grid_options_form($component, $edit, &$form_state) {
-  $form = _form_builder_webform_build_edit_form($component, $edit, 'grid_options', 'options', array('options'));
-  return $form;
-}
-
-/**
- * Configuration form for the "grid_questions" property.
- */
-function form_builder_webform_property_grid_questions_form($component, $edit, &$form_state) {
-  $form = _form_builder_webform_build_edit_form($component, $edit, 'grid_questions', 'options', array('questions'));
-  return $form;
 }
 
 /**
