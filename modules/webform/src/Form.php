@@ -22,8 +22,8 @@ class Form extends FormBase {
   }
 
   protected static function addFirstPagebreak($node, $components) {
-    // Only do this if using webform4 or webform_steps_w3.
-    if (array_key_exists('progressbar_label_first', $node->webform)) {
+    // Only do this if pagebreak components are enabled.
+    if (array_key_exists('pagebreak', webform_components())) {
       $first = reset($components);
       if ($first['type'] != 'pagebreak') {
         $form_keys = array();
