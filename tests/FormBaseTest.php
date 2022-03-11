@@ -16,7 +16,7 @@ class FormBaseTest extends \DrupalUnitTestCase {
     return new FormBase('webform', 'test', NULL, array(), array(), NULL);
   }
 
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
     FormBase::purge(0);
     Loader::instance()->fromCache(NULL, NULL, NULL, TRUE);
