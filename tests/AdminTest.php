@@ -7,7 +7,7 @@ class AdminTest extends \DrupalUnitTestCase {
   /**
    * Prepare test objects and load includes.
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
     $this->form = new FormBase('webform', 'test', NULL, array(), array(), NULL);
     $this->form->save();
@@ -18,7 +18,7 @@ class AdminTest extends \DrupalUnitTestCase {
   /**
    * Purge data stored to the form cache during the tests.
    */
-  public function tearDown() {
+  public function tearDown(): void {
     parent::tearDown();
     FormBase::purge(0);
     Loader::instance()->fromCache(NULL, NULL, NULL, TRUE);

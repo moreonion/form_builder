@@ -1,0 +1,58 @@
+on:
+  push:
+    branches: [ 7.x-2.x ]
+  pull_request:
+    branches: [ 7.x-2.x ]
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        php-versions: ["7.3", "7.4"]
+    name: phpunit on PHP ${{ matrix.php-versions }}
+    env:
+      DB_DATABASE: drupal
+      DB_USER: root
+      DB_PASSWORD: root
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup PHP ${{ matrix.php-versions }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+    - name: Start MySQL
+      run: |
+        sudo systemctl start mysql
+        mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+    - name: Set env
+      run: |
+        echo "REPO=`pwd`" >> $GITHUB_ENV
+        echo "COMPOSER_HOME=${HOME}/.config/composer" >> $GITHUB_ENV
+        echo "ROOT=${HOME}/drupal-root" >> $GITHUB_ENV
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      run: |
+        echo "::set-output name=dir::$(composer config cache-files-dir)"
+    - uses: actions/cache@v2
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-
+        restore-keys: |
+          ${{ runner.os }}-composer-
+    - name: Install composer packages
+      run: |
+        mkdir -p $COMPOSER_HOME
+        cd $COMPOSER_HOME
+        composer require drush/drush:8.3.* phpunit/phpunit:^8 torotil/upal:2.0.0-RC1
+    - name: Bootstrap drupal
+      run: |
+        php -d sendmail_path=`which true` $COMPOSER_HOME/vendor/bin/drush.php --yes core-quick-drupal --core=drupal-7.82 --profile=testing --no-server --db-url=mysql://${{ env.DB_USER }}:${{ env.DB_PASSWORD }}@127.0.0.1:3306/${{ env.DB_DATABASE }} --root=$ROOT
+        ln -s $REPO $ROOT/sites/all/modules/module_under_test
+        cd $ROOT
+        curl https://www.drupal.org/files/issues/1891356-drupal_static_reset-on-module-changes-30-D7.patch | patch -p1
+        drush dl webform ctools options_element psr0
+        drush --yes pm-enable form_builder_webform form_builder_examples
+    - name: Run phpunit tests
+      run: UPAL_ROOT=$ROOT UPAL_WEB_URL=http://127.0.0.1 XDEBUG_MODE=coverage phpunit --bootstrap=$COMPOSER_HOME/vendor/torotil/upal/bootstrap.php --coverage-clover=coverage.xml .
+    - uses: codecov/codecov-action@v1
