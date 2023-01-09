@@ -107,6 +107,7 @@ function _form_builder_webform_form_builder_map_email() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
       'unique' => array(
         'storage_parents' => array('extra', 'unique'),
@@ -799,6 +800,7 @@ function _form_builder_webform_form_builder_map_textarea() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
     ),
   );
@@ -841,6 +843,8 @@ function _form_builder_webform_form_builder_map_textfield() {
       ),
       'maxlength' => array(
         'storage_parents' => array('extra', 'maxlength'),
+        'form_parents' => ['validation', 'maxlength'],
+        'class' => '\\Drupal\\form_builder_webform\\PropertyMaxlength',
       ),
       'field_prefix' => array(
         'storage_parents' => array('extra', 'field_prefix'),
@@ -850,6 +854,7 @@ function _form_builder_webform_form_builder_map_textfield() {
       ),
       'disabled' => array(
         'storage_parents' => array('extra', 'disabled'),
+        'form_parents' => ['display', 'disabled'],
       ),
       'unique' => array(
         'storage_parents' => array('extra', 'unique'),
@@ -1010,6 +1015,9 @@ function _form_builder_webform_mapped_form($component, $edit, &$form_state, $pro
   if (isset($map['weight'])) {
     $form['#weight'] = $map['weight'];
   }
+  // Set '#parents' in order for the data to end up in the right place in the
+  // submitted data — even when the actual form fields are moved around.
+  $form += ['#parents' => $form_nested_keys];
 
   // Return the form, keyed by the name of the property that is being
   // configured.
@@ -1028,7 +1036,6 @@ function _form_builder_webform_mapped_form($component, $edit, &$form_state, $pro
  *   The form array to modify.
  */
 function _form_builder_webform_force_tree(&$form) {
-  unset($form['#parents']);
   $form['#tree'] = TRUE;
   foreach (element_children($form) as $key) {
     _form_builder_webform_force_tree($form[$key]);

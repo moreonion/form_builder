@@ -244,7 +244,7 @@ class FormTest extends \DrupalUnitTestCase {
     $form_state = array();
     $element = $form->getElement('cid_2');
     $a = $element->configurationForm(array(), $form_state);
-    $this->assertEqual(array(
+    $expected = array(
       'size' => array(
         '#form_builder' => array(
           'property_group' => 'display',
@@ -264,15 +264,18 @@ class FormTest extends \DrupalUnitTestCase {
           'property_group' => 'validation',
         ),
         '#type' => 'textfield',
-        '#size' => 6,
-        '#title' => 'Max length',
+        '#size' => 5,
+        '#title' => 'Maxlength',
+        '#description' => 'Maximum length of the textfield value.',
         '#default_value' => '',
         '#field_suffix' => ' characters',
-        '#weight' => 3,
-        '#maxlength' => 7,
+        '#weight' => 2,
+        '#maxlength' => 10,
         '#element_validate' => array(
           0 => 'form_validate_integer',
         ),
+        '#parents' => ['extra', 'maxlength'],
+        '#tree' => TRUE,
       ),
       'field_prefix' => array(
         '#form_builder' => array(
@@ -296,10 +299,14 @@ class FormTest extends \DrupalUnitTestCase {
         '#form_builder' => array(
           'property_group' => 'display',
         ),
-        '#title' => 'Disabled (read-only)',
+        '#title' => 'Disabled',
+        '#description' => 'Make this field non-editable. Useful for displaying default value. Changeable via JavaScript or developer tools.',
         '#type' => 'checkbox',
         '#default_value' => TRUE,
-        '#weight' => 12,
+        '#weight' => 11,
+        '#return_value' => 1,
+        '#parents' => ['extra', 'disabled'],
+        '#tree' => TRUE,
       ),
       'unique' => array(
         '#form_builder' => array(
@@ -314,12 +321,15 @@ class FormTest extends \DrupalUnitTestCase {
         '#parents' => ['extra', 'unique'],
       ),
       'title' => array(
-        '#title' => 'Title',
+        '#title' => 'Label',
+        '#description' => 'This is used as a descriptive label when displaying this form element.',
         '#type' => 'textfield',
         '#default_value' => 'textfield1',
-        '#maxlength' => 255,
+        '#maxlength' => NULL,
         '#required' => TRUE,
         '#weight' => -10,
+        '#parents' => ['name'],
+        '#tree' => TRUE,
       ),
       'title_display' => array(
         '#type' => 'select',
@@ -336,18 +346,28 @@ class FormTest extends \DrupalUnitTestCase {
           'property_group' => 'display',
         ),
         '#tree' => TRUE,
+        '#required' => TRUE,
+        '#parents' => ['extra', 'title_display'],
       ),
       'default_value' => array(
         '#type' => 'textfield',
         '#title' => 'Default value',
         '#default_value' => 'textfield1',
-        '#weight' => 1,
+        '#weight' => 0,
+        '#description' => 'The default value of the field. <fieldset class="collapsible collapsed form-wrapper"><legend><span class="fieldset-legend">Token values</span></legend><div class="fieldset-wrapper"><p>This field supports dynamic token values. Common values might be [current-user:mail] or [node:title].</p><p>A full listing of tokens may be listed here by installing the <a href="http://drupal.org/project/token">Token module</a>.</p></div></fieldset>' . "\n",
+        '#size' => 60,
+        '#maxlength' => 1024,
+        '#tree' => TRUE,
+        '#parents' => ['value'],
       ),
       'description' => array(
         '#title' => 'Description',
+        '#description' => "A short description of the field used as help for the user when he/she uses the form. <fieldset class=\"collapsible collapsed form-wrapper\"><legend><span class=\"fieldset-legend\">Token values</span></legend><div class=\"fieldset-wrapper\"><p>This field supports dynamic token values. Common values might be [current-user:mail] or [node:title].</p><p>A full listing of tokens may be listed here by installing the <a href=\"http://drupal.org/project/token\">Token module</a>.</p></div></fieldset>\n",
         '#type' => 'textarea',
         '#default_value' => '',
         '#weight' => 5,
+        '#parents' => ['extra', 'description'],
+        '#tree' => TRUE,
       ),
       'webform_private' => array(
         '#type' => 'checkbox',
@@ -360,15 +380,19 @@ class FormTest extends \DrupalUnitTestCase {
         '#form_builder' => array(
           'property_group' => 'display',
         ),
+        '#parents' => ['extra', 'private'],
       ),
       'required' => array(
         '#form_builder' => array(
           'property_group' => 'validation',
         ),
         '#title' => 'Required',
+        '#description' => 'Check this option if the user must enter a value.',
         '#type' => 'checkbox',
-        '#default_value' => '0',
+        '#default_value' => FALSE,
         '#weight' => -1,
+        '#parents' => ['required'],
+        '#tree' => TRUE,
       ),
       'key' => array(
         '#title' => 'Form key',
@@ -404,6 +428,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 1,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'placeholder'],
       ),
       'css_classes' => array(
         '#type' => 'textfield',
@@ -413,6 +438,7 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 51,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'css_classes'],
       ),
       'wrapper_classes' => array(
         '#type' => 'textfield',
@@ -422,8 +448,18 @@ class FormTest extends \DrupalUnitTestCase {
         '#weight' => 50,
         '#tree' => true,
         '#form_builder' => array('property_group' => 'display'),
+        '#parents' => ['extra', 'wrapper_classes'],
       ),
-    ), $a);
+    );
+    $expected_keys = array_keys($expected);
+    sort($expected_keys);
+    $actual_keys = array_keys($a);
+    sort($actual_keys);
+    $this->assertEqual($expected_keys, $actual_keys);
+    foreach (element_children($a) as $property) {
+      //echo "$property\n";
+      $this->assertEqual($expected[$property], $a[$property], 'Configuration form for ' . $property);
+    }
 
     // Render the configuration form of a grid component.
     $element = $form->getElement('cid_4');

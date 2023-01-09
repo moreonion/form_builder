@@ -67,24 +67,6 @@ function _form_builder_webform_get_element_parent($form_obj, $element_id) {
 }
 
 /**
- * Configuration form for the "title" property.
- */
-function form_builder_webform_property_title_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['title'] = array(
-    '#title' => t('Title'),
-    '#type' => 'textfield',
-    '#default_value' => $component['name'],
-    '#maxlength' => 255,
-    '#required' => TRUE,
-    '#weight' => -10,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "weight" property.
  *
  * This field is in the "hidden" builder group, meaning it's never shown in
@@ -102,56 +84,6 @@ function form_builder_webform_property_weight_form($component, $edit, &$form_sta
       '#default_value' => $component['weight'],
     );
   }
-
-  return $form;
-}
-
-/**
- * Configuration form for the "description" property.
- */
-function form_builder_webform_property_description_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['description'] = array(
-    '#title' => t('Description'),
-    '#type' => 'textarea',
-    '#default_value' => $component['extra']['description'],
-    '#weight' => 5,
-  );
-
-  return $form;
-}
-
-/**
- * Configuration form for the "disabled" property.
- */
-function form_builder_webform_property_disabled_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['disabled'] = array(
-    '#form_builder' => array('property_group' => 'display'),
-    '#title' => t('Disabled (read-only)'),
-    '#type' => 'checkbox',
-    '#default_value' => $component['extra']['disabled'],
-    '#weight' => 12,
-  );
-
-  return $form;
-}
-
-/**
- * Configuration form for the "required" property.
- */
-function form_builder_webform_property_required_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['required'] = array(
-    '#form_builder' => array('property_group' => 'validation'),
-    '#title' => t('Required'),
-    '#type' => 'checkbox',
-    '#default_value' => $component['required'],
-    '#weight' => -1,
-  );
 
   return $form;
 }
@@ -202,25 +134,6 @@ function form_builder_webform_property_options_form_submit(&$form, &$form_state)
 }
 
 /**
- * Configuration form for the "default_value" property.
- */
-function form_builder_webform_property_default_value_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['default_value'] = array(
-    // Most fields have default values that can be stored on one line, so we
-    // use a textfield to configure their default value. Textareas are an
-    // exception, though.
-    '#type' => $component['type'] == 'textarea' ? 'textarea' : 'textfield',
-    '#title' => t('Default value'),
-    '#default_value' => $component['value'],
-    '#weight' => 1,
-  );
-
-  return $form;
-}
-
-/**
  * Configuration form for the "markup" property.
  */
 function form_builder_webform_property_markup_form($component, $edit, &$form_state, $property) {
@@ -249,27 +162,6 @@ function form_builder_webform_property_markup_form_submit(&$form, &$form_state) 
   $markup_array = $form_state['values']['markup'];
   $form_state['values']['markup'] = $markup_array['value'];
   $form_state['values']['format'] = $markup_array['format'];
-}
-
-/**
- * Configuration form for the "maxlength" property.
- */
-function form_builder_webform_property_maxlength_form($component, $edit, &$form_state, $property) {
-  $form = array();
-
-  $form['maxlength'] = array(
-    '#form_builder' => array('property_group' => 'validation'),
-    '#type' => 'textfield',
-    '#size' => 6,
-    '#title' => t('Max length'),
-    '#default_value' => $component['extra']['maxlength'],
-    '#field_suffix' => ' ' . t('characters'),
-    '#weight' => 3,
-    '#maxlength' => 7,
-    '#element_validate' => array('form_validate_integer'),
-  );
-
-  return $form;
 }
 
 /**
